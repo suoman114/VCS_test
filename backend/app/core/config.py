@@ -12,7 +12,16 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# CLAUDE.md §5: storage/ 는 backend/가 아니라 저장소 루트에 위치한다
+# (storage/logs/{test_case_id}/{run_id}/...). uvicorn/alembic이 backend/에서
+# 실행되든 repo 루트에서 실행되든 항상 같은 위치를 가리키도록, cwd에 의존하지
+# 않고 이 파일의 위치(backend/app/core/config.py) 기준 상대 경로로 계산한다.
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+_DEFAULT_STORAGE_DIR = _REPO_ROOT / "storage"
+_DEFAULT_DATABASE_URL = f"sqlite:///{_DEFAULT_STORAGE_DIR / 'db' / 'vcs_test.db'}"
 
 
 class Settings(BaseSettings):
@@ -34,12 +43,12 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
 
     # --- Database ---
-    # SQLite로 시작. PostgreSQL 전환 시 이 값만 교체하면 되도록
+    # SQLite로 시작. PostgreSQL 전환 시 DATABASE_URL 환경변수만 교체하면 되도록
     # core/database.py에서 SQLAlchemy 엔진 생성 로직을 URL 기반으로 추상화한다.
-    database_url: str = "sqlite:///./storage/db/vcs_test.db"
+    database_url: str = Field(default_factory=lambda: _DEFAULT_DATABASE_URL)
 
     # --- Storage ---
-    storage_dir: str = "storage"
+    storage_dir: str = Field(default_factory=lambda: str(_DEFAULT_STORAGE_DIR))
 
     # --- VCS SSH 접속 정보 (TBD: CLAUDE.md §13 - 인증 방식/네트워크 환경 미확정) ---
     vcs_ssh_host: str | None = None
