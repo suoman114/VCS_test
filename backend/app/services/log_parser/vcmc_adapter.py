@@ -38,7 +38,7 @@ from app.services.log_parser.base import LogAdapter, LogLine, ParsedEvent
 from app.services.log_parser.sip_common import parse_sip_first_line
 
 _MESSAGE_BLOCK_RE = re.compile(
-    r"^<message\s*\n(?P<attrs>.*?)\n>\s*\n<!\[CDATA\[\n(?P<content>.*?)\n\]\]>\s*\n</message>$",
+    r"^<message\s*\n(?P<attrs>.*?)\n>\s*\n<!\[CDATA\[(?P<content>.*?)\n\]\]>\s*\n</message>$",
     re.DOTALL,
 )
 _ATTR_RE = re.compile(r'(?P<key>[A-Za-z0-9_]+)="(?P<value>[^"]*)"')
