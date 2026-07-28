@@ -1,0 +1,36 @@
+# VoLTE 기본 호처리 시험 케이스 정의 예시
+# 스키마 소유: testcase-manager-agent (참고: backend/app/schemas/test_case.py)
+#
+# id를 생략하면 최초 import 시 서버가 UUID를 생성하고, 이 파일에 다시
+# 써넣는(export) 방식으로 DB<->YAML을 동기화한다 (아래 README 동기화 노트 참고).
+
+id: volte-basic-call-001
+name: "VoLTE 기본 호처리 - 정상 발신/응답/종료"
+category: volte
+test_type: basic_call
+description: >
+  단말 발신 -> VCS(vctp) 착신 처리 -> 200 OK -> ACK -> 통화 -> 정상 BYE
+  까지의 기본 흐름이 규격대로 동작하는지 확인한다.
+
+# VoLTE는 config_ref가 vctp에 적용할 설정 파일의 "관리 경로"(이 저장소 기준)를 가리킨다.
+# 실제 VCS 서버 내 목적지 경로/재기동 명령은 protocol_params에 둔다 (TBD: CLAUDE.md §13).
+config_ref: "configs/volte/basic_call_default.conf"
+
+protocol_params:
+  # TBD(CLAUDE.md §13): 실제 목적지 경로/재기동 명령/완료 판정 기준 확정 전까지의 placeholder.
+  dest_path: "/opt/vcs/conf/vctp.conf"
+  restart_cmd: "systemctl restart vctp"
+  vcs_log_paths:
+    - "/var/log/vcs/vctp.log"
+  wait_after_restart_sec: 5
+
+pass_criteria:
+  required_events:
+    - SIP_INVITE
+    - SIP_200OK
+    - SIP_ACK
+    - SIP_BYE
+  forbidden_patterns:
+    - "ERROR"
+    - "TIMEOUT"
+  max_duration_sec: 30

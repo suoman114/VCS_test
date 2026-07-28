@@ -8,3 +8,7 @@ pydantic-settings
 python-dotenv
 aiofiles
 websockets
+
+# --- test/dev dependencies ---
+pytest
+pytest-asyncio
