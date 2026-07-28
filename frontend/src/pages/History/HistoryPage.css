@@ -1,0 +1,86 @@
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0 4px;
+}
+
+.stat-card {
+  flex: 1;
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.stat-done .stat-value {
+  color: #16a34a;
+}
+
+.stat-failed .stat-value {
+  color: #dc2626;
+}
+
+.stat-progress .stat-value {
+  color: #2563eb;
+}
+
+.stats-note {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 12px;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.history-table .actions {
+  display: flex;
+  gap: 12px;
+}
+
+.empty-row {
+  text-align: center;
+  color: #6b7280;
+  padding: 24px 0;
+}
+
+.pagination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.page-error {
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}

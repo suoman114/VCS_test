@@ -12,9 +12,8 @@ SIPp 대상 IP/호 발생률 등)는 `config_ref`(대표 경로 1개) +
 성능/Abnormal 시험이 추가돼도 컬럼을 늘리지 않고 protocol_params 안에서
 확장할 수 있다.
 
-NOTE(backend-agent 공유 필요): `TestRun.test_case_id`는 다음 웨이브에서
-이 테이블(`test_cases`)의 `id` 컬럼(String(36))을 참조하는
-`ForeignKey("test_cases.id")`로 교체될 예정이다.
+`TestRun.test_case_id`는 이 테이블(`test_cases`)의 `id` 컬럼(String(36))을
+참조하는 `ForeignKey("test_cases.id")`이다 (Wave 3에서 적용됨).
 """
 from __future__ import annotations
 

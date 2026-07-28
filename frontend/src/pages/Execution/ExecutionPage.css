@@ -1,0 +1,40 @@
+.execution-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.execution-page .page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.run-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.result-summary pre {
+  background: #f3f4f6;
+  padding: 8px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.execution-links {
+  display: flex;
+  gap: 16px;
+}
+
+.page-error {
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 8px 12px;
+  border-radius: 6px;
+}

@@ -71,6 +71,14 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     @property
+    def repo_root_path(self) -> Path:
+        """저장소 루트 경로. `TestCase.config_ref`(예: `configs/volte/*.conf`,
+        `scenarios/sipp/*.xml`)처럼 저장소 루트 기준 상대 경로로 저장된 값을
+        실행기(volte/mcptt executor)가 로컬 절대 경로로 해석할 때 사용한다.
+        """
+        return _REPO_ROOT
+
+    @property
     def storage_path(self) -> Path:
         return Path(self.storage_dir)
 

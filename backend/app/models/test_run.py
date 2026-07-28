@@ -1,10 +1,8 @@
 """TestRun 모델 (CLAUDE.md §6).
 
-NOTE(FK 미확정): test_case_id는 testcase-manager-agent가 추가할
-`test_cases.id`를 참조할 예정이다. 그 모델이 merge되기 전까지는 순수
-문자열 컬럼(느슨한 참조)으로 두고, merge 후 아래 컬럼 정의를
-`ForeignKey("test_cases.id")`로 교체한다. 지금 임의로 test_cases 테이블을
-만들지 않는다 (해당 모델은 testcase-manager-agent 담당).
+`test_case_id`는 testcase-manager-agent가 merge한 `test_cases.id`
+(String(36))를 참조하는 실제 `ForeignKey("test_cases.id")`이다 (Wave 3에서
+느슨한 String(64) 컬럼에서 교체됨).
 """
 from __future__ import annotations
 
@@ -12,7 +10,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum as SAEnum, String, Text
+from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -29,12 +27,18 @@ def _utcnow() -> datetime:
 class TestRunStatus(str, enum.Enum):
     """Job Runner가 관리하는 실행 라이프사이클 상태 (CLAUDE.md §3.3).
 
-    NOTE: CLAUDE.md §6 데이터 모델 초안에는 완료 상태가 `passed`로도
-    언급되어 있으나(§3.3에서는 `done`), 이 구현에서는 `DONE`을 "실행이
-    끝남"이라는 라이프사이클 의미로 쓰고, 실제 Pass/Fail 판정은
-    log-parser-callflow-agent가 계산해 `result_summary`에 담는다.
-    테스트케이스/판정 스키마 확정 시 testcase-manager-agent와 조율해
-    용어를 통일한다.
+    Wave 3에서 VoLTE/McPTT Executor를 조립하며 아래처럼 의미를 확정했다
+    (테스트케이스/판정 스키마 확정 시 testcase-manager-agent와 재조율 가능):
+
+    - `DONE`: 실행이 끝났고 `evaluate_pass_fail()` 결과 Pass. 즉 CLAUDE.md
+      §6 초안의 `passed`에 해당한다.
+    - `FAILED`: 실행은 끝났지만(로그 수집/파싱 자체는 성공) Pass 조건을
+      만족하지 못함(criteria 불충족 또는 판정 타임아웃 포함).
+    - `ERROR`: 실행 인프라 자체가 실패(SSH 연결 실패, SIPp 실행 실패, 예외
+      등). `job_runner._run_wrapper`가 unhandled exception을 여기로 수렴시킨다.
+
+    `result_summary`(JSON 문자열)에 `passed`/`reasons`/`timed_out`/
+    `event_count` 등 판정 근거 요약을 담는다 (원본 로그는 절대 담지 않음).
     """
 
     PENDING = "pending"
@@ -50,8 +54,9 @@ class TestRun(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid4_str)
 
-    # 느슨한 참조: 실제 FK 제약은 test_cases 테이블 merge 후 추가.
-    test_case_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    test_case_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("test_cases.id"), index=True, nullable=False
+    )
 
     status: Mapped[TestRunStatus] = mapped_column(
         SAEnum(TestRunStatus, native_enum=False, length=16),

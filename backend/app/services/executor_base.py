@@ -4,8 +4,8 @@
 (basic_call/performance/abnormal)은 별도 축이다. 실행기는 항상
 `(protocol, test_type)` 조합으로 조회한다.
 
-다음 웨이브에서 VoLTE/McPTT 기본 호처리 실행기를 아래처럼 등록한다
-(예시, 아직 구현하지 않음):
+VoLTE/McPTT 기본 호처리 실행기는 아래처럼 등록되어 있다
+(`app/services/volte/executor.py`, `app/services/mcptt/executor.py` 참고):
 
     @executor_registry.register(protocol="volte", test_type="basic_call")
     class VolteBasicCallExecutor(TestExecutor):
@@ -19,7 +19,11 @@
     from app.services.executor_base import TestExecutor, TestCaseLike, executor_registry
 
     executor_cls = executor_registry.get(test_case.category, test_case.test_type)
-    executor = executor_cls()
+    # run_id는 호출자(app.api.test_runs)가 미리 생성한 TestRun.id를 그대로 넘긴다.
+    # (인터페이스 자체는 CLAUDE.md §7이 요구하는 `run(test_case) -> TestRun` 그대로
+    # 유지하고, run_id는 생성자로 주입한다 — registry.create()의 *args/**kwargs가
+    # 이 용도로 이미 예약되어 있었다.)
+    executor = executor_registry.create(test_case.category, test_case.test_type, run_id=test_run.id)
     test_run = await executor.run(test_case)
 """
 from __future__ import annotations
@@ -44,10 +48,20 @@ class TestCaseLike(Protocol):
 
 
 class TestExecutor(ABC):
-    """모든 시험 실행기가 구현해야 하는 공통 인터페이스."""
+    """모든 시험 실행기가 구현해야 하는 공통 인터페이스.
+
+    `run(test_case) -> TestRun` 시그니처 자체는 CLAUDE.md §7이 요구하는 그대로
+    유지한다. 다만 어떤 TestRun(run_id)에 대해 실행하는지는 생성자로
+    주입한다 — 호출자(`app.api.test_runs`)가 TestRun 레코드를 먼저 생성해
+    즉시 클라이언트에 반환(`status=pending`)한 뒤, 그 `run_id`로 실행기를
+    생성하고 `job_runner.submit(run_id, ...)`으로 백그라운드 실행한다.
+    """
 
     protocol: str
     test_type: str
+
+    def __init__(self, run_id: str) -> None:
+        self.run_id = run_id
 
     @abstractmethod
     async def run(self, test_case: TestCaseLike) -> TestRun:

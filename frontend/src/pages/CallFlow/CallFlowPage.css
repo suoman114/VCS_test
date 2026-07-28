@@ -1,0 +1,46 @@
+.call-flow-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.call-flow-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.call-flow-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.mermaid-source {
+  background: #f3f4f6;
+  padding: 8px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+}
+
+.mermaid-container {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.mermaid-error {
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.page-error {
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
