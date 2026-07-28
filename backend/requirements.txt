@@ -12,3 +12,4 @@ websockets
 # --- test/dev dependencies ---
 pytest
 pytest-asyncio
+httpx  # backend/tests/integration에서 ASGITransport 기반 API 테스트에 사용

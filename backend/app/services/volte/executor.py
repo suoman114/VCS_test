@@ -113,7 +113,9 @@ class VolteBasicCallExecutor(TestExecutor):
                 CollectorSource(SshTailSource(name, path, target=target), channel="vcs_log")
                 for name, path in log_paths.items()
             ]
-            session = CollectorSession(run_id=run_id, test_case_id=test_case.id, sources=sources)
+            session = CollectorSession(
+                run_id=run_id, test_case_id=test_case.id, sources=sources, settings=self._settings
+            )
             await session.start()
 
             # 4. 완료(Pass) 또는 타임아웃까지 대기

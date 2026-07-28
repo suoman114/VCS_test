@@ -212,7 +212,9 @@ class McpttBasicCallExecutor(TestExecutor):
                 CollectorSource(SshTailSource(name, path, target=target), channel="vcs_log")
                 for name, path in log_paths.items()
             ]
-            session = CollectorSession(run_id=run_id, test_case_id=test_case.id, sources=sources)
+            session = CollectorSession(
+                run_id=run_id, test_case_id=test_case.id, sources=sources, settings=self._settings
+            )
             await session.start()
 
             scenario_path = self._resolve_repo_path(test_case.config_ref)
