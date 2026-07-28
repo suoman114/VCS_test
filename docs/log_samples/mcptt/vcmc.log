@@ -1,0 +1,2251 @@
+[2026-07-28 16:23:40.034][DEBUG] [vcmc-UDPMessageChannelThread-4] UDPMessageChannel: processIncomingDataPacket : peerAddress = 192.168.7.65/5080 Length = 2603 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.041][INFO ] [vcmc-UDPMessageChannelThread-4] Setting SIPMessage peerPacketSource to: /192.168.7.65:5080 - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:23:40.045][INFO ] [vcmc-UDPMessageChannelThread-4] <message
+from="192.168.7.65:5080" 
+to="172.10.11.198:5060" 
+time="1785223420035"
+isSender="false" 
+transactionId="z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89" 
+callId="960e2eb1475c0fca01edff976528e956@192.168.7.65_1" 
+firstLine="INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0" 
+>
+<![CDATA[INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+To: <tel:+82585109100>
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+CSeq: 1 INVITE
+From: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+Contact: <sip:0.9.0.38658.9247.1...23046.288972.1.0@192.168.7.65:5080;session=0.8.0.38658.26034.0.12..23046.288968.1.0>;+g.3gpp.mcptt;g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt
+Require: timer
+Supported: timer
+Referred-By: <tel:+82585102956>
+Content-Type: multipart/mixed;boundary=mcptt
+Max-Forwards: 65
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Accept-Contact: *;+g.3gpp.icsi-ref="urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt";+g.3gpp.mcptt;require;explicit
+Session-Expires: 7200;refresher=uac
+P-Called-Party-ID: <tel:+82585109100>
+P-Asserted-Identity: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>,<tel:+82585102956>
+User-Agent: LTE-R/1.0 ST-TRCP/JI17 Device_Type/Android_Phone LTE-R
+Answer-Mode: Auto
+P-Associated-Dialog: ue=641058144379a7d35d7cf7202b1fc7d2,server=sip:0.8.0.38658.26034.0.12..23046.288968.1.@111.250.1.76:5080
+P-MCPTT-MRFP-INFO: ContextId=9157;ptt/func=CF;ptt/ip=111.250.1.76;ptt/ipv=1;ptt/mcpttId=tel:+82585109100;ptt/port=5080;ptt/user=recorder;VepaId=0;TermId=Ephemeral_00018448
+Content-Length: 1104
+
+--mcptt
+Content-Type: application/vnd.3gpp.mcptt-info+xml
+Content-Length: 388
+
+<?xml version="1.0" encoding="UTF-8"?>
+<mcpttinfo xmlns="urn:3gpp:ns:mcpttInfo:1.0">
+  <mcptt-Params>
+    <session-type>prearranged</session-type>
+    <mcptt-request-uri>tel:+82585109100</mcptt-request-uri>
+    <mcptt-calling-user-id>tel:+82585102956</mcptt-calling-user-id>
+    <mcptt-calling-group-id>tel:+8298011990000</mcptt-calling-group-id>
+  </mcptt-Params>
+</mcpttinfo>
+
+--mcptt
+Content-Type: application/sdp
+Content-Length: 559
+
+v=0
+o=tel:+82585102956 1763437058 1763437058 IN IP4 192.168.2.154
+s=-
+c=IN IP4 192.168.2.154
+t=0 0
+m=audio 27154 RTP/AVP 98 110
+c=IN IP4 192.168.2.154
+b=AS:49
+b=RS:0
+b=RR:0
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 octet-align=1
+a=rtpmap:110 EVS/16000/1
+a=fmtp:110 br=9.6-24.4; bw=nb-swb
+a=ptime:20
+a=maxptime:20
+a=label:audio
+a=ssrc:20548 cname:sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org
+a=sendrecv
+m=application 27158 UDP MCPTT
+c=IN IP4 192.168.2.154
+b=AS:4
+a=floorid:0 mstrm:audio
+a=fmtp:MCPTT mc_queueing;mc_priority=5
+
+--mcptt
+]]>
+</message>
+ - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:23:40.045][DEBUG] [vcmc-UDPMessageChannelThread-4] looking for pending tx for :z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.046][DEBUG] [vcmc-UDPMessageChannelThread-4] disableTimeoutTimer lib.java.handler.sip.stack.SIPServerTransactionImpl@ffffffff - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.046][DEBUG] [vcmc-UDPMessageChannelThread-4] Creating Server Transactionnull - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.046][DEBUG] [vcmc-UDPMessageChannelThread-4] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPServerTransactionImpl.java:415][SIPTransactionStack.java:1748][SIPTransactionStack.java:1517][UDPMessageChannel.java:486][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.047][DEBUG] [vcmc-UDPMessageChannelThread-4] Setting Branch id : z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.047][DEBUG] [vcmc-UDPMessageChannelThread-4] newSIPServerRequest( INVITE:z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89):lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.047][DEBUG] [vcmc-UDPMessageChannelThread-4] Returning request interface for INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ lib.java.handler.sip.DialogFilter@77ac3a4 sipTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.047][DEBUG] [vcmc-UDPMessageChannelThread-4] acquireSem [[[[lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.047][DEBUG] [vcmc-UDPMessageChannelThread-4] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1228][SIPTransactionStack.java:1542][UDPMessageChannel.java:486][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.048][DEBUG] [vcmc-UDPMessageChannelThread-4] acquireSem() returning : true - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.048][DEBUG] [vcmc-UDPMessageChannelThread-4] About to process INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+/lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.048][DEBUG] [vcmc-UDPMessageChannelThread-4] processRequest: INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.048][DEBUG] [vcmc-UDPMessageChannelThread-4] tx state = -1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.048][DEBUG] [vcmc-UDPMessageChannelThread-4] Setting Branch id : z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.048][DEBUG] [vcmc-UDPMessageChannelThread-4] Transaction:setState 1 lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a branchID = z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89 isClient = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.048][DEBUG] [vcmc-UDPMessageChannelThread-4] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:528][SIPServerTransactionImpl.java:1459][SIPServerTransactionImpl.java:617][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.049][DEBUG] [vcmc-UDPMessageChannelThread-4] setPassToListener() - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.049][DEBUG] [vcmc-UDPMessageChannelThread-4] PROCESSING INCOMING REQUEST INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+To: <tel:+82585109100>
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+CSeq: 1 INVITE
+From: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+Contact: <sip:0.9.0.38658.9247.1...23046.288972.1.0@192.168.7.65:5080;session=0.8.0.38658.26034.0.12..23046.288968.1.0>;+g.3gpp.mcptt;g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt
+Require: timer
+Supported: timer
+Referred-By: <tel:+82585102956>
+Content-Type: multipart/mixed;boundary=mcptt
+Max-Forwards: 65
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Accept-Contact: *;+g.3gpp.icsi-ref="urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt";+g.3gpp.mcptt;require;explicit
+Session-Expires: 7200;refresher=uac
+P-Called-Party-ID: <tel:+82585109100>
+P-Asserted-Identity: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>,<tel:+82585102956>
+User-Agent: LTE-R/1.0 ST-TRCP/JI17 Device_Type/Android_Phone LTE-R
+Answer-Mode: Auto
+P-Associated-Dialog: ue=641058144379a7d35d7cf7202b1fc7d2,server=sip:0.8.0.38658.26034.0.12..23046.288968.1.@111.250.1.76:5080
+P-MCPTT-MRFP-INFO: ContextId=9157;ptt/func=CF;ptt/ip=111.250.1.76;ptt/ipv=1;ptt/mcpttId=tel:+82585109100;ptt/port=5080;ptt/user=recorder;VepaId=0;TermId=Ephemeral_00018448
+Content-Length: 1104
+
+--mcptt
+Content-Type: application/vnd.3gpp.mcptt-info+xml
+Content-Length: 388
+
+<?xml version="1.0" encoding="UTF-8"?>
+<mcpttinfo xmlns="urn:3gpp:ns:mcpttInfo:1.0">
+  <mcptt-Params>
+    <session-type>prearranged</session-type>
+    <mcptt-request-uri>tel:+82585109100</mcptt-request-uri>
+    <mcptt-calling-user-id>tel:+82585102956</mcptt-calling-user-id>
+    <mcptt-calling-group-id>tel:+8298011990000</mcptt-calling-group-id>
+  </mcptt-Params>
+</mcpttinfo>
+
+--mcptt
+Content-Type: application/sdp
+Content-Length: 559
+
+v=0
+o=tel:+82585102956 1763437058 1763437058 IN IP4 192.168.2.154
+s=-
+c=IN IP4 192.168.2.154
+t=0 0
+m=audio 27154 RTP/AVP 98 110
+c=IN IP4 192.168.2.154
+b=AS:49
+b=RS:0
+b=RR:0
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 octet-align=1
+a=rtpmap:110 EVS/16000/1
+a=fmtp:110 br=9.6-24.4; bw=nb-swb
+a=ptime:20
+a=maxptime:20
+a=label:audio
+a=ssrc:20548 cname:sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org
+a=sendrecv
+m=application 27158 UDP MCPTT
+c=IN IP4 192.168.2.154
+b=AS:4
+a=floorid:0 mstrm:audio
+a=fmtp:MCPTT mc_queueing;mc_priority=5
+
+--mcptt
+ transactionChannel = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a listening point = 172.10.11.198:5060 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.049][DEBUG] [vcmc-UDPMessageChannelThread-4] transaction state = Proceeding Transaction - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.049][DEBUG] [vcmc-UDPMessageChannelThread-4] getDialog(960e2eb1475c0fca01edff976528e956@192.168.7.65_1:uastag) : returning null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.050][DEBUG] [vcmc-UDPMessageChannelThread-4] dialogId = 960e2eb1475c0fca01edff976528e956@192.168.7.65_1:uastag - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.050][DEBUG] [vcmc-UDPMessageChannelThread-4] dialog = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.050][DEBUG] [vcmc-UDPMessageChannelThread-4] CHECK FOR OUT OF SEQ MESSAGE null transaction lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.050][DEBUG] [vcmc-UDPMessageChannelThread-4] INVITE transaction.isMapped = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.050][DEBUG] [vcmc-UDPMessageChannelThread-4] handleEvent lib.java.handler.sip.RequestEventExt[source=lib.java.handler.sip.SipProviderImpl@5f058f00]currentTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2athis.sipListener = media.platform.vcmc.core.mcptt.sip.module.SipSignal@192d43cesipEvent.source = lib.java.handler.sip.SipProviderImpl@5f058f00 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.050][DEBUG] [vcmc-UDPMessageChannelThread-4] Dialog = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.051][DEBUG] [vcmc-UDPMessageChannelThread-4] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SipProviderImpl.java:105][DialogFilter.java:1251][SIPServerTransactionImpl.java:705][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.051][DEBUG] [vcmc-UDPMessageChannelThread-4] sipEvent = lib.java.handler.sip.RequestEventExt[source=lib.java.handler.sip.SipProviderImpl@5f058f00]source = lib.java.handler.sip.SipProviderImpl@5f058f00 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.051][DEBUG] [vcmc-UDPMessageChannelThread-4] deliverEvent : INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ transaction lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a sipEvent.serverTx = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.051][DEBUG] [vcmc-UDPMessageChannelThread-4] serverTx: looking for key z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 existing={} - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.051][DEBUG] [vcmc-UDPMessageChannelThread-4] findTransaction: returning  : null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.052][DEBUG] [vcmc-UDPMessageChannelThread-4] looking for pending tx for :z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.052][DEBUG] [vcmc-UDPMessageChannelThread-4] putPendingTransaction: lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.052][DEBUG] [vcmc-UDPMessageChannelThread-4] Calling listener INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.053][DEBUG] [vcmc-UDPMessageChannelThread-4] Calling listener lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.053][DEBUG] [vcmc-UDPMessageChannelThread-4] Done processing Message INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.053][DEBUG] [vcmc-UDPMessageChannelThread-4] Done processing Message INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.053][DEBUG] [vcmc-UDPMessageChannelThread-4] semRelease ]]]]lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.053][INFO ] [Thread-169] [SIP] INCOMING REQUEST [INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+To: <tel:+82585109100>
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+CSeq: 1 INVITE
+From: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+Contact: <sip:0.9.0.38658.9247.1...23046.288972.1.0@192.168.7.65:5080;session=0.8.0.38658.26034.0.12..23046.288968.1.0>;+g.3gpp.mcptt;g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt
+Require: timer
+Supported: timer
+Referred-By: <tel:+82585102956>
+Content-Type: multipart/mixed;boundary=mcptt
+Max-Forwards: 65
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Accept-Contact: *;+g.3gpp.icsi-ref="urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt";+g.3gpp.mcptt;require;explicit
+Session-Expires: 7200;refresher=uac
+P-Called-Party-ID: <tel:+82585109100>
+P-Asserted-Identity: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>,<tel:+82585102956>
+User-Agent: LTE-R/1.0 ST-TRCP/JI17 Device_Type/Android_Phone LTE-R
+Answer-Mode: Auto
+P-Associated-Dialog: ue=641058144379a7d35d7cf7202b1fc7d2,server=sip:0.8.0.38658.26034.0.12..23046.288968.1.@111.250.1.76:5080
+P-MCPTT-MRFP-INFO: ContextId=9157;ptt/func=CF;ptt/ip=111.250.1.76;ptt/ipv=1;ptt/mcpttId=tel:+82585109100;ptt/port=5080;ptt/user=recorder;VepaId=0;TermId=Ephemeral_00018448
+Content-Length: 1104
+
+--mcptt
+Content-Type: application/vnd.3gpp.mcptt-info+xml
+Content-Length: 388
+
+<?xml version="1.0" encoding="UTF-8"?>
+<mcpttinfo xmlns="urn:3gpp:ns:mcpttInfo:1.0">
+  <mcptt-Params>
+    <session-type>prearranged</session-type>
+    <mcptt-request-uri>tel:+82585109100</mcptt-request-uri>
+    <mcptt-calling-user-id>tel:+82585102956</mcptt-calling-user-id>
+    <mcptt-calling-group-id>tel:+8298011990000</mcptt-calling-group-id>
+  </mcptt-Params>
+</mcpttinfo>
+
+--mcptt
+Content-Type: application/sdp
+Content-Length: 559
+
+v=0
+o=tel:+82585102956 1763437058 1763437058 IN IP4 192.168.2.154
+s=-
+c=IN IP4 192.168.2.154
+t=0 0
+m=audio 27154 RTP/AVP 98 110
+c=IN IP4 192.168.2.154
+b=AS:49
+b=RS:0
+b=RR:0
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 octet-align=1
+a=rtpmap:110 EVS/16000/1
+a=fmtp:110 br=9.6-24.4; bw=nb-swb
+a=ptime:20
+a=maxptime:20
+a=label:audio
+a=ssrc:20548 cname:sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org
+a=sendrecv
+m=application 27158 UDP MCPTT
+c=IN IP4 192.168.2.154
+b=AS:4
+a=floorid:0 mstrm:audio
+a=fmtp:MCPTT mc_queueing;mc_priority=5
+
+--mcptt
+] - (SipIncoming.java:48)
+[2026-07-28 16:23:40.055][DEBUG] [Thread-169] serverTx: looking for key z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 existing={} - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.055][DEBUG] [Thread-169] findTransaction: returning  : null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.055][DEBUG] [Thread-169] added transaction lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.056][DEBUG] [Thread-169] scheduled timer for lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.056][DEBUG] [vcmc-UDPMessageChannelThread-4] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1263][SIPTransactionImpl.java:1250][SIPServerTransactionImpl.java:1800][EventScanner.java:224][EventScanner.java:97][SipProviderImpl.java:115][DialogFilter.java:1251][SIPServerTransactionImpl.java:705][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.056][DEBUG] [vcmc-UDPMessageChannelThread-4] removePendingTx: z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.056][DEBUG] [vcmc-UDPMessageChannelThread-4] semRelease ]]]]lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.056][DEBUG] [Thread-169] removePendingTx: z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.057][DEBUG] [vcmc-UDPMessageChannelThread-4] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1263][SIPTransactionImpl.java:1250][SIPServerTransactionImpl.java:1800][UDPMessageChannel.java:507][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.057][DEBUG] [Thread-169]  putTransactionHash :  key = z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.057][DEBUG] [vcmc-UDPMessageChannelThread-4] Done processing INVITE sip:+82585109100@172.10.11.198:5060 SIP/2.0
+/lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.057][DEBUG] [Thread-169] processInvite ServerTransaction [lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a] - (Incoming.java:34)
+[2026-07-28 16:23:40.059][DEBUG] [Thread-169] sipServerTransaction::sendMessage SIP/2.0 100 Trying
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.059][DEBUG] [Thread-169] Transaction:setState 2 lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a branchID = z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89 isClient = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.060][DEBUG] [Thread-169] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:528][SIPServerTransactionImpl.java:1459][SIPServerTransactionImpl.java:840][SIPServerTransactionImpl.java:801][SIPServerTransactionImpl.java:1403][Response.java:73][McpttResponse.java:17][Invite.java:61][Incoming.java:41][SipIncoming.java:51][SipIncoming.java:31][SipConsumer.java:47][SipConsumer.java:32][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.060][DEBUG] [Thread-169] sendMessage : tx = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a getState = Proceeding Transaction - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.060][DEBUG] [Thread-169] sipServerTransaction::sendResponse SIP/2.0 100 Trying
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.061][DEBUG] [Thread-169] Creating message channel 192.168.7.65/5080 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.062][DEBUG] [Thread-169] :sendMessage 192.168.7.65/5080
+ messageSize = 305 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.062][DEBUG] [Thread-169] sendMessage 192.168.7.65/5080
+SIP/2.0 100 Trying
+CSeq: 1 INVITE
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+From: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: <tel:+82585109100>
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Content-Length: 0
+
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.063][INFO ] [Thread-169] <message
+from="172.10.11.198:5060" 
+to="192.168.7.65:5080" 
+time="1785223420061"
+isSender="true" 
+transactionId="z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89" 
+callId="960e2eb1475c0fca01edff976528e956@192.168.7.65_1" 
+firstLine="SIP/2.0 100 Trying" 
+>
+<![CDATA[SIP/2.0 100 Trying
+CSeq: 1 INVITE
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+From: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: <tel:+82585109100>
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Content-Length: 0
+
+]]>
+</message>
+ - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:23:40.064][DEBUG] [Thread-169] TransactionTimer() : z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.065][INFO ] [Thread-169] [SIP] OUTGOING RESPONSE [SIP/2.0 100 Trying
+CSeq: 1 INVITE
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+From: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: <tel:+82585109100>
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Content-Length: 0
+
+] - (Response.java:74)
+[2026-07-28 16:23:40.066][INFO ] [Thread-169] [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] CallInfo is Created - (CallManager.java:53)
+[2026-07-28 16:23:40.066][INFO ] [Thread-169] [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] callConsumer is Created - (CallManager.java:133)
+[2026-07-28 16:23:40.067][DEBUG] [Thread-169] Invite setToUser [82585109100], fromUser [+82585102956] - (Invite.java:93)
+[2026-07-28 16:23:40.067][INFO ] [Thread-169] callConsumer set fro,Tag set data uasTag  - (Invite.java:104)
+[2026-07-28 16:23:40.068][DEBUG] [Thread-169] sipServerTransaction::sendMessage SIP/2.0 180 Ringing
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.068][DEBUG] [Thread-169] sendMessage : tx = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a getState = Proceeding Transaction - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.068][DEBUG] [Thread-169] sipServerTransaction::sendResponse SIP/2.0 180 Ringing
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.069][DEBUG] [Thread-169] Creating message channel 192.168.7.65/5080 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.069][DEBUG] [Thread-169] :sendMessage 192.168.7.65/5080
+ messageSize = 569 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.069][DEBUG] [Thread-169] sendMessage 192.168.7.65/5080
+SIP/2.0 180 Ringing
+CSeq: 1 INVITE
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+From: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: <tel:+82585109100>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Allow-Events: conference
+Accept: application/sdp/null
+User-Agent: uangel-sip-stack/1.0.0
+Content-Length: 0
+
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.070][INFO ] [Thread-169] <message
+from="172.10.11.198:5060" 
+to="192.168.7.65:5080" 
+time="1785223420069"
+isSender="true" 
+transactionId="z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89" 
+callId="960e2eb1475c0fca01edff976528e956@192.168.7.65_1" 
+firstLine="SIP/2.0 180 Ringing" 
+>
+<![CDATA[SIP/2.0 180 Ringing
+CSeq: 1 INVITE
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+From: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: <tel:+82585109100>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Allow-Events: conference
+Accept: application/sdp/null
+User-Agent: uangel-sip-stack/1.0.0
+Content-Length: 0
+
+]]>
+</message>
+ - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:23:40.071][INFO ] [Thread-169] [SIP] OUTGOING RESPONSE [SIP/2.0 180 Ringing
+CSeq: 1 INVITE
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+From: <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: <tel:+82585109100>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Allow-Events: conference
+Accept: application/sdp/null
+User-Agent: uangel-sip-stack/1.0.0
+Content-Length: 0
+
+] - (Response.java:74)
+[2026-07-28 16:23:40.071][INFO ] [Thread-169] New Invite CallState RINGING - (Invite.java:118)
+[2026-07-28 16:23:40.072][DEBUG] [Thread-169] InviteInfo Module ip is [ptt.humetro.mnc031.mcc450.3gppnetwork.org] - (RequestInfoModule.java:79)
+[2026-07-28 16:23:40.074][DEBUG] [Thread-169] Invite Request Sdp is [--mcptt
+Content-Type: application/vnd.3gpp.mcptt-info+xml
+Content-Length: 388
+
+<?xml version="1.0" encoding="UTF-8"?>
+<mcpttinfo xmlns="urn:3gpp:ns:mcpttInfo:1.0">
+  <mcptt-Params>
+    <session-type>prearranged</session-type>
+    <mcptt-request-uri>tel:+82585109100</mcptt-request-uri>
+    <mcptt-calling-user-id>tel:+82585102956</mcptt-calling-user-id>
+    <mcptt-calling-group-id>tel:+8298011990000</mcptt-calling-group-id>
+  </mcptt-Params>
+</mcpttinfo>
+
+--mcptt
+Content-Type: application/sdp
+Content-Length: 559
+
+v=0
+o=tel:+82585102956 1763437058 1763437058 IN IP4 192.168.2.154
+s=-
+c=IN IP4 192.168.2.154
+t=0 0
+m=audio 27154 RTP/AVP 98 110
+c=IN IP4 192.168.2.154
+b=AS:49
+b=RS:0
+b=RR:0
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 octet-align=1
+a=rtpmap:110 EVS/16000/1
+a=fmtp:110 br=9.6-24.4; bw=nb-swb
+a=ptime:20
+a=maxptime:20
+a=label:audio
+a=ssrc:20548 cname:sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org
+a=sendrecv
+m=application 27158 UDP MCPTT
+c=IN IP4 192.168.2.154
+b=AS:4
+a=floorid:0 mstrm:audio
+a=fmtp:MCPTT mc_queueing;mc_priority=5
+
+--mcptt
+] - (RequestInfoModule.java:84)
+[2026-07-28 16:23:40.078][DEBUG] [Thread-169] prearrangedToUser toUser is tel:+8298011990000 - (XmlParser.java:29)
+[2026-07-28 16:23:40.097][DEBUG] [Thread-169] TBL_PTTGROUP_INFO UserName is null - (HibernateCommandManager.java:56)
+[2026-07-28 16:23:40.098][DEBUG] [Thread-169] inviteSdpParsing sdp Stream <?xml version="1.0" encoding="UTF-8"?>
+<mcpttinfo xmlns="urn:3gpp:ns:mcpttInfo:1.0">
+  <mcptt-Params>
+    <session-type>prearranged</session-type>
+    <mcptt-request-uri>tel:+82585109100</mcptt-request-uri>
+    <mcptt-calling-user-id>tel:+82585102956</mcptt-calling-user-id>
+    <mcptt-calling-group-id>tel:+8298011990000</mcptt-calling-group-id>
+  </mcptt-Params>
+</mcpttinfo>
+, groupId: 98011990000, displayName: null - (SdpParser.java:101)
+[2026-07-28 16:23:40.098][INFO ] [Thread-169] inviteSdpCall getOutInputStream [v=0
+o=tel:+82585102956 1763437058 1763437058 IN IP4 192.168.2.154
+s=-
+c=IN IP4 192.168.2.154
+t=0 0
+m=audio 27154 RTP/AVP 98 110
+c=IN IP4 192.168.2.154
+b=AS:49
+b=RS:0
+b=RR:0
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 octet-align=1
+a=rtpmap:110 EVS/16000/1
+a=fmtp:110 br=9.6-24.4; bw=nb-swb
+a=ptime:20
+a=maxptime:20
+a=label:audio
+a=ssrc:20548 cname:sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org
+a=sendrecv
+m=application 27158 UDP MCPTT
+c=IN IP4 192.168.2.154
+b=AS:4
+a=floorid:0 mstrm:audio
+a=fmtp:MCPTT mc_queueing;mc_priority=5
+] - (SdpParser.java:82)
+[2026-07-28 16:23:40.122][INFO ] [Thread-169] TBL_CALL_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'CALLER_MDN='585102956'CALLEE_MDN='98011990000'CREATE_TIME='Tue Jul 28 16:23:40 KST 2026'END_TIME='null'DURATION_TIME='null'CALL_TYPE='그룹] - (HibernateSessionManager.java:60)
+[2026-07-28 16:23:40.123][DEBUG] [Thread-169] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblCallInfos Database Insert - (MariaDBSender.java:52)
+[2026-07-28 16:23:40.123][DEBUG] [Thread-169] getDialog(960e2eb1475c0fca01edff976528e956@192.168.7.65_1:uastag) : returning null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.123][DEBUG] [Thread-169] SipDialog.addTransaction() lib.java.handler.sip.stack.SIPDialog@21844816 transaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.124][DEBUG] [Thread-169] put Dialog lib.java.handler.sip.stack.SIPDialog@21844816 in serverDialogMerge table with Merge Dialog Id sip:+82585109100@172.10.11.198:5060:uasTag:CSeq: 1 INVITE
+:960e2eb1475c0fca01edff976528e956@192.168.7.65_1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.124][DEBUG] [Thread-169] firstTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.124][DEBUG] [Thread-169] firstTransactionIsServerTransaction = true - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.124][DEBUG] [Thread-169] firstTransactionSecure = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.124][DEBUG] [Thread-169] firstTransactionPort = 5060 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.124][DEBUG] [Thread-169] firstTransactionId = z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.124][DEBUG] [Thread-169] firstTransactionMethod = INVITE - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.124][DEBUG] [Thread-169] firstTransactionMergeId = sip:+82585109100@172.10.11.198:5060:uasTag:CSeq: 1 INVITE
+:960e2eb1475c0fca01edff976528e956@192.168.7.65_1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.125][DEBUG] [Thread-169] settingRemoteParty <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org> - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.125][DEBUG] [Thread-169] setRemoteSeqno lib.java.handler.sip.stack.SIPDialog@21844816/1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.125][DEBUG] [Thread-169] isBackToBackUserAgent = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.125][DEBUG] [Thread-169] SIPDialog::setLastTransaction:dialog= lib.java.handler.sip.stack.SIPDialog@21844816 lastTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.125][DEBUG] [Thread-169] Transaction Added lib.java.handler.sip.stack.SIPDialog@21844816null/uasTag - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.125][DEBUG] [Thread-169] TID = z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89/true - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.125][DEBUG] [Thread-169] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPDialog.java:1885][SIPDialog.java:678][SIPTransactionStack.java:788][SipProviderImpl.java:832][IncomingImpl.java:44][Invite.java:153][Invite.java:124][Incoming.java:41][SipIncoming.java:51][SipIncoming.java:31][SipConsumer.java:47][SipConsumer.java:32][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.126][DEBUG] [Thread-169] Creating a dialog : lib.java.handler.sip.stack.SIPDialog@21844816 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.126][DEBUG] [Thread-169] provider port = 5060 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.126][DEBUG] [Thread-169] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPDialog.java:684][SIPTransactionStack.java:788][SipProviderImpl.java:832][IncomingImpl.java:44][Invite.java:153][Invite.java:124][Incoming.java:41][SipIncoming.java:51][SipIncoming.java:31][SipConsumer.java:47][SipConsumer.java:32][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.126][DEBUG] [Thread-169] SipDialog.addTransaction() lib.java.handler.sip.stack.SIPDialog@21844816 transaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.126][DEBUG] [Thread-169] setRemoteSeqno lib.java.handler.sip.stack.SIPDialog@21844816/1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.126][DEBUG] [Thread-169] isBackToBackUserAgent = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.126][DEBUG] [Thread-169] SIPDialog::setLastTransaction:dialog= lib.java.handler.sip.stack.SIPDialog@21844816 lastTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.127][DEBUG] [Thread-169] Transaction Added lib.java.handler.sip.stack.SIPDialog@21844816null/uasTag - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.127][DEBUG] [Thread-169] TID = z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89/true - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.127][DEBUG] [Thread-169] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPDialog.java:1885][SipProviderImpl.java:834][IncomingImpl.java:44][Invite.java:153][Invite.java:124][Incoming.java:41][SipIncoming.java:51][SipIncoming.java:31][SipConsumer.java:47][SipConsumer.java:32][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.127][DEBUG] [Thread-169] setContact: dialogState: lib.java.handler.sip.stack.SIPDialog@21844816state = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.127][DEBUG] [Thread-169] Dialog.setRemoteTarget: <sip:0.9.0.38658.9247.1...23046.288972.1.0@192.168.7.65:5080;session=0.8.0.38658.26034.0.12..23046.288968.1.0> - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.128][DEBUG] [Thread-169] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPDialog.java:978][SIPDialog.java:1642][SipProviderImpl.java:835][IncomingImpl.java:44][Invite.java:153][Invite.java:124][Incoming.java:41][SipIncoming.java:51][SipIncoming.java:31][SipConsumer.java:47][SipConsumer.java:32][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.128][DEBUG] [Thread-169] route = sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.128][DEBUG] [Thread-169] setDialog lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a dialog = lib.java.handler.sip.stack.SIPDialog@21844816 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.129][DEBUG] [Thread-169] Insert RecordInfo FileName is [M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_+82585102956_162340128] - (RmqMessageSender.java:64)
+[2026-07-28 16:23:40.132][INFO ] [Thread-169] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_start_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "cf934a11-545b-4855-8bd3-87eeedef3a93",
+    "msgFrom": "VCMC",
+    "trxType": 1,
+    "reasonCode": 0
+  },
+  "body": {
+    "from_no": "+82585102956",
+    "to_no": "98011990000",
+    "outbound": 0,
+    "service_type": "MCPTT",
+    "record_time": "2026/07/28/16",
+    "caller_save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_+82585102956_162340128",
+    "caller_sdp": "v\u003d0\r\no\u003dtel:+82585102956 1763437058 1763437058 IN IP4 192.168.2.154\r\ns\u003d-\r\nc\u003dIN IP4 192.168.2.154\r\nt\u003d0 0\r\nm\u003daudio 27154 RTP/AVP 98 110\r\nc\u003dIN IP4 192.168.2.154\r\nb\u003dAS:49\r\nb\u003dRS:0\r\nb\u003dRR:0\r\na\u003drtpmap:98 AMR-WB/16000/1\r\na\u003dfmtp:98 octet-align\u003d1\r\na\u003drtpmap:110 EVS/16000/1\r\na\u003dfmtp:110 br\u003d9.6-24.4; bw\u003dnb-swb\r\na\u003dptime:20\r\na\u003dmaxptime:20\r\na\u003dlabel:audio\r\na\u003dssrc:20548 cname:sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org\r\na\u003dsendrecv\r\nm\u003dapplication 27158 UDP MCPTT\r\nc\u003dIN IP4 192.168.2.154\r\nb\u003dAS:4\r\na\u003dfloorid:0 mstrm:audio\r\na\u003dfmtp:MCPTT mc_queueing;mc_priority\u003d5\r\n\u0000"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:23:40.134][INFO ] [Thread-169] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordStartReq),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:23:40.193][INFO ] [pool-8-thread-6] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_start_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "cf934a11-545b-4855-8bd3-87eeedef3a93",
+    "msgFrom": "VCMM_0",
+    "trxType": 1,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "audio_extension": "pcap",
+    "sdp": "v\u003d0\r\no\u003d- 1785223420187 0 IN IP4 vcs.uangel.com\r\ns\u003d-\r\nc\u003dIN IP4 172.10.11.198\r\nt\u003d0 0\r\nm\u003daudio 30000 RTP/AVP 98\r\na\u003drtpmap:98 AMR-WB/16000/1\r\na\u003dfmtp:98 mode-set\u003d8; octet-align\u003d1\r\na\u003drecvonly\r\nm\u003dapplication 30004 UDP MCPTT\r\n"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:23:40.194][DEBUG] [Thread-165] RmqRecordStartRes reasonCode is [2000] - (RmqRecordStartRes.java:43)
+[2026-07-28 16:23:40.196][DEBUG] [Thread-165] TBL_CALL_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateSessionManager.java:110)
+[2026-07-28 16:23:40.201][DEBUG] [Thread-165] TBL_CALL_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'CALLER_MDN='585102956'CALLEE_MDN='98011990000'CREATE_TIME='2026-07-28 16:23:40.0'END_TIME='null'DURATION_TIME='null'CALL_TYPE='그룹] - (HibernateSessionManager.java:118)
+[2026-07-28 16:23:40.201][DEBUG] [Thread-165] audio exist - (RecordStartParser.java:38)
+[2026-07-28 16:23:40.224][DEBUG] [Thread-165] createCallIdHeader Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+ - (HeaderModule.java:65)
+[2026-07-28 16:23:40.224][DEBUG] [Thread-165] createCSeqHeader [CSeq: 1 INVITE
+] - (HeaderModule.java:184)
+[2026-07-28 16:23:40.224][DEBUG] [Thread-165] FromUser: +82585102956, FromIp: ptt.humetro.mnc031.mcc450.3gppnetwork.org, FromTag: uasTag, isToTelSIP:false, ToUser: 98011990000, ToIp: 192.168.7.65, ToTag: a6994a1 - (InviteOK.java:166)
+[2026-07-28 16:23:40.224][DEBUG] [Thread-165] createFromHeader From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+ - (HeaderModule.java:85)
+[2026-07-28 16:23:40.225][DEBUG] [Thread-165] createToHeader To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+ - (HeaderModule.java:115)
+[2026-07-28 16:23:40.225][DEBUG] [Thread-165] createMaxForwardsHeader Max-Forwards: 70
+ - (HeaderModule.java:196)
+[2026-07-28 16:23:40.228][DEBUG] [Thread-165] addResponseListHeader [SIP/2.0 200 OK
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 INVITE
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Allow: REGISTER,INVITE,ACK,BYE,REFER,NOTIFY,INFO,CANCEL,UPDATE,PRACK,MESSAGE,OPTIONS
+Supported: timer
+Allow-Events: conference
+Content-Disposition: session
+Require: timer
+User-Agent: uangel-sip-stack/1.0.0
+Answer-Mode: Auto
+Contact: <sip:+82585109100@172.10.11.198:5060>;+g.3gpp.mcptt;+g.3gpp.icsi-ref=urn0X0.07FFE1971E3P-1022urn-70X0.00000005236DP-10223gpp-service.ims.icsi.mcptt
+P-Associated-Dialog: server=sip:0.8.0.20738.24912.0...8454.354.1.@10.124.6.2:5060
+P-Preferred-Service: urn:urn-7:3gpp-service.ims.icsi.mcptt
+P-Preferred-Identity: "+82585102956" <sip:+82585102956@ptt.mnc035.mcc450.3gppnetwork.org>
+Accept-Contact: *;+g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt;+g.3gpp.mcptt;require;explicit
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Content-Length: 0
+
+] - (HeaderModule.java:234)
+[2026-07-28 16:23:40.229][DEBUG] [Thread-165] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPDialog.java:3204][SIPServerTransactionImpl.java:1375][InviteOK.java:94][RmqRecordStartRes.java:59][RmqConsumer.java:90][RmqConsumer.java:70][RmqConsumer.java:54][RmqConsumer.java:42][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.229][DEBUG] [Thread-165] sipDialog: setLastResponse:lib.java.handler.sip.stack.SIPDialog@21844816 lastResponse = 200 response SIP/2.0 200 OK
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 INVITE
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Allow: REGISTER,INVITE,ACK,BYE,REFER,NOTIFY,INFO,CANCEL,UPDATE,PRACK,MESSAGE,OPTIONS
+Supported: timer
+Allow-Events: conference
+Content-Disposition: session
+Require: timer
+User-Agent: uangel-sip-stack/1.0.0
+Answer-Mode: Auto
+Contact: <sip:+82585109100@172.10.11.198:5060>;+g.3gpp.mcptt;+g.3gpp.icsi-ref=urn0X0.07FFE1971E3P-1022urn-70X0.00000005236DP-10223gpp-service.ims.icsi.mcptt
+P-Associated-Dialog: server=sip:0.8.0.20738.24912.0...8454.354.1.@10.124.6.2:5060
+P-Preferred-Service: urn:urn-7:3gpp-service.ims.icsi.mcptt
+P-Preferred-Identity: "+82585102956" <sip:+82585102956@ptt.mnc035.mcc450.3gppnetwork.org>
+Accept-Contact: *;+g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt;+g.3gpp.mcptt;require;explicit
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Session-Expires: 7200;refresher=uac
+Content-Type: application/sdp
+Content-Length: 218
+
+v=0
+o=- 1785223420187 0 IN IP4 vcs.uangel.com
+s=-
+c=IN IP4 172.10.11.198
+t=0 0
+m=audio 30000 RTP/AVP 98
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 mode-set=8; octet-align=1
+a=recvonly
+m=application 30004 UDP MCPTT
+ topMostViaHeader Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.230][DEBUG] [Thread-165] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPDialog.java:3261][SIPServerTransactionImpl.java:1375][InviteOK.java:94][RmqRecordStartRes.java:59][RmqConsumer.java:90][RmqConsumer.java:70][RmqConsumer.java:54][RmqConsumer.java:42][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.230][DEBUG] [Thread-165] cseqMethod = INVITE - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.230][DEBUG] [Thread-165] dialogState = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.230][DEBUG] [Thread-165] method = INVITE - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.230][DEBUG] [Thread-165] statusCode = 200 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.230][DEBUG] [Thread-165] transaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.230][DEBUG] [Thread-165] set Local tag a6994a1 dialog = lib.java.handler.sip.stack.SIPDialog@21844816 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.231][DEBUG] [Thread-165] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPDialog.java:2087][SIPDialog.java:3458][SIPServerTransactionImpl.java:1375][InviteOK.java:94][RmqRecordStartRes.java:59][RmqConsumer.java:90][RmqConsumer.java:70][RmqConsumer.java:54][RmqConsumer.java:42][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.231][DEBUG] [Thread-165] SIPDialog::setState:Setting dialog state for lib.java.handler.sip.stack.SIPDialog@21844816newState = 1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.231][DEBUG] [Thread-165] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPDialog.java:1400][SIPDialog.java:3499][SIPServerTransactionImpl.java:1375][InviteOK.java:94][RmqRecordStartRes.java:59][RmqConsumer.java:90][RmqConsumer.java:70][RmqConsumer.java:54][RmqConsumer.java:42][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.231][DEBUG] [Thread-165] SIPDialog::setState:lib.java.handler.sip.stack.SIPDialog@21844816  old dialog state is null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.231][DEBUG] [Thread-165] SIPDialog::setState:lib.java.handler.sip.stack.SIPDialog@21844816  New dialog state is Confirmed Dialog - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.232][DEBUG] [Thread-165] setDialog lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a dialog = lib.java.handler.sip.stack.SIPDialog@21844816 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.232][DEBUG] [Thread-165] putDialog dialogId=960e2eb1475c0fca01edff976528e956@192.168.7.65_1:a6994a1:uastag dialog = lib.java.handler.sip.stack.SIPDialog@21844816 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.232][DEBUG] [Thread-165] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionStack.java:735][SIPDialog.java:3504][SIPServerTransactionImpl.java:1375][InviteOK.java:94][RmqRecordStartRes.java:59][RmqConsumer.java:90][RmqConsumer.java:70][RmqConsumer.java:54][RmqConsumer.java:42][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.232][DEBUG] [Thread-165] put Dialog lib.java.handler.sip.stack.SIPDialog@21844816 in serverDialogMerge table with Merge Dialog Id sip:+82585109100@172.10.11.198:5060:uasTag:CSeq: 1 INVITE
+:960e2eb1475c0fca01edff976528e956@192.168.7.65_1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.232][DEBUG] [Thread-165] sipServerTransaction::sendMessage SIP/2.0 200 OK
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.233][DEBUG] [Thread-165] disableTimeoutTimer lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.233][DEBUG] [Thread-165] Transaction:setState 5 lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a branchID = z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89 isClient = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.233][DEBUG] [Thread-165] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:528][SIPServerTransactionImpl.java:1459][SIPServerTransactionImpl.java:949][SIPServerTransactionImpl.java:801][SIPServerTransactionImpl.java:1403][InviteOK.java:94][RmqRecordStartRes.java:59][RmqConsumer.java:90][RmqConsumer.java:70][RmqConsumer.java:54][RmqConsumer.java:42][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.233][DEBUG] [Thread-165] sendMessage : tx = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a getState = Terminated Transaction - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.233][DEBUG] [Thread-165] sipServerTransaction::sendResponse SIP/2.0 200 OK
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.234][DEBUG] [Thread-165] Creating message channel 192.168.7.65/5080 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.234][DEBUG] [Thread-165] :sendMessage 192.168.7.65/5080
+ messageSize = 1598 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.234][DEBUG] [Thread-165] sendMessage 192.168.7.65/5080
+SIP/2.0 200 OK
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 INVITE
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Allow: REGISTER,INVITE,ACK,BYE,REFER,NOTIFY,INFO,CANCEL,UPDATE,PRACK,MESSAGE,OPTIONS
+Supported: timer
+Allow-Events: conference
+Content-Disposition: session
+Require: timer
+User-Agent: uangel-sip-stack/1.0.0
+Answer-Mode: Auto
+Contact: <sip:+82585109100@172.10.11.198:5060>;+g.3gpp.mcptt;+g.3gpp.icsi-ref=urn0X0.07FFE1971E3P-1022urn-70X0.00000005236DP-10223gpp-service.ims.icsi.mcptt
+P-Associated-Dialog: server=sip:0.8.0.20738.24912.0...8454.354.1.@10.124.6.2:5060
+P-Preferred-Service: urn:urn-7:3gpp-service.ims.icsi.mcptt
+P-Preferred-Identity: "+82585102956" <sip:+82585102956@ptt.mnc035.mcc450.3gppnetwork.org>
+Accept-Contact: *;+g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt;+g.3gpp.mcptt;require;explicit
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Session-Expires: 7200;refresher=uac
+Content-Type: application/sdp
+Content-Length: 218
+
+v=0
+o=- 1785223420187 0 IN IP4 vcs.uangel.com
+s=-
+c=IN IP4 172.10.11.198
+t=0 0
+m=audio 30000 RTP/AVP 98
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 mode-set=8; octet-align=1
+a=recvonly
+m=application 30004 UDP MCPTT
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.235][INFO ] [Thread-165] <message
+from="172.10.11.198:5060" 
+to="192.168.7.65:5080" 
+time="1785223420234"
+isSender="true" 
+transactionId="z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89" 
+callId="960e2eb1475c0fca01edff976528e956@192.168.7.65_1" 
+firstLine="SIP/2.0 200 OK" 
+>
+<![CDATA[SIP/2.0 200 OK
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 INVITE
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Allow: REGISTER,INVITE,ACK,BYE,REFER,NOTIFY,INFO,CANCEL,UPDATE,PRACK,MESSAGE,OPTIONS
+Supported: timer
+Allow-Events: conference
+Content-Disposition: session
+Require: timer
+User-Agent: uangel-sip-stack/1.0.0
+Answer-Mode: Auto
+Contact: <sip:+82585109100@172.10.11.198:5060>;+g.3gpp.mcptt;+g.3gpp.icsi-ref=urn0X0.07FFE1971E3P-1022urn-70X0.00000005236DP-10223gpp-service.ims.icsi.mcptt
+P-Associated-Dialog: server=sip:0.8.0.20738.24912.0...8454.354.1.@10.124.6.2:5060
+P-Preferred-Service: urn:urn-7:3gpp-service.ims.icsi.mcptt
+P-Preferred-Identity: "+82585102956" <sip:+82585102956@ptt.mnc035.mcc450.3gppnetwork.org>
+Accept-Contact: *;+g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt;+g.3gpp.mcptt;require;explicit
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Session-Expires: 7200;refresher=uac
+Content-Type: application/sdp
+Content-Length: 218
+
+v=0
+o=- 1785223420187 0 IN IP4 vcs.uangel.com
+s=-
+c=IN IP4 172.10.11.198
+t=0 0
+m=audio 30000 RTP/AVP 98
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 mode-set=8; octet-align=1
+a=recvonly
+m=application 30004 UDP MCPTT
+]]>
+</message>
+ - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:23:40.235][DEBUG] [Thread-165] startRetransmitTimer() 200 method INVITE - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.235][DEBUG] [Thread-165] Starting dialog timer for 960e2eb1475c0fca01edff976528e956@192.168.7.65_1:a6994a1:uastag - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.236][INFO ] [Thread-165] [SIP] OUTGOING RESPONSE [SIP/2.0 200 OK
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 INVITE
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Allow: REGISTER,INVITE,ACK,BYE,REFER,NOTIFY,INFO,CANCEL,UPDATE,PRACK,MESSAGE,OPTIONS
+Supported: timer
+Allow-Events: conference
+Content-Disposition: session
+Require: timer
+User-Agent: uangel-sip-stack/1.0.0
+Answer-Mode: Auto
+Contact: <sip:+82585109100@172.10.11.198:5060>;+g.3gpp.mcptt;+g.3gpp.icsi-ref=urn0X0.07FFE1971E3P-1022urn-70X0.00000005236DP-10223gpp-service.ims.icsi.mcptt
+P-Associated-Dialog: server=sip:0.8.0.20738.24912.0...8454.354.1.@10.124.6.2:5060
+P-Preferred-Service: urn:urn-7:3gpp-service.ims.icsi.mcptt
+P-Preferred-Identity: "+82585102956" <sip:+82585102956@ptt.mnc035.mcc450.3gppnetwork.org>
+Accept-Contact: *;+g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt;+g.3gpp.mcptt;require;explicit
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Session-Expires: 7200;refresher=uac
+Content-Type: application/sdp
+Content-Length: 218
+
+v=0
+o=- 1785223420187 0 IN IP4 vcs.uangel.com
+s=-
+c=IN IP4 172.10.11.198
+t=0 0
+m=audio 30000 RTP/AVP 98
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 mode-set=8; octet-align=1
+a=recvonly
+m=application 30004 UDP MCPTT
+] - (InviteOK.java:95)
+[2026-07-28 16:23:40.236][DEBUG] [Thread-165] Transaction:setState 5 lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a branchID = z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89 isClient = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.236][DEBUG] [Thread-165] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:528][SIPServerTransactionImpl.java:1459][SIPServerTransactionImpl.java:1596][InviteOK.java:96][RmqRecordStartRes.java:59][RmqConsumer.java:90][RmqConsumer.java:70][RmqConsumer.java:54][RmqConsumer.java:42][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.268][DEBUG] [vcmc-UDPMessageChannelThread-5] UDPMessageChannel: processIncomingDataPacket : peerAddress = 192.168.7.65/5080 Length = 486 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.270][INFO ] [vcmc-UDPMessageChannelThread-5] Setting SIPMessage peerPacketSource to: /192.168.7.65:5080 - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:23:40.271][INFO ] [vcmc-UDPMessageChannelThread-5] <message
+from="192.168.7.65:5080" 
+to="172.10.11.198:5060" 
+time="1785223420269"
+isSender="false" 
+transactionId="d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080343333" 
+callId="960e2eb1475c0fca01edff976528e956@192.168.7.65_1" 
+firstLine="ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0" 
+>
+<![CDATA[ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+To: <sip:opf_psi@172.10.11.198:5060>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080353534
+CSeq: 1 ACK
+From: <sip:+825828011002@192.168.7.65:5080>;tag=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+Max-Forwards: 68
+Content-Length: 0
+
+]]>
+</message>
+ - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:23:40.271][DEBUG] [vcmc-UDPMessageChannelThread-5] looking for pending tx for :d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080343333 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.271][DEBUG] [vcmc-UDPMessageChannelThread-5] disableTimeoutTimer lib.java.handler.sip.stack.SIPServerTransactionImpl@ffffffff - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.271][DEBUG] [vcmc-UDPMessageChannelThread-5] Creating Server Transactionnull - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.271][DEBUG] [vcmc-UDPMessageChannelThread-5] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPServerTransactionImpl.java:415][SIPTransactionStack.java:1748][SIPTransactionStack.java:1517][UDPMessageChannel.java:486][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.272][DEBUG] [vcmc-UDPMessageChannelThread-5] Setting Branch id : d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080353534 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.272][DEBUG] [vcmc-UDPMessageChannelThread-5] newSIPServerRequest( ACK:d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080353534):lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.272][DEBUG] [vcmc-UDPMessageChannelThread-5] Returning request interface for ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ lib.java.handler.sip.DialogFilter@50d4fa02 sipTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.272][DEBUG] [vcmc-UDPMessageChannelThread-5] acquireSem [[[[lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.272][DEBUG] [vcmc-UDPMessageChannelThread-5] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1228][SIPTransactionStack.java:1542][UDPMessageChannel.java:486][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.272][DEBUG] [vcmc-UDPMessageChannelThread-5] acquireSem() returning : true - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.273][DEBUG] [vcmc-UDPMessageChannelThread-5] About to process ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+/lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.273][DEBUG] [vcmc-UDPMessageChannelThread-5] processRequest: ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.273][DEBUG] [vcmc-UDPMessageChannelThread-5] tx state = -1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.273][DEBUG] [vcmc-UDPMessageChannelThread-5] Setting Branch id : d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080353534 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.273][DEBUG] [vcmc-UDPMessageChannelThread-5] Transaction:setState 1 lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd branchID = d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080353534 isClient = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.273][DEBUG] [vcmc-UDPMessageChannelThread-5] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:528][SIPServerTransactionImpl.java:1459][SIPServerTransactionImpl.java:617][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.273][DEBUG] [vcmc-UDPMessageChannelThread-5] setPassToListener() - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.274][DEBUG] [vcmc-UDPMessageChannelThread-5] PROCESSING INCOMING REQUEST ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+To: <sip:opf_psi@172.10.11.198:5060>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080353534
+CSeq: 1 ACK
+From: <sip:+825828011002@192.168.7.65:5080>;tag=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+Max-Forwards: 68
+Content-Length: 0
+
+ transactionChannel = lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd listening point = 172.10.11.198:5060 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.274][DEBUG] [vcmc-UDPMessageChannelThread-5] transaction state = Trying Transaction - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.274][DEBUG] [vcmc-UDPMessageChannelThread-5] getDialog(960e2eb1475c0fca01edff976528e956@192.168.7.65_1:a6994a1:d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022) : returning null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.274][DEBUG] [vcmc-UDPMessageChannelThread-5] dialogId = 960e2eb1475c0fca01edff976528e956@192.168.7.65_1:a6994a1:d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.274][DEBUG] [vcmc-UDPMessageChannelThread-5] dialog = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.274][DEBUG] [vcmc-UDPMessageChannelThread-5] Processing ACK for dialog null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.274][DEBUG] [vcmc-UDPMessageChannelThread-5] Dialog does not exist ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ isServerTransaction = true - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.275][DEBUG] [vcmc-UDPMessageChannelThread-5] CHECK FOR OUT OF SEQ MESSAGE null transaction lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.275][DEBUG] [vcmc-UDPMessageChannelThread-5] ACK transaction.isMapped = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.275][DEBUG] [vcmc-UDPMessageChannelThread-5] handleEvent lib.java.handler.sip.RequestEventExt[source=lib.java.handler.sip.SipProviderImpl@5f058f00]currentTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cdthis.sipListener = media.platform.vcmc.core.mcptt.sip.module.SipSignal@192d43cesipEvent.source = lib.java.handler.sip.SipProviderImpl@5f058f00 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.275][DEBUG] [vcmc-UDPMessageChannelThread-5] Dialog = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.275][DEBUG] [vcmc-UDPMessageChannelThread-5] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SipProviderImpl.java:105][DialogFilter.java:1251][SIPServerTransactionImpl.java:705][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.275][DEBUG] [vcmc-UDPMessageChannelThread-5] sipEvent = lib.java.handler.sip.RequestEventExt[source=lib.java.handler.sip.SipProviderImpl@5f058f00]source = lib.java.handler.sip.SipProviderImpl@5f058f00 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.275][DEBUG] [vcmc-UDPMessageChannelThread-5] deliverEvent : ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ transaction lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd sipEvent.serverTx = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.276][DEBUG] [vcmc-UDPMessageChannelThread-5] serverTx: looking for key d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080343333 existing={z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89=lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a} - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.276][DEBUG] [vcmc-UDPMessageChannelThread-5] findTransaction: returning  : null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.276][DEBUG] [vcmc-UDPMessageChannelThread-5] looking for pending tx for :d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080343333 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.276][DEBUG] [vcmc-UDPMessageChannelThread-5] putPendingTransaction: lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.277][DEBUG] [vcmc-UDPMessageChannelThread-5] Calling listener ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.277][DEBUG] [vcmc-UDPMessageChannelThread-5] Calling listener lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.277][DEBUG] [vcmc-UDPMessageChannelThread-5] Done processing Message ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.277][DEBUG] [vcmc-UDPMessageChannelThread-5] Done processing Message ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.277][DEBUG] [vcmc-UDPMessageChannelThread-5] semRelease ]]]]lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.277][DEBUG] [vcmc-UDPMessageChannelThread-5] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1263][SIPTransactionImpl.java:1250][SIPServerTransactionImpl.java:1800][EventScanner.java:224][EventScanner.java:97][SipProviderImpl.java:115][DialogFilter.java:1251][SIPServerTransactionImpl.java:705][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.278][DEBUG] [vcmc-UDPMessageChannelThread-5] removePendingTx: d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080343333 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.278][DEBUG] [vcmc-UDPMessageChannelThread-5] Transaction:setState 5 lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd branchID = d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080353534 isClient = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.278][DEBUG] [vcmc-UDPMessageChannelThread-5] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:528][SIPServerTransactionImpl.java:1459][EventScanner.java:237][EventScanner.java:97][SipProviderImpl.java:115][DialogFilter.java:1251][SIPServerTransactionImpl.java:705][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.278][DEBUG] [vcmc-UDPMessageChannelThread-5] semRelease ]]]]lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.278][DEBUG] [vcmc-UDPMessageChannelThread-5] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1263][SIPTransactionImpl.java:1250][SIPServerTransactionImpl.java:1800][UDPMessageChannel.java:507][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.278][DEBUG] [vcmc-UDPMessageChannelThread-5] Done processing ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+/lib.java.handler.sip.stack.SIPServerTransactionImpl@198429cd - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.285][INFO ] [Thread-169] [SIP] INCOMING REQUEST [ACK sip:+825828011003@172.10.11.198:5060 SIP/2.0
+To: <sip:opf_psi@172.10.11.198:5060>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-1-ack-192.168.7.65-5080353534
+CSeq: 1 ACK
+From: <sip:+825828011002@192.168.7.65:5080>;tag=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+Max-Forwards: 68
+Content-Length: 0
+
+] - (SipIncoming.java:48)
+[2026-07-28 16:23:40.380][INFO ] [pool-8-thread-7] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "e91b0364-52d7-42d1-be43-240f0e509495",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583207021",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:23:40.383][DEBUG] [Thread-139] change_req fromMDN = 583207021,  eTel = 7021, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:23:40.393][DEBUG] [Thread-139] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:23:40.393][DEBUG] [Thread-139] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583207021, mdn: 583207021, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:23:40.413][INFO ] [Thread-139] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='1'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:23:40 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:23:40.413][DEBUG] [Thread-139] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:23:40.415][INFO ] [Thread-139] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "e91b0364-52d7-42d1-be43-240f0e509495",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 1,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:23:40.415][INFO ] [Thread-139] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:23:40.418][DEBUG] [Thread-139] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:23:40.438][DEBUG] [Thread-139] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='1'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:23:40.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:23:40.566][DEBUG] [DefaultSipTimerThread] LingerTimer : z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.736][DEBUG] [DefaultSipTimerThread] Running dialog timer - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.737][DEBUG] [DefaultSipTimerThread] SIPDialog::isAckSeen:lib.java.handler.sip.stack.SIPDialog@21844816lastAckReceived is null -- returning false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.737][DEBUG] [DefaultSipTimerThread] resend last response SIP/2.0 200 OK
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 INVITE
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Allow: REGISTER,INVITE,ACK,BYE,REFER,NOTIFY,INFO,CANCEL,UPDATE,PRACK,MESSAGE,OPTIONS
+Supported: timer
+Allow-Events: conference
+Content-Disposition: session
+Require: timer
+User-Agent: uangel-sip-stack/1.0.0
+Answer-Mode: Auto
+Contact: <sip:+82585109100@172.10.11.198:5060>;+g.3gpp.mcptt;+g.3gpp.icsi-ref=urn0X0.07FFE1971E3P-1022urn-70X0.00000005236DP-10223gpp-service.ims.icsi.mcptt
+P-Associated-Dialog: server=sip:0.8.0.20738.24912.0...8454.354.1.@10.124.6.2:5060
+P-Preferred-Service: urn:urn-7:3gpp-service.ims.icsi.mcptt
+P-Preferred-Identity: "+82585102956" <sip:+82585102956@ptt.mnc035.mcc450.3gppnetwork.org>
+Accept-Contact: *;+g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt;+g.3gpp.mcptt;require;explicit
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Session-Expires: 7200;refresher=uac
+Content-Type: application/sdp
+Content-Length: 218
+
+v=0
+o=- 1785223420187 0 IN IP4 vcs.uangel.com
+s=-
+c=IN IP4 172.10.11.198
+t=0 0
+m=audio 30000 RTP/AVP 98
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 mode-set=8; octet-align=1
+a=recvonly
+m=application 30004 UDP MCPTT
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.737][DEBUG] [DefaultSipTimerThread] Creating message channel 192.168.7.65/5080 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.741][INFO ] [DefaultSipTimerThread] <message
+from="172.10.11.198:5060" 
+to="192.168.7.65:5080" 
+time="1785223420740"
+isSender="true" 
+transactionId="z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89" 
+callId="960e2eb1475c0fca01edff976528e956@192.168.7.65_1" 
+firstLine="SIP/2.0 200 OK" 
+>
+<![CDATA[SIP/2.0 200 OK
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 INVITE
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Allow: REGISTER,INVITE,ACK,BYE,REFER,NOTIFY,INFO,CANCEL,UPDATE,PRACK,MESSAGE,OPTIONS
+Supported: timer
+Allow-Events: conference
+Content-Disposition: session
+Require: timer
+User-Agent: uangel-sip-stack/1.0.0
+Answer-Mode: Auto
+Contact: <sip:+82585109100@172.10.11.198:5060>;+g.3gpp.mcptt;+g.3gpp.icsi-ref=urn0X0.07FFE1971E3P-1022urn-70X0.00000005236DP-10223gpp-service.ims.icsi.mcptt
+P-Associated-Dialog: server=sip:0.8.0.20738.24912.0...8454.354.1.@10.124.6.2:5060
+P-Preferred-Service: urn:urn-7:3gpp-service.ims.icsi.mcptt
+P-Preferred-Identity: "+82585102956" <sip:+82585102956@ptt.mnc035.mcc450.3gppnetwork.org>
+Accept-Contact: *;+g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt;+g.3gpp.mcptt;require;explicit
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Session-Expires: 7200;refresher=uac
+Content-Type: application/sdp
+Content-Length: 218
+
+v=0
+o=- 1785223420187 0 IN IP4 vcs.uangel.com
+s=-
+c=IN IP4 172.10.11.198
+t=0 0
+m=audio 30000 RTP/AVP 98
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 mode-set=8; octet-align=1
+a=recvonly
+m=application 30004 UDP MCPTT
+]]>
+</message>
+ - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:23:40.741][DEBUG] [DefaultSipTimerThread] sendMessage 192.168.7.65/5080
+messageSize =  1598 message = SIP/2.0 200 OK
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 INVITE
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Allow: REGISTER,INVITE,ACK,BYE,REFER,NOTIFY,INFO,CANCEL,UPDATE,PRACK,MESSAGE,OPTIONS
+Supported: timer
+Allow-Events: conference
+Content-Disposition: session
+Require: timer
+User-Agent: uangel-sip-stack/1.0.0
+Answer-Mode: Auto
+Contact: <sip:+82585109100@172.10.11.198:5060>;+g.3gpp.mcptt;+g.3gpp.icsi-ref=urn0X0.07FFE1971E3P-1022urn-70X0.00000005236DP-10223gpp-service.ims.icsi.mcptt
+P-Associated-Dialog: server=sip:0.8.0.20738.24912.0...8454.354.1.@10.124.6.2:5060
+P-Preferred-Service: urn:urn-7:3gpp-service.ims.icsi.mcptt
+P-Preferred-Identity: "+82585102956" <sip:+82585102956@ptt.mnc035.mcc450.3gppnetwork.org>
+Accept-Contact: *;+g.3gpp.icsi-ref=urn%3Aurn-7%3A3gpp-service.ims.icsi.mcptt;+g.3gpp.mcptt;require;explicit
+Record-Route: <sip:1.2.2.38658.47951.0...23046.85402@111.250.1.60:5080;lr;pv=4503182585109100%40ptt.humetro.mnc031.mcc450.3gppnetwork.org;at=3;ft=uasTag;hsi>
+Session-Expires: 7200;refresher=uac
+Content-Type: application/sdp
+Content-Length: 218
+
+v=0
+o=- 1785223420187 0 IN IP4 vcs.uangel.com
+s=-
+c=IN IP4 172.10.11.198
+t=0 0
+m=audio 30000 RTP/AVP 98
+a=rtpmap:98 AMR-WB/16000/1
+a=fmtp:98 mode-set=8; octet-align=1
+a=recvonly
+m=application 30004 UDP MCPTT
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.741][DEBUG] [DefaultSipTimerThread] *******************
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.742][DEBUG] [DefaultSipTimerThread] resend 200 response from lib.java.handler.sip.stack.SIPDialog@21844816 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.742][DEBUG] [DefaultSipTimerThread] SIPDialog::isAckSeen:lib.java.handler.sip.stack.SIPDialog@21844816lastAckReceived is null -- returning false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.770][DEBUG] [vcmc-UDPMessageChannelThread-7] UDPMessageChannel: processIncomingDataPacket : peerAddress = 192.168.7.65/5080 Length = 449 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.772][INFO ] [vcmc-UDPMessageChannelThread-7] Setting SIPMessage peerPacketSource to: /192.168.7.65:5080 - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:23:40.773][INFO ] [vcmc-UDPMessageChannelThread-7] <message
+from="192.168.7.65:5080" 
+to="172.10.11.198:5060" 
+time="1785223420771"
+isSender="false" 
+transactionId="z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89" 
+callId="960e2eb1475c0fca01edff976528e956@192.168.7.65_1" 
+firstLine="ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0" 
+>
+<![CDATA[ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 ACK
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Content-Length: 0
+
+]]>
+</message>
+ - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:23:40.773][DEBUG] [vcmc-UDPMessageChannelThread-7] newSIPServerRequest( ACK:z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89):lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.773][DEBUG] [vcmc-UDPMessageChannelThread-7] Returning request interface for ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ lib.java.handler.sip.DialogFilter@64fa62cf sipTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.773][DEBUG] [vcmc-UDPMessageChannelThread-7] acquireSem [[[[lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.774][DEBUG] [vcmc-UDPMessageChannelThread-7] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1228][SIPTransactionStack.java:1542][UDPMessageChannel.java:486][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.774][DEBUG] [vcmc-UDPMessageChannelThread-7] acquireSem() returning : true - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.774][DEBUG] [vcmc-UDPMessageChannelThread-7] About to process ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+/lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.774][DEBUG] [vcmc-UDPMessageChannelThread-7] processRequest: ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.774][DEBUG] [vcmc-UDPMessageChannelThread-7] tx state = 5 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.775][DEBUG] [vcmc-UDPMessageChannelThread-7] SIPDialog::isAckSeen:lib.java.handler.sip.stack.SIPDialog@21844816lastAckReceived is null -- returning false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.775][DEBUG] [vcmc-UDPMessageChannelThread-7] ackReceived for INVITE - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.775][DEBUG] [vcmc-UDPMessageChannelThread-7] isServer = true - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.775][DEBUG] [vcmc-UDPMessageChannelThread-7] localTag = a6994a1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.776][DEBUG] [vcmc-UDPMessageChannelThread-7] remoteTag = uasTag - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.776][DEBUG] [vcmc-UDPMessageChannelThread-7] localSequenceNumer = 0 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.776][DEBUG] [vcmc-UDPMessageChannelThread-7] remoteSequenceNumer = 1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.776][DEBUG] [vcmc-UDPMessageChannelThread-7] ackLine:uasTag 0 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.776][DEBUG] [vcmc-UDPMessageChannelThread-7] SIPDialog::setState:Setting dialog state for lib.java.handler.sip.stack.SIPDialog@21844816newState = 1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.777][DEBUG] [vcmc-UDPMessageChannelThread-7] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPDialog.java:1400][SIPDialog.java:1262][SIPServerTransactionImpl.java:725][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.777][DEBUG] [vcmc-UDPMessageChannelThread-7] PROCESSING INCOMING REQUEST ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 ACK
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Content-Length: 0
+
+ transactionChannel = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a listening point = 172.10.11.198:5060 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.777][DEBUG] [vcmc-UDPMessageChannelThread-7] transaction state = Terminated Transaction - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.778][DEBUG] [vcmc-UDPMessageChannelThread-7] getDialog(960e2eb1475c0fca01edff976528e956@192.168.7.65_1:a6994a1:uastag) : returning lib.java.handler.sip.stack.SIPDialog@21844816 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.778][DEBUG] [vcmc-UDPMessageChannelThread-7] dialogId = 960e2eb1475c0fca01edff976528e956@192.168.7.65_1:a6994a1:uastag - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.778][DEBUG] [vcmc-UDPMessageChannelThread-7] dialog = lib.java.handler.sip.stack.SIPDialog@21844816 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.778][DEBUG] [vcmc-UDPMessageChannelThread-7] Processing ACK for INVITE Tx  - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.779][DEBUG] [vcmc-UDPMessageChannelThread-7] CHECK FOR OUT OF SEQ MESSAGE lib.java.handler.sip.stack.SIPDialog@21844816 transaction lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.779][DEBUG] [vcmc-UDPMessageChannelThread-7] ACK transaction.isMapped = true - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.779][DEBUG] [vcmc-UDPMessageChannelThread-7] handleEvent lib.java.handler.sip.RequestEventExt[source=lib.java.handler.sip.SipProviderImpl@5f058f00]currentTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2athis.sipListener = media.platform.vcmc.core.mcptt.sip.module.SipSignal@192d43cesipEvent.source = lib.java.handler.sip.SipProviderImpl@5f058f00 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.779][DEBUG] [vcmc-UDPMessageChannelThread-7] Dialog = lib.java.handler.sip.stack.SIPDialog@21844816 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.780][DEBUG] [vcmc-UDPMessageChannelThread-7] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SipProviderImpl.java:105][DialogFilter.java:1251][SIPServerTransactionImpl.java:728][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.780][DEBUG] [vcmc-UDPMessageChannelThread-7] sipEvent = lib.java.handler.sip.RequestEventExt[source=lib.java.handler.sip.SipProviderImpl@5f058f00]source = lib.java.handler.sip.SipProviderImpl@5f058f00 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.780][DEBUG] [vcmc-UDPMessageChannelThread-7] deliverEvent : ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ transaction lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a sipEvent.serverTx = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.780][DEBUG] [vcmc-UDPMessageChannelThread-7] serverTx: looking for key z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 existing={z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89=lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a} - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.780][DEBUG] [vcmc-UDPMessageChannelThread-7] findTransaction: returning  : lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.780][DEBUG] [vcmc-UDPMessageChannelThread-7] Detected broken client sending ACK with same branch! Passing... - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.780][DEBUG] [vcmc-UDPMessageChannelThread-7] Calling listener ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.781][DEBUG] [vcmc-UDPMessageChannelThread-7] Calling listener lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.781][DEBUG] [vcmc-UDPMessageChannelThread-7] Done processing Message ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.793][DEBUG] [vcmc-UDPMessageChannelThread-7] Request Consumed -- next consumable Request Seqno = 2 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.793][DEBUG] [vcmc-UDPMessageChannelThread-7] Done processing Message ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.793][DEBUG] [vcmc-UDPMessageChannelThread-7] removePendingTx: z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.793][DEBUG] [vcmc-UDPMessageChannelThread-7] Dropping request 5 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.794][DEBUG] [vcmc-UDPMessageChannelThread-7] semRelease ]]]]lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.794][DEBUG] [vcmc-UDPMessageChannelThread-7] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1263][SIPTransactionImpl.java:1250][SIPServerTransactionImpl.java:1800][UDPMessageChannel.java:507][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:40.794][DEBUG] [vcmc-UDPMessageChannelThread-7] Done processing ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+/lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:40.793][INFO ] [Thread-169] [SIP] INCOMING REQUEST [ACK sip:+82585109100@172.10.11.198:5060 SIP/2.0
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+CSeq: 1 ACK
+From: "+82585102956" <sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org>;tag=uasTag
+To: "98011990000" <tel:98011990000;phone-context=ptt.bgl.apn.epc.mnc035.mcc450.3gppnetwork.org>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89
+Max-Forwards: 70
+Content-Length: 0
+
+] - (SipIncoming.java:48)
+[2026-07-28 16:23:41.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:41.323][DEBUG] [C3P0PooledConnectionPoolManager[identityToken->1bqg9tzbj14nk4ld920yin|68b32e3e]-AdminTaskTimer] Checking for expired resources - Tue Jul 28 16:23:41 KST 2026 [com.mchange.v2.resourcepool.BasicResourcePool@4b3ed2f0] - (Slf4jMLog.java:204)
+[2026-07-28 16:23:41.323][DEBUG] [C3P0PooledConnectionPoolManager[identityToken->1bqg9tzbj14nk4ld920yin|68b32e3e]-AdminTaskTimer] BEGIN check for expired resources.  [com.mchange.v2.resourcepool.BasicResourcePool@4b3ed2f0] - (Slf4jMLog.java:204)
+[2026-07-28 16:23:41.323][DEBUG] [C3P0PooledConnectionPoolManager[identityToken->1bqg9tzbj14nk4ld920yin|68b32e3e]-AdminTaskTimer] EXPIRED idle resource: com.mchange.v2.c3p0.impl.NewPooledConnection@4dadae4f ---> idle_time: 374980; max_idle_time: 300000 [com.mchange.v2.resourcepool.BasicResourcePool@4b3ed2f0] - (Slf4jMLog.java:204)
+[2026-07-28 16:23:41.323][DEBUG] [C3P0PooledConnectionPoolManager[identityToken->1bqg9tzbj14nk4ld920yin|68b32e3e]-AdminTaskTimer] Removing expired resource: com.mchange.v2.c3p0.impl.NewPooledConnection@4dadae4f [com.mchange.v2.resourcepool.BasicResourcePool@4b3ed2f0] - (Slf4jMLog.java:204)
+[2026-07-28 16:23:41.324][DEBUG] [C3P0PooledConnectionPoolManager[identityToken->1bqg9tzbj14nk4ld920yin|68b32e3e]-AdminTaskTimer] FINISHED check for expired resources.  [com.mchange.v2.resourcepool.BasicResourcePool@4b3ed2f0] - (Slf4jMLog.java:204)
+[2026-07-28 16:23:41.324][DEBUG] [C3P0PooledConnectionPoolManager[identityToken->1bqg9tzbj14nk4ld920yin|68b32e3e]-HelperThread-#1] Preparing to destroy resource: com.mchange.v2.c3p0.impl.NewPooledConnection@4dadae4f - (Slf4jMLog.java:204)
+[2026-07-28 16:23:41.324][DEBUG] [C3P0PooledConnectionPoolManager[identityToken->1bqg9tzbj14nk4ld920yin|68b32e3e]-HelperThread-#1] Successfully destroyed resource: com.mchange.v2.c3p0.impl.NewPooledConnection@4dadae4f - (Slf4jMLog.java:204)
+[2026-07-28 16:23:42.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:43.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:43.188][INFO ] [pool-8-thread-9] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "heartbeat_indi",
+    "callId": "59ea871e-75b1-4f80-8654-a199a481df1a",
+    "transactionId": "7c776c54-e5a9-4023-acf7-8cd2d6b025d6",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "vcmmId": 0,
+    "session_total": 16000,
+    "session_idle": 15999
+  }
+} - (RmqServer.java:111)
+[2026-07-28 16:23:44.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:44.675][INFO ] [pool-8-thread-4] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "b5baea71-d102-49df-8ec2-2d6abe2e1834",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 1,
+    "caller_mdn": "tel:+82583207021",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:23:44.675][INFO ] [pool-8-thread-4] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "6e29ac3c-3868-465f-9943-a01219f37bef",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:23:44.676][DEBUG] [Thread-168] change_req fromMDN = 583209004,  eTel = 9004, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:23:44.685][DEBUG] [Thread-151] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:23:44.687][DEBUG] [Thread-168] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:23:44.687][DEBUG] [Thread-168] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583209004, mdn: 583209004, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:23:44.690][DEBUG] [Thread-151] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='1'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:23:40.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:23:44.690][DEBUG] [Thread-151] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:23:44.690][DEBUG] [Thread-151] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:23:44.690][DEBUG] [Thread-151] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:23:44.690][DEBUG] [Thread-151] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:23:44.690][DEBUG] [Thread-151] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:23:44.710][INFO ] [Thread-151] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='1'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:23:40.0'END_TIME='Tue Jul 28 16:23:44 KST 2026'DURATION_TIME='00:00:04.691CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:23:44.711][INFO ] [Thread-151] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "b5baea71-d102-49df-8ec2-2d6abe2e1834",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 1,
+    "save_file_name": ""
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:23:44.711][INFO ] [Thread-151] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:23:44.728][INFO ] [Thread-168] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='2'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:23:44 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:23:44.728][DEBUG] [Thread-168] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:23:44.729][INFO ] [Thread-168] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "6e29ac3c-3868-465f-9943-a01219f37bef",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 2,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:23:44.730][INFO ] [Thread-168] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:23:44.731][DEBUG] [Thread-168] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:23:44.750][DEBUG] [Thread-168] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='2'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:23:44.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:23:45.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:46.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:47.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:48.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:48.078][INFO ] [pool-8-thread-8] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "e9ee8466-a17d-411e-b234-c39c66e36907",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 2,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:23:48.080][DEBUG] [Thread-139] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:23:48.085][DEBUG] [Thread-139] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='2'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:23:44.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:23:48.085][DEBUG] [Thread-139] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:23:48.085][DEBUG] [Thread-139] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:23:48.085][DEBUG] [Thread-139] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:23:48.085][DEBUG] [Thread-139] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:23:48.085][DEBUG] [Thread-139] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:23:48.101][INFO ] [Thread-139] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='2'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:23:44.0'END_TIME='Tue Jul 28 16:23:48 KST 2026'DURATION_TIME='00:00:04.086CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:23:48.101][INFO ] [Thread-139] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "e9ee8466-a17d-411e-b234-c39c66e36907",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 2,
+    "save_file_name": ""
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:23:48.102][INFO ] [Thread-139] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:23:48.288][INFO ] [pool-8-thread-9] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "3c0bccf0-0163-429d-9670-660d999f357e",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:23:48.290][DEBUG] [Thread-149] change_req fromMDN = 583209004,  eTel = 9004, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:23:48.294][DEBUG] [Thread-149] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:23:48.294][DEBUG] [Thread-149] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583209004, mdn: 583209004, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:23:48.311][INFO ] [Thread-149] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='3'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:23:48 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:23:48.311][DEBUG] [Thread-149] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:23:48.312][INFO ] [Thread-149] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "3c0bccf0-0163-429d-9670-660d999f357e",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 3,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:23:48.313][INFO ] [Thread-149] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:23:48.315][DEBUG] [Thread-149] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:23:48.333][DEBUG] [Thread-149] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='3'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:23:48.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:23:48.566][DEBUG] [DefaultSipTimerThread] removinglib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:48.566][DEBUG] [DefaultSipTimerThread] removeTransaction: Removing Transaction = z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 transaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:48.567][DEBUG] [DefaultSipTimerThread] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionStack.java:1811][SIPServerTransactionImpl.java:1895][SIPTransactionImpl.java:231][DefaultSipTimer.java:35][Timer.java:555][Timer.java:505] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:48.567][DEBUG] [DefaultSipTimerThread] removePendingTx: z9hg4bkc9c8934c-fba9-4def-96c4-68294a2cbb89 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:48.567][DEBUG] [DefaultSipTimerThread] Removing tx from merge table  - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:48.567][DEBUG] [DefaultSipTimerThread] handleEvent stack.java.uangel.sip.TransactionTerminatedEvent[source=lib.java.handler.sip.SipProviderImpl@5f058f00]currentTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2athis.sipListener = media.platform.vcmc.core.mcptt.sip.module.SipSignal@192d43cesipEvent.source = lib.java.handler.sip.SipProviderImpl@5f058f00 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:48.568][DEBUG] [DefaultSipTimerThread] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SipProviderImpl.java:105][SIPTransactionStack.java:1832][SIPServerTransactionImpl.java:1895][SIPTransactionImpl.java:231][DefaultSipTimer.java:35][Timer.java:555][Timer.java:505] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:48.568][DEBUG] [DefaultSipTimerThread] sipEvent = stack.java.uangel.sip.TransactionTerminatedEvent[source=lib.java.handler.sip.SipProviderImpl@5f058f00]source = lib.java.handler.sip.SipProviderImpl@5f058f00 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:48.568][DEBUG] [DefaultSipTimerThread] About to deliver transactionTerminatedEvent - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:48.568][DEBUG] [DefaultSipTimerThread] tx = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:48.568][DEBUG] [DefaultSipTimerThread] tx = lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:48.568][INFO ] [DefaultSipTimerThread] () () () Transaction terminated event recieved lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a - (SipSignal.java:221)
+[2026-07-28 16:23:48.569][DEBUG] [DefaultSipTimerThread] Transaction:setState 5 lib.java.handler.sip.stack.SIPServerTransactionImpl@c3805f2a branchID = z9hG4bKc9c8934c-fba9-4def-96c4-68294a2cbb89 isClient = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:48.569][DEBUG] [DefaultSipTimerThread] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:528][SIPServerTransactionImpl.java:1459][SIPServerTransactionImpl.java:1596][SipSignal.java:223][EventScanner.java:390][EventScanner.java:107][SipProviderImpl.java:115][SIPTransactionStack.java:1832][SIPServerTransactionImpl.java:1895][SIPTransactionImpl.java:231][DefaultSipTimer.java:35][Timer.java:555][Timer.java:505] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:23:48.570][DEBUG] [DefaultSipTimerThread] removeTransaction: Table size :  clientTransactionTable 0  serverTransactionTable 0  mergetTable 0  terminatedServerTransactionsPendingAck 0   forkedClientTransactionTable 0  pendingTransactions 0  - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:23:49.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:50.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:51.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:52.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:53.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:53.029][INFO ] [pool-8-thread-7] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "714828d7-0b6a-49d8-8cdf-fdd92717d426",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 3,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:23:53.029][INFO ] [pool-8-thread-7] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "a63d8851-2865-4c25-b897-01538a29e95c",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583207021",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:23:53.030][DEBUG] [Thread-150] change_req fromMDN = 583207021,  eTel = 7021, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:23:53.031][DEBUG] [Thread-144] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:23:53.039][DEBUG] [Thread-150] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:23:53.039][DEBUG] [Thread-150] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583207021, mdn: 583207021, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:23:53.040][DEBUG] [Thread-144] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='3'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:23:48.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:23:53.040][DEBUG] [Thread-144] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:23:53.040][DEBUG] [Thread-144] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:23:53.040][DEBUG] [Thread-144] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:23:53.041][DEBUG] [Thread-144] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:23:53.041][DEBUG] [Thread-144] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:23:53.059][INFO ] [Thread-144] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='3'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:23:48.0'END_TIME='Tue Jul 28 16:23:53 KST 2026'DURATION_TIME='00:00:05.041CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:23:53.059][INFO ] [Thread-144] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "714828d7-0b6a-49d8-8cdf-fdd92717d426",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 3,
+    "save_file_name": ""
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:23:53.060][INFO ] [Thread-144] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:23:53.065][INFO ] [Thread-150] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='4'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:23:53 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:23:53.066][DEBUG] [Thread-150] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:23:53.066][INFO ] [Thread-150] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "a63d8851-2865-4c25-b897-01538a29e95c",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 4,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353_4"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:23:53.067][INFO ] [Thread-150] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:23:53.070][DEBUG] [Thread-150] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:23:53.080][DEBUG] [Thread-150] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='4'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:23:53.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:23:54.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:55.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:56.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:56.948][INFO ] [pool-8-thread-4] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "d91ebd3b-b984-4a99-8b52-04fdc9cceb16",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 4,
+    "caller_mdn": "tel:+82583207021",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:23:56.949][INFO ] [pool-8-thread-4] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "6e04c0d5-03c9-4eff-8e35-008805ab4264",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:23:56.949][DEBUG] [Thread-152] change_req fromMDN = 583209004,  eTel = 9004, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:23:56.951][DEBUG] [Thread-146] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:23:56.956][DEBUG] [Thread-152] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:23:56.956][DEBUG] [Thread-152] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583209004, mdn: 583209004, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:23:56.956][DEBUG] [Thread-146] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='4'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:23:53.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:23:56.956][DEBUG] [Thread-146] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:23:56.956][DEBUG] [Thread-146] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:23:56.957][DEBUG] [Thread-146] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:23:56.957][DEBUG] [Thread-146] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:23:56.957][DEBUG] [Thread-146] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:23:56.975][INFO ] [Thread-152] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='5'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:23:56 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:23:56.975][DEBUG] [Thread-152] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:23:56.976][INFO ] [Thread-152] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "6e04c0d5-03c9-4eff-8e35-008805ab4264",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 5,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:23:56.976][INFO ] [Thread-152] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:23:56.978][DEBUG] [Thread-152] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:23:56.981][INFO ] [Thread-146] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='4'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:23:53.0'END_TIME='Tue Jul 28 16:23:56 KST 2026'DURATION_TIME='00:00:03.957CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:23:56.982][INFO ] [Thread-146] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "d91ebd3b-b984-4a99-8b52-04fdc9cceb16",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 4,
+    "save_file_name": ""
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:23:56.982][INFO ] [Thread-146] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:23:56.992][DEBUG] [Thread-152] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='5'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:23:56.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:23:57.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:58.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:23:59.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:00.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:01.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:02.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:03.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:03.431][INFO ] [pool-8-thread-4] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "824f1d87-bc5f-4a00-9653-7eda2b9d8990",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 5,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:03.432][INFO ] [pool-8-thread-4] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "1aa70d44-b559-401d-b1ba-ddc2d764e6da",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583207021",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:03.433][DEBUG] [Thread-158] change_req fromMDN = 583207021,  eTel = 7021, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:24:03.434][DEBUG] [Thread-153] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:03.440][DEBUG] [Thread-153] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='5'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:23:56.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:03.440][DEBUG] [Thread-153] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:24:03.440][DEBUG] [Thread-153] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:24:03.441][DEBUG] [Thread-153] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:24:03.441][DEBUG] [Thread-153] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:24:03.441][DEBUG] [Thread-153] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:24:03.442][DEBUG] [Thread-158] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:24:03.442][DEBUG] [Thread-158] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583207021, mdn: 583207021, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:24:03.460][INFO ] [Thread-153] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='5'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:23:56.0'END_TIME='Tue Jul 28 16:24:03 KST 2026'DURATION_TIME='00:00:07.441CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:24:03.461][INFO ] [Thread-153] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "824f1d87-bc5f-4a00-9653-7eda2b9d8990",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 5,
+    "save_file_name": ""
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:03.462][INFO ] [Thread-153] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:03.472][INFO ] [Thread-158] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='6'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:24:03 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:24:03.472][DEBUG] [Thread-158] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:24:03.473][INFO ] [Thread-158] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "1aa70d44-b559-401d-b1ba-ddc2d764e6da",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 6,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:03.473][INFO ] [Thread-158] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:03.475][DEBUG] [Thread-158] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:03.485][DEBUG] [Thread-158] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='6'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:24:03.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:04.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:05.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:06.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:07.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:08.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:09.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:10.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:11.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:12.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:13.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:13.192][INFO ] [pool-8-thread-6] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "heartbeat_indi",
+    "callId": "59ea871e-75b1-4f80-8654-a199a481df1a",
+    "transactionId": "c74f642c-7824-47a9-877f-5deb7a217cb5",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "vcmmId": 0,
+    "session_total": 16000,
+    "session_idle": 15999
+  }
+} - (RmqServer.java:111)
+[2026-07-28 16:24:14.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:15.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:15.091][INFO ] [pool-8-thread-8] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "54ba462d-8335-41fb-8249-ecc755362ea2",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 6,
+    "caller_mdn": "tel:+82583207021",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:15.091][INFO ] [pool-8-thread-8] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "f1a46afb-289a-4197-bb92-d3d3af942a3c",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:15.093][DEBUG] [Thread-167] change_req fromMDN = 583209004,  eTel = 9004, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:24:15.102][DEBUG] [Thread-147] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:15.103][DEBUG] [Thread-167] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:24:15.103][DEBUG] [Thread-167] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583209004, mdn: 583209004, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:24:15.108][DEBUG] [Thread-147] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='6'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:03.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:15.109][DEBUG] [Thread-147] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:24:15.109][DEBUG] [Thread-147] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:24:15.109][DEBUG] [Thread-147] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:24:15.109][DEBUG] [Thread-147] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:24:15.109][DEBUG] [Thread-147] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:24:15.163][INFO ] [Thread-167] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='7'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:24:15 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:24:15.164][DEBUG] [Thread-167] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:24:15.164][INFO ] [Thread-167] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "f1a46afb-289a-4197-bb92-d3d3af942a3c",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 7,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:15.165][INFO ] [Thread-167] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:15.169][DEBUG] [Thread-167] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:15.171][INFO ] [Thread-147] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='6'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:03.0'END_TIME='Tue Jul 28 16:24:15 KST 2026'DURATION_TIME='00:00:12.109CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:24:15.172][INFO ] [Thread-147] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "54ba462d-8335-41fb-8249-ecc755362ea2",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 6,
+    "save_file_name": ""
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:15.172][INFO ] [Thread-147] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:15.180][DEBUG] [Thread-167] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='7'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:24:15.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:16.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:17.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:18.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:18.499][INFO ] [pool-8-thread-5] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "51fef4ba-bb40-4fac-a79f-7f518c1f4b43",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 7,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:18.501][DEBUG] [Thread-152] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:18.506][DEBUG] [Thread-152] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='7'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:15.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:18.507][DEBUG] [Thread-152] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:24:18.507][DEBUG] [Thread-152] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:24:18.507][DEBUG] [Thread-152] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:24:18.507][DEBUG] [Thread-152] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:24:18.507][DEBUG] [Thread-152] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:24:18.524][INFO ] [Thread-152] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='7'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:15.0'END_TIME='Tue Jul 28 16:24:18 KST 2026'DURATION_TIME='00:00:03.507CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:24:18.525][INFO ] [Thread-152] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "51fef4ba-bb40-4fac-a79f-7f518c1f4b43",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 7,
+    "save_file_name": ""
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:18.526][INFO ] [Thread-152] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:18.704][INFO ] [pool-8-thread-6] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "36923bbf-4da3-472d-83f5-a4ce39f12e5c",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:18.705][DEBUG] [Thread-166] change_req fromMDN = 583209004,  eTel = 9004, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:24:18.710][DEBUG] [Thread-166] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:24:18.710][DEBUG] [Thread-166] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583209004, mdn: 583209004, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:24:18.732][INFO ] [Thread-166] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='8'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:24:18 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:24:18.733][DEBUG] [Thread-166] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:24:18.734][INFO ] [Thread-166] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "36923bbf-4da3-472d-83f5-a4ce39f12e5c",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 8,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:18.734][INFO ] [Thread-166] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:18.745][DEBUG] [Thread-166] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:18.758][DEBUG] [Thread-166] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='8'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:24:18.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:19.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:20.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:21.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:22.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:23.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:23.458][INFO ] [pool-8-thread-4] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "3ace449c-1929-43c4-94b3-fd677e654081",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 8,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:23.459][INFO ] [pool-8-thread-4] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "28fdf143-c76f-49e0-b9b2-2347518297ec",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583207021",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:23.461][DEBUG] [Thread-163] change_req fromMDN = 583207021,  eTel = 7021, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:24:23.462][DEBUG] [Thread-168] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:23.466][DEBUG] [Thread-163] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:24:23.466][DEBUG] [Thread-163] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583207021, mdn: 583207021, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:24:23.467][DEBUG] [Thread-168] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='8'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:18.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:23.467][DEBUG] [Thread-168] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:24:23.467][DEBUG] [Thread-168] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:24:23.467][DEBUG] [Thread-168] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:24:23.467][DEBUG] [Thread-168] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:24:23.468][DEBUG] [Thread-168] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:24:23.485][INFO ] [Thread-168] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='8'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:18.0'END_TIME='Tue Jul 28 16:24:23 KST 2026'DURATION_TIME='00:00:05.468CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:24:23.486][INFO ] [Thread-168] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "3ace449c-1929-43c4-94b3-fd677e654081",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 8,
+    "save_file_name": ""
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:23.486][INFO ] [Thread-168] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:23.493][INFO ] [Thread-163] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='9'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:24:23 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:24:23.494][DEBUG] [Thread-163] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:24:23.494][INFO ] [Thread-163] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "28fdf143-c76f-49e0-b9b2-2347518297ec",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 9,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:23.495][INFO ] [Thread-163] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:23.499][DEBUG] [Thread-163] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:23.512][DEBUG] [Thread-163] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='9'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:24:23.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:24.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:25.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:26.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:27.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:27.371][INFO ] [pool-8-thread-10] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "24d30a0f-fe30-4d17-8d8e-1defe5e3e975",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 9,
+    "caller_mdn": "tel:+82583207021",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:27.372][INFO ] [pool-8-thread-10] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "c03a76c4-fe59-4d19-bdef-5881d54e00bc",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:27.373][DEBUG] [Thread-145] change_req fromMDN = 583209004,  eTel = 9004, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:24:27.374][DEBUG] [Thread-144] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:27.378][DEBUG] [Thread-145] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:24:27.378][DEBUG] [Thread-145] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583209004, mdn: 583209004, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:24:27.379][DEBUG] [Thread-144] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='9'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:23.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:27.379][DEBUG] [Thread-144] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:24:27.379][DEBUG] [Thread-144] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:24:27.379][DEBUG] [Thread-144] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:24:27.380][DEBUG] [Thread-144] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:24:27.380][DEBUG] [Thread-144] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:24:27.393][INFO ] [Thread-145] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='10'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:24:27 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:24:27.393][DEBUG] [Thread-145] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:24:27.394][INFO ] [Thread-145] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "c03a76c4-fe59-4d19-bdef-5881d54e00bc",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 10,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:27.394][INFO ] [Thread-145] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:27.396][DEBUG] [Thread-145] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:27.399][INFO ] [Thread-144] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='9'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:23.0'END_TIME='Tue Jul 28 16:24:27 KST 2026'DURATION_TIME='00:00:04.380CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:24:27.400][INFO ] [Thread-144] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "24d30a0f-fe30-4d17-8d8e-1defe5e3e975",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 9,
+    "save_file_name": ""
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:27.401][INFO ] [Thread-144] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:27.407][DEBUG] [Thread-145] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='10'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:24:27.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:28.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:29.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:30.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:31.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:32.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:33.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:33.869][INFO ] [pool-8-thread-8] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "822ea201-85ec-4b6c-97e1-b0e258b1751c",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 10,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:33.869][INFO ] [pool-8-thread-8] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "d7103096-a4f5-4799-85c2-9c76ba5ae491",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583207021",
+    "audio_extension": "pcap"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:33.870][DEBUG] [Thread-158] change_req fromMDN = 583207021,  eTel = 7021, fTel = 58320 - (RmqRecordChangeReq.java:79)
+[2026-07-28 16:24:33.872][DEBUG] [Thread-153] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:33.876][DEBUG] [Thread-158] TBL_CUSTOMER_INFO UserName is null - (HibernateCommandManager.java:35)
+[2026-07-28 16:24:33.876][DEBUG] [Thread-158] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 fromUser: tel:+82583207021, mdn: 583207021, custUserName: null - (RmqRecordChangeReq.java:135)
+[2026-07-28 16:24:33.878][DEBUG] [Thread-153] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='10'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:27.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:33.879][DEBUG] [Thread-153] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:24:33.879][DEBUG] [Thread-153] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:24:33.879][DEBUG] [Thread-153] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:24:33.879][DEBUG] [Thread-153] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:24:33.879][DEBUG] [Thread-153] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:24:33.899][INFO ] [Thread-153] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='10'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:27.0'END_TIME='Tue Jul 28 16:24:33 KST 2026'DURATION_TIME='00:00:06.879CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:24:33.899][INFO ] [Thread-153] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "822ea201-85ec-4b6c-97e1-b0e258b1751c",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 10,
+    "save_file_name": ""
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:33.900][INFO ] [Thread-153] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:33.904][INFO ] [Thread-158] TBL_RECORD_INFO INSERT DATA [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='11'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='Tue Jul 28 16:24:33 KST 2026'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:72)
+[2026-07-28 16:24:33.904][DEBUG] [Thread-158] 960e2eb1475c0fca01edff976528e956@192.168.7.65_1 TblRecordInfos Database Insert - (MariaDBSender.java:63)
+[2026-07-28 16:24:33.905][INFO ] [Thread-158] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "d7103096-a4f5-4799-85c2-9c76ba5ae491",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 11,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433_11"
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:33.905][INFO ] [Thread-158] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordChangeRes),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:33.909][DEBUG] [Thread-158] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:33.920][DEBUG] [Thread-158] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='11'RECORD_TYPE='null'AUDIO_EXTENSION='null'VIDEO_EXTENSION='null'CREATE_TIME='2026-07-28 16:24:33.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:34.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:35.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:36.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:37.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:38.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:39.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:40.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:40.338][DEBUG] [vcmc-UDPMessageChannelThread-9] UDPMessageChannel: processIncomingDataPacket : peerAddress = 192.168.7.65/5080 Length = 486 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.340][INFO ] [vcmc-UDPMessageChannelThread-9] Setting SIPMessage peerPacketSource to: /192.168.7.65:5080 - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:24:40.342][INFO ] [vcmc-UDPMessageChannelThread-9] <message
+from="192.168.7.65:5080" 
+to="172.10.11.198:5060" 
+time="1785223480338"
+isSender="false" 
+transactionId="d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080343333" 
+callId="960e2eb1475c0fca01edff976528e956@192.168.7.65_1" 
+firstLine="BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0" 
+>
+<![CDATA[BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+To: <sip:opf_psi@172.10.11.198:5060>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534
+CSeq: 2 BYE
+From: <sip:+825828011002@192.168.7.65:5080>;tag=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+Max-Forwards: 68
+Content-Length: 0
+
+]]>
+</message>
+ - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:24:40.342][DEBUG] [vcmc-UDPMessageChannelThread-9] looking for pending tx for :d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080343333 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.342][DEBUG] [vcmc-UDPMessageChannelThread-9] disableTimeoutTimer lib.java.handler.sip.stack.SIPServerTransactionImpl@ffffffff - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.342][DEBUG] [vcmc-UDPMessageChannelThread-9] Creating Server Transactionnull - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.343][DEBUG] [vcmc-UDPMessageChannelThread-9] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPServerTransactionImpl.java:415][SIPTransactionStack.java:1748][SIPTransactionStack.java:1517][UDPMessageChannel.java:486][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:24:40.343][DEBUG] [vcmc-UDPMessageChannelThread-9] Setting Branch id : d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.343][DEBUG] [vcmc-UDPMessageChannelThread-9] newSIPServerRequest( BYE:d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534):lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.343][DEBUG] [vcmc-UDPMessageChannelThread-9] Returning request interface for BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ lib.java.handler.sip.DialogFilter@655e864f sipTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.344][DEBUG] [vcmc-UDPMessageChannelThread-9] acquireSem [[[[lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.344][DEBUG] [vcmc-UDPMessageChannelThread-9] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1228][SIPTransactionStack.java:1542][UDPMessageChannel.java:486][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:24:40.344][DEBUG] [vcmc-UDPMessageChannelThread-9] acquireSem() returning : true - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.344][DEBUG] [vcmc-UDPMessageChannelThread-9] About to process BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+/lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.344][DEBUG] [vcmc-UDPMessageChannelThread-9] processRequest: BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.344][DEBUG] [vcmc-UDPMessageChannelThread-9] tx state = -1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.345][DEBUG] [vcmc-UDPMessageChannelThread-9] Setting Branch id : d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.345][DEBUG] [vcmc-UDPMessageChannelThread-9] Transaction:setState 1 lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 branchID = d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534 isClient = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.345][DEBUG] [vcmc-UDPMessageChannelThread-9] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:528][SIPServerTransactionImpl.java:1459][SIPServerTransactionImpl.java:617][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:24:40.345][DEBUG] [vcmc-UDPMessageChannelThread-9] setPassToListener() - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.345][DEBUG] [vcmc-UDPMessageChannelThread-9] PROCESSING INCOMING REQUEST BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+To: <sip:opf_psi@172.10.11.198:5060>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534
+CSeq: 2 BYE
+From: <sip:+825828011002@192.168.7.65:5080>;tag=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+Max-Forwards: 68
+Content-Length: 0
+
+ transactionChannel = lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 listening point = 172.10.11.198:5060 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.346][DEBUG] [vcmc-UDPMessageChannelThread-9] transaction state = Trying Transaction - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.346][DEBUG] [vcmc-UDPMessageChannelThread-9] getDialog(960e2eb1475c0fca01edff976528e956@192.168.7.65_1:a6994a1:d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022) : returning null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.346][DEBUG] [vcmc-UDPMessageChannelThread-9] dialogId = 960e2eb1475c0fca01edff976528e956@192.168.7.65_1:a6994a1:d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.346][DEBUG] [vcmc-UDPMessageChannelThread-9] dialog = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.346][DEBUG] [vcmc-UDPMessageChannelThread-9] BYE Tx = lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 isMapped =false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.346][DEBUG] [vcmc-UDPMessageChannelThread-9] CHECK FOR OUT OF SEQ MESSAGE null transaction lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.346][DEBUG] [vcmc-UDPMessageChannelThread-9] BYE transaction.isMapped = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.347][DEBUG] [vcmc-UDPMessageChannelThread-9] handleEvent lib.java.handler.sip.RequestEventExt[source=lib.java.handler.sip.SipProviderImpl@5f058f00]currentTransaction = lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3this.sipListener = media.platform.vcmc.core.mcptt.sip.module.SipSignal@192d43cesipEvent.source = lib.java.handler.sip.SipProviderImpl@5f058f00 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.347][DEBUG] [vcmc-UDPMessageChannelThread-9] Dialog = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.347][DEBUG] [vcmc-UDPMessageChannelThread-9] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SipProviderImpl.java:105][DialogFilter.java:1251][SIPServerTransactionImpl.java:705][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:24:40.347][DEBUG] [vcmc-UDPMessageChannelThread-9] sipEvent = lib.java.handler.sip.RequestEventExt[source=lib.java.handler.sip.SipProviderImpl@5f058f00]source = lib.java.handler.sip.SipProviderImpl@5f058f00 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.347][DEBUG] [vcmc-UDPMessageChannelThread-9] deliverEvent : BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ transaction lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 sipEvent.serverTx = null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.348][DEBUG] [vcmc-UDPMessageChannelThread-9] serverTx: looking for key d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080343333 existing={} - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.348][DEBUG] [vcmc-UDPMessageChannelThread-9] findTransaction: returning  : null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.348][DEBUG] [vcmc-UDPMessageChannelThread-9] looking for pending tx for :d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080343333 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.348][DEBUG] [vcmc-UDPMessageChannelThread-9] putPendingTransaction: lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.348][DEBUG] [vcmc-UDPMessageChannelThread-9] Calling listener BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.348][DEBUG] [vcmc-UDPMessageChannelThread-9] Calling listener lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.349][DEBUG] [vcmc-UDPMessageChannelThread-9] Done processing Message BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.349][DEBUG] [vcmc-UDPMessageChannelThread-9] Done processing Message BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.349][DEBUG] [vcmc-UDPMessageChannelThread-9] semRelease ]]]]lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.349][INFO ] [Thread-169] [SIP] INCOMING REQUEST [BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+To: <sip:opf_psi@172.10.11.198:5060>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534
+CSeq: 2 BYE
+From: <sip:+825828011002@192.168.7.65:5080>;tag=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+Max-Forwards: 68
+Content-Length: 0
+
+] - (SipIncoming.java:48)
+[2026-07-28 16:24:40.349][DEBUG] [vcmc-UDPMessageChannelThread-9] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1263][SIPTransactionImpl.java:1250][SIPServerTransactionImpl.java:1800][EventScanner.java:224][EventScanner.java:97][SipProviderImpl.java:115][DialogFilter.java:1251][SIPServerTransactionImpl.java:705][UDPMessageChannel.java:502][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:24:40.349][DEBUG] [vcmc-UDPMessageChannelThread-9] removePendingTx: d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080343333 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.350][DEBUG] [vcmc-UDPMessageChannelThread-9] semRelease ]]]]lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.350][DEBUG] [vcmc-UDPMessageChannelThread-9] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:1263][SIPTransactionImpl.java:1250][SIPServerTransactionImpl.java:1800][UDPMessageChannel.java:507][UDPMessageChannel.java:448][UDPMessageChannel.java:249][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:24:40.350][DEBUG] [Thread-169] serverTx: looking for key d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080343333 existing={} - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.350][DEBUG] [vcmc-UDPMessageChannelThread-9] Done processing BYE sip:+825828011003@172.10.11.198:5060 SIP/2.0
+/lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.350][DEBUG] [Thread-169] findTransaction: returning  : null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.350][DEBUG] [Thread-169]  putTransactionHash :  key = d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080343333 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.351][DEBUG] [Thread-169] getDialog(960e2eb1475c0fca01edff976528e956@192.168.7.65_1:a6994a1:d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022) : returning null - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.352][DEBUG] [Thread-169] sipServerTransaction::sendMessage SIP/2.0 200 OK
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.353][DEBUG] [Thread-169] enableTimeoutTimer lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 tickCount 64 currentTickCount = -1 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.353][DEBUG] [Thread-169] Transaction:setState 3 lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 branchID = d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534 isClient = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.354][DEBUG] [Thread-169] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:528][SIPServerTransactionImpl.java:1459][SIPServerTransactionImpl.java:853][SIPServerTransactionImpl.java:801][SIPServerTransactionImpl.java:1403][Bye.java:78][Incoming.java:58][SipIncoming.java:58][SipIncoming.java:31][SipConsumer.java:47][SipConsumer.java:32][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:24:40.354][DEBUG] [Thread-169] starting TransactionTimerJ() : d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080343333 time 64 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.354][DEBUG] [Thread-169] sendMessage : tx = lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 getState = Completed Transaction - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.355][DEBUG] [Thread-169] sipServerTransaction::sendResponse SIP/2.0 200 OK
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.355][DEBUG] [Thread-169] Creating message channel 192.168.7.65/5080 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.356][DEBUG] [Thread-169] :sendMessage 192.168.7.65/5080
+ messageSize = 434 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.356][DEBUG] [Thread-169] sendMessage 192.168.7.65/5080
+SIP/2.0 200 OK
+CSeq: 2 BYE
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+From: <sip:+825828011002@192.168.7.65:5080>;tag=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022
+To: <sip:opf_psi@172.10.11.198:5060>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534
+Content-Length: 0
+
+ - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.357][INFO ] [Thread-169] <message
+from="172.10.11.198:5060" 
+to="192.168.7.65:5080" 
+time="1785223480355"
+isSender="true" 
+transactionId="d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080343333" 
+callId="960e2eb1475c0fca01edff976528e956@192.168.7.65_1" 
+firstLine="SIP/2.0 200 OK" 
+>
+<![CDATA[SIP/2.0 200 OK
+CSeq: 2 BYE
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+From: <sip:+825828011002@192.168.7.65:5080>;tag=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022
+To: <sip:opf_psi@172.10.11.198:5060>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534
+Content-Length: 0
+
+]]>
+</message>
+ - (CommonLoggerLog4j.java:207)
+[2026-07-28 16:24:40.358][INFO ] [Thread-169] [SIP] OUTGOING RESPONSE [SIP/2.0 200 OK
+CSeq: 2 BYE
+Call-ID: 960e2eb1475c0fca01edff976528e956@192.168.7.65_1
+From: <sip:+825828011002@192.168.7.65:5080>;tag=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022
+To: <sip:opf_psi@172.10.11.198:5060>;tag=a6994a1
+Via: SIP/2.0/UDP 192.168.7.65:5080;branch=d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534
+Content-Length: 0
+
+] - (Bye.java:79)
+[2026-07-28 16:24:40.358][DEBUG] [Thread-169] Transaction:setState 5 lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3 branchID = d9a8bd8-23007c0a-13c4-65014-5050022-574415f1-5050022-960e2eb1475c0fca01edff976528e956-192.168.7.65_1-2-bye-192.168.7.65-5080353534 isClient = false - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:40.358][DEBUG] [Thread-169] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPTransactionImpl.java:528][SIPServerTransactionImpl.java:1459][SIPServerTransactionImpl.java:1596][Bye.java:81][Incoming.java:58][SipIncoming.java:58][SipIncoming.java:31][SipConsumer.java:47][SipConsumer.java:32][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:24:40.359][DEBUG] [Thread-169] bye serverTransactionId [lib.java.handler.sip.stack.SIPServerTransactionImpl@8bb075b3] is terminated  - (Bye.java:82)
+[2026-07-28 16:24:40.359][DEBUG] [Thread-169] mariaDBSessionUpdate.sessionInfoId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (MariaDBSender.java:83)
+[2026-07-28 16:24:40.362][DEBUG] [Thread-169] TBL_CALL_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateSessionManager.java:110)
+[2026-07-28 16:24:40.368][DEBUG] [Thread-169] TBL_CALL_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'CALLER_MDN='585102956'CALLEE_MDN='98011990000'CREATE_TIME='2026-07-28 16:23:40.0'END_TIME='null'DURATION_TIME='null'CALL_TYPE='그룹] - (HibernateSessionManager.java:118)
+[2026-07-28 16:24:40.412][DEBUG] [Thread-169] TBL_RECORD_INFO READ END_TIME NULL LIST [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='11'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:33.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:124)
+[2026-07-28 16:24:40.414][INFO ] [Thread-169] TBL_RECORD_INFO CALL_ID is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], File Index is [11] - (Bye.java:93)
+[2026-07-28 16:24:40.415][INFO ] [Thread-169] () () () [RMQ MESSAGE] Json --> {
+  "header": {
+    "type": "recording_stop_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "70a27f43-51af-4609-bba1-830304be328d",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "from_no": "tel:+82583207021",
+    "to_no": "98011990000",
+    "file_index": 11
+  }
+} - (RmqOutgoingMessageHandler.java:109)
+[2026-07-28 16:24:40.416][INFO ] [Thread-169] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> (VCMM_0) RecordStopReq),[0] [null] - (RmqOutgoingMessageHandler.java:118)
+[2026-07-28 16:24:40.431][INFO ] [pool-8-thread-8] () () () [RMQ MESSAGE] onReceived : {
+  "header": {
+    "type": "recording_stop_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "70a27f43-51af-4609-bba1-830304be328d",
+    "msgFrom": "VCMM_0",
+    "trxType": 1,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "file_index": 11,
+    "callerMdn": "tel:+82583207021",
+    "fps": "0,0"
+  }
+} - (RmqServer.java:121)
+[2026-07-28 16:24:40.436][DEBUG] [Thread-142] TBL_RECORD_INFO READ CALL ID [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (HibernateRecordManager.java:99)
+[2026-07-28 16:24:40.441][DEBUG] [Thread-142] TBL_RECORD_INFO DATA IS [SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='11'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:33.0'END_TIME='null'DURATION_TIME='nullCALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433'CALLEE_FILE_NAME='null'REASON_CORD='0'REASON_STR='null'FILE_STATUS='0'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='null'] - (HibernateRecordManager.java:111)
+[2026-07-28 16:24:40.442][INFO ] [Thread-142] TBL_RECORD_INFO IS NOT NULL [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (RmqRecordStopRes.java:59)
+[2026-07-28 16:24:40.442][DEBUG] [Thread-142] (1) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (ResponseCodeStr.java:53)
+[2026-07-28 16:24:40.442][DEBUG] [Thread-142] (2) code is [2000] - (ResponseCodeStr.java:54)
+[2026-07-28 16:24:40.442][DEBUG] [Thread-142] (2) status is [stop] - (ResponseCodeStr.java:55)
+[2026-07-28 16:24:40.442][DEBUG] [Thread-142] responseCodeStrInfo.stop - (ResponseCodeStr.java:62)
+[2026-07-28 16:24:40.442][DEBUG] [Thread-142] (2) callId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1], ResponseCodeStr.responseCodeStrInfo [2000], status [stop] - (ResponseCodeStr.java:103)
+[2026-07-28 16:24:40.442][DEBUG] [Thread-142] RecordStopRes fps is [0,0] - (RmqRecordStopRes.java:73)
+[2026-07-28 16:24:40.456][INFO ] [Thread-142] TBL_RECORD_INFO UPDATE DATA SIP_CALLID='960e2eb1475c0fca01edff976528e956@192.168.7.65_1'FILE_INDEX='11'RECORD_TYPE='AUDIO'AUDIO_EXTENSION='pcap'VIDEO_EXTENSION='pcap'CREATE_TIME='2026-07-28 16:24:33.0'END_TIME='Tue Jul 28 16:24:40 KST 2026'DURATION_TIME='00:00:07.442CALLER_FILE_NAME='M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433'CALLEE_FILE_NAME='null'REASON_CORD='2'REASON_STR='SUCCESS'FILE_STATUS='2'MCPTT_GROUP_ID='98011990000'GROUP_DISPLAY_NAME='null'USER_NAME='null'FPS='0,0' - (MariaDBSender.java:115)
+[2026-07-28 16:24:40.457][DEBUG] [Thread-142] set callInfo callState.IDLE [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] - (RmqRecordStopRes.java:85)
+[2026-07-28 16:24:41.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [0] - (SessionManager.java:79)
+[2026-07-28 16:24:41.000][INFO ] [pool-4-thread-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () sessionCheckIDLE: 1785223420066  - (SessionManagerImpl.java:42)
+[2026-07-28 16:24:41.001][DEBUG] [pool-4-thread-1] TerminateTransaction.sipTransactionTerminate - (TerminateTransaction.java:21)
+[2026-07-28 16:24:41.001][INFO ] [pool-4-thread-1] () () () sipTransactionTerminate getDialog state is [Confirmed Dialog] - (TerminateTransaction.java:39)
+[2026-07-28 16:24:41.001][DEBUG] [pool-4-thread-1] SIPDialog::setState:Setting dialog state for lib.java.handler.sip.stack.SIPDialog@21844816newState = 3 - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:41.001][DEBUG] [pool-4-thread-1] [CommonLoggerLog4j.java:22][CommonLogger.java:109][SIPDialog.java:1400][SIPDialog.java:2102][TerminateTransaction.java:40][SessionManagerImpl.java:47][SessionManager.java:119][SessionManager.java:86][SessionManager.java:24][SessionManager.java:146][Executors.java:511][FutureTask.java:308][ScheduledThreadPoolExecutor.java:180][ScheduledThreadPoolExecutor.java:294][ThreadPoolExecutor.java:1149][ThreadPoolExecutor.java:624][Thread.java:750] - (CommonLoggerLog4j.java:39)
+[2026-07-28 16:24:41.002][DEBUG] [pool-4-thread-1] SIPDialog::setState:lib.java.handler.sip.stack.SIPDialog@21844816  old dialog state is Confirmed Dialog - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:41.002][DEBUG] [pool-4-thread-1] SIPDialog::setState:lib.java.handler.sip.stack.SIPDialog@21844816  New dialog state is Terminated Dialog - (CommonLoggerLog4j.java:92)
+[2026-07-28 16:24:41.002][DEBUG] [pool-4-thread-1] sessionCheckLogic sessionCheckBye - (SessionManager.java:120)
+[2026-07-28 16:24:42.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 1, removeList [1] - (SessionManager.java:79)
+[2026-07-28 16:24:42.001][INFO ] [pool-4-thread-1] () () () session manager: checkSessionValidity removeId is [960e2eb1475c0fca01edff976528e956@192.168.7.65_1]  - (SessionManager.java:82)
+[2026-07-28 16:24:42.001][INFO ] [pool-4-thread-1] [960e2eb1475c0fca01edff976528e956@192.168.7.65_1] callInfo Deleted. - (CallManager.java:113)
+[2026-07-28 16:24:42.001][DEBUG] [pool-4-thread-1] sessionCheckLogic removeList - (SessionManager.java:100)
+[2026-07-28 16:24:43.000][INFO ] [pool-4-thread-1] () () () session manager: callSession count: 0, removeList [0] - (SessionManager.java:79)
