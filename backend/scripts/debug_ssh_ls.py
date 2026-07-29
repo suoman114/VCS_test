@@ -9,13 +9,21 @@ pcap 샘플 select box가 빈 목록으로 뜨는 문제를 디버깅하기 위�
 from __future__ import annotations
 
 import asyncio
+import logging
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import asyncssh  # noqa: E402
+
 from app.core.config import get_settings  # noqa: E402
 from app.services.ssh_connector import SSHConnector, SSHTarget  # noqa: E402
+
+# 정확히 어떤 채널 요청(pty-req/exec/env 등)을 주고받는지 보기 위한 verbose
+# 로그. 비밀번호 등 민감정보는 asyncssh가 로그에 남기지 않는다.
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(name)s %(message)s")
+asyncssh.set_debug_level(3)
 
 
 async def main() -> None:
