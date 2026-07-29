@@ -35,6 +35,19 @@ fi
 setsid nohup node_modules/.bin/vite --host "$HOST" --port "$PORT" --strictPort \
   > "$LOG_FILE" 2>&1 < /dev/null &
 disown
-echo $! > "$PID_FILE"
+NEW_PID=$!
+echo "$NEW_PID" > "$PID_FILE"
 
-echo "frontend: 시작됨 (pid $(cat "$PID_FILE"), http://${HOST}:${PORT}, log: $LOG_FILE)"
+# 백그라운드 기동은 부모 스크립트가 자식의 실제 성공/실패를 못 보므로,
+# 잠깐 기다렸다가 진짜 살아있는지 확인하고 나서야 성공을 보고한다
+# (start-backend.sh와 동일한 이유 — 포트 충돌 등으로 vite가 바로 죽어도
+# 이게 없으면 "시작됨"이 잘못 찍힌다).
+sleep 1
+if kill -0 "$NEW_PID" 2>/dev/null; then
+  echo "frontend: 시작됨 (pid $NEW_PID, http://${HOST}:${PORT}, log: $LOG_FILE)"
+else
+  rm -f "$PID_FILE"
+  echo "frontend: 기동 실패 — 로그 확인: $LOG_FILE" >&2
+  tail -n 20 "$LOG_FILE" >&2 || true
+  exit 1
+fi
