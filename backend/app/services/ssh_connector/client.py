@@ -145,16 +145,21 @@ class SSHConnector:
         가려버린다. pty를 요청하면 `stty`가 정상적인 pty를 보고 조용히 성공하므로
         이 문제가 사라진다(원격 `.cshrc`를 건드릴 필요 없음).
 
-        `term_type`은 반드시 실제 터미널처럼 보이는 값("xterm")을 써야 한다.
-        처음엔 `"dumb"`으로 pty를 요청했었는데, 그러면 `.cshrc`에 흔한 관용구인
-        "`$term`이 dumb이면(비대화형 자동화로 판단해) 그냥 `exit`" 분기에 걸려
-        `.cshrc`가 우리 명령을 실행하기도 전에 셸 자체를 조용히 종료시켜버렸다
-        (exit_status=0인데 stdout/stderr 둘 다 완전히 빈 결과 — 실 서버에서
-        확인됨). `xterm`으로 바꾸면 pty는 여전히 잡히면서 이 분기를 피한다.
+        `term_type`은 실제 터미널처럼 보이는 값("xterm")을 쓴다("dumb"으로
+        시도했다가 별 효과가 없어 변경). 더 결정적인 것은 `term_size`다 —
+        asyncssh는 명시하지 않으면 pty를 0x0 크기로 요청하는데(소스 확인,
+        `SSHClientChannel._send_pty_request`), VCS 계정의 `.cshrc`가 터미널
+        크기가 0이면 비정상 세션으로 보고 우리 명령을 실행하기도 전에 셸을
+        조용히 종료시켜서(exit_status=0, stdout/stderr 전부 빈 값) `ls` 등
+        모든 원격 명령이 아무 결과도 없이 "성공"하는 것처럼 보였다(실 서버에서
+        확인). 실제 터미널 크기(80x24)를 명시해 이 분기를 피한다.
         """
         conn = await self.connect()
         term_type = "xterm" if request_pty else None
-        result = await conn.run(command, check=check, timeout=timeout, term_type=term_type)
+        term_size = (80, 24) if request_pty else None
+        result = await conn.run(
+            command, check=check, timeout=timeout, term_type=term_type, term_size=term_size
+        )
         return CommandResult(
             command=command,
             exit_status=result.exit_status,

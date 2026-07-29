@@ -1,17 +1,19 @@
 """SSHConnector.run_command 단위 테스트 — pty 요청 여부 검증.
 
 실제 네트워크 연결은 하지 않는다 — `asyncssh.connect`를 monkeypatch해서 가짜
-연결을 반환하고, `conn.run()`에 전달되는 `term_type` 인자를 기록한다.
+연결을 반환하고, `conn.run()`에 전달되는 `term_type`/`term_size` 인자를 기록한다.
 
 배경: 실제 VCS 계정의 로그인 셸이 csh/tcsh이고 `.cshrc`가 무조건 `stty`를
 호출해서, pty 없는(비대화형) SSH exec에서 `stty: standard input:
 Inappropriate ioctl for device`로 실패해 원래 명령 결과를 가려버리는 문제가
 있었다(2026-07-29 실 서버에서 확인). `run_command`가 기본적으로 pty를
-요청(`term_type="xterm"`)하도록 고쳐서 해결했다 (`app/services/ssh_connector/client.py`).
+요청하도록 고쳐서 해결했다 (`app/services/ssh_connector/client.py`).
 
-`term_type`을 처음엔 `"dumb"`으로 했었는데, `.cshrc`의 "`$term`이 dumb이면
-exit" 관용구에 걸려 명령이 아예 실행되지 않는(exit_status=0, stdout/stderr
-둘 다 빈 값) 문제가 실 서버에서 추가로 확인되어 `"xterm"`으로 변경했다.
+`term_type="dumb"`도 시도해봤지만 효과가 없었고, 실제 원인은 `term_size`를
+지정하지 않으면 asyncssh가 pty를 0x0 크기로 요청한다는 점이었다 — VCS
+계정의 `.cshrc`가 터미널 크기 0을 비정상 세션으로 보고 명령 실행 전에 셸을
+조용히 종료시켜서 exit_status=0인데 stdout/stderr이 통째로 비어 있었다(실
+서버에서 확인). `term_size=(80, 24)`를 명시해 해결했다.
 """
 from __future__ import annotations
 
@@ -34,9 +36,15 @@ class _FakeConnection:
     def __init__(self) -> None:
         self.run_calls: list[dict[str, object]] = []
 
-    async def run(self, command, *, check=False, timeout=None, term_type=None):
+    async def run(self, command, *, check=False, timeout=None, term_type=None, term_size=None):
         self.run_calls.append(
-            {"command": command, "check": check, "timeout": timeout, "term_type": term_type}
+            {
+                "command": command,
+                "check": check,
+                "timeout": timeout,
+                "term_type": term_type,
+                "term_size": term_size,
+            }
         )
         return _FakeRunResult()
 
@@ -65,6 +73,7 @@ async def test_run_command_requests_pty_by_default(monkeypatch: pytest.MonkeyPat
     assert result.exit_status == 0
     assert len(fake_conn.run_calls) == 1
     assert fake_conn.run_calls[0]["term_type"] == "xterm"
+    assert fake_conn.run_calls[0]["term_size"] == (80, 24)
 
 
 @pytest.mark.asyncio
@@ -80,3 +89,4 @@ async def test_run_command_request_pty_false_skips_pty(monkeypatch: pytest.Monke
     await connector.run_command("ls", request_pty=False)
 
     assert fake_conn.run_calls[0]["term_type"] is None
+    assert fake_conn.run_calls[0]["term_size"] is None
