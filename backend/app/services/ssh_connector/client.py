@@ -139,26 +139,39 @@ class SSHConnector:
 
         `request_pty=True`(기본값)로 pseudo-terminal을 요청한다: SSH `exec`
         채널은 서버가 접속 계정의 로그인 셸(`/etc/passwd`)로 명령을 감싸 실행하는데,
-        로그인 셸이 csh/tcsh이고 `.cshrc`에 무조건 `stty`를 호출하는 줄이 있으면
-        (실제 VCS 계정에서 확인됨) tty가 없는 비대화형 세션에서 `stty: standard
-        input: Inappropriate ioctl for device`로 실패해 원래 명령의 정상 출력을
-        가려버린다. pty를 요청하면 `stty`가 정상적인 pty를 보고 조용히 성공하므로
-        이 문제가 사라진다(원격 `.cshrc`를 건드릴 필요 없음).
+        VCS `vcs` 계정의 로그인 셸은 `/bin/bash`이고(실 서버에서 `echo $SHELL`로
+        확인, `.cshrc`는 애초에 존재하지 않음 — 초기에 csh/tcsh로 추정했던 건
+        틀렸다) 시작 스크립트 어딘가가 tty 없는 비대화형 세션에서 `stty:
+        standard input: Inappropriate ioctl for device`로 실패해 원래 명령의
+        정상 출력을 가려버렸다. pty를 요청하면 `stty`가 정상적인 pty를 보고
+        조용히 성공하므로 이 문제가 사라진다.
 
         `term_type`은 실제 터미널처럼 보이는 값("xterm")을 쓴다("dumb"으로
-        시도했다가 별 효과가 없어 변경). 더 결정적인 것은 `term_size`다 —
-        asyncssh는 명시하지 않으면 pty를 0x0 크기로 요청하는데(소스 확인,
-        `SSHClientChannel._send_pty_request`), VCS 계정의 `.cshrc`가 터미널
-        크기가 0이면 비정상 세션으로 보고 우리 명령을 실행하기도 전에 셸을
-        조용히 종료시켜서(exit_status=0, stdout/stderr 전부 빈 값) `ls` 등
-        모든 원격 명령이 아무 결과도 없이 "성공"하는 것처럼 보였다(실 서버에서
-        확인). 실제 터미널 크기(80x24)를 명시해 이 분기를 피한다.
+        시도했다가 별 효과가 없어 변경). `term_size`도 명시적으로 80x24로
+        준다 — asyncssh는 명시하지 않으면 pty를 0x0 크기로 요청한다(소스 확인,
+        `SSHClientChannel._send_pty_request`).
+
+        `errors="replace"`도 필수다: asyncssh는 기본적으로 원격 출력을 UTF-8로
+        엄격하게(`errors="strict"`) 디코딩하는데, pcap 샘플 파일명 중 일부가
+        EUC-KR 등 비-UTF-8 인코딩이라 디코딩이 실패하면 **해당 세션 하나가
+        아니라 SSH 커넥션 전체가 그 자리에서 강제 종료**된다(실 서버에서
+        `MSG_DISCONNECT` + `'utf-8' codec can't decode byte ...` 확인). 그
+        결과 이미 받은 출력 전체가 버려지고 exit_status=0(디코딩 실패 전에
+        받은 exit-status)에 stdout/stderr만 텅 빈 것처럼 보였다 — `ls` 등
+        모든 원격 명령이 비-ASCII 파일명/로그를 만나면 이렇게 조용히 깨질 수
+        있는 심각한 문제였다. `errors="replace"`로 깨진 바이트만 U+FFFD로
+        대체하고 연결은 살려둔다.
         """
         conn = await self.connect()
         term_type = "xterm" if request_pty else None
         term_size = (80, 24) if request_pty else None
         result = await conn.run(
-            command, check=check, timeout=timeout, term_type=term_type, term_size=term_size
+            command,
+            check=check,
+            timeout=timeout,
+            term_type=term_type,
+            term_size=term_size,
+            errors="replace",
         )
         return CommandResult(
             command=command,
@@ -190,10 +203,18 @@ class SSHConnector:
         log-collector-agent가 이 제너레이터를 소비해 원본 로그 파일에 append하고
         WebSocket(ws.manager.broadcast_to_run)으로 동시에 브로드캐스트한다.
         `stop_event`가 set되면 다음 라인 수신 후 스트림을 종료한다.
+
+        `errors="replace"`: VCS 로그에 비-UTF-8 바이트(예: 완성형 인코딩의
+        한글)가 섞여 있으면 asyncssh가 기본 UTF-8 strict 디코딩에 실패해
+        SSH 커넥션 전체를 끊어버리는 문제가 있다(`run_command` 문서 참고,
+        pcap 샘플명 조회에서 실 서버로 확인됨). 로그 tail에서 이 문제가
+        나면 스트리밍 전체가 끊기므로 반드시 `errors="replace"`가 필요하다.
         """
         conn = await self.connect()
         tail_args = "-F -n +1" if from_beginning else "-F"
-        process = await conn.create_process(f"tail {tail_args} {remote_path}")
+        process = await conn.create_process(
+            f"tail {tail_args} {remote_path}", errors="replace"
+        )
         try:
             assert process.stdout is not None
             async for line in process.stdout:

@@ -9,11 +9,14 @@ Inappropriate ioctl for device`로 실패해 원래 명령 결과를 가려버�
 있었다(2026-07-29 실 서버에서 확인). `run_command`가 기본적으로 pty를
 요청하도록 고쳐서 해결했다 (`app/services/ssh_connector/client.py`).
 
-`term_type="dumb"`도 시도해봤지만 효과가 없었고, 실제 원인은 `term_size`를
-지정하지 않으면 asyncssh가 pty를 0x0 크기로 요청한다는 점이었다 — VCS
-계정의 `.cshrc`가 터미널 크기 0을 비정상 세션으로 보고 명령 실행 전에 셸을
-조용히 종료시켜서 exit_status=0인데 stdout/stderr이 통째로 비어 있었다(실
-서버에서 확인). `term_size=(80, 24)`를 명시해 해결했다.
+`term_type="dumb"`도 시도해봤지만 효과가 없었고, 그 다음 시도한 `term_size`
+0x0 이론도 아니었다(둘 다 실 서버 진단 스크립트로 반증됨). 최종적으로
+verbose 로그로 확인한 진짜 원인은 인코딩이었다: pcap 샘플 파일명 중 일부가
+EUC-KR 등 비-UTF-8 인코딩이라, asyncssh 기본 UTF-8 strict 디코딩이 실패하면
+그 세션만이 아니라 SSH 커넥션 전체가 `MSG_DISCONNECT`로 끊어지면서 이미 받은
+출력이 전부 버려졌다(exit_status=0은 디코딩 실패 전에 받은 값이라 남아있고
+stdout/stderr만 텅 빔). `errors="replace"`로 해결했다(`term_type`/`term_size`
+수정은 근본 원인이 아니었지만 pty 자체는 여전히 필요해 유지한다).
 """
 from __future__ import annotations
 
@@ -36,7 +39,16 @@ class _FakeConnection:
     def __init__(self) -> None:
         self.run_calls: list[dict[str, object]] = []
 
-    async def run(self, command, *, check=False, timeout=None, term_type=None, term_size=None):
+    async def run(
+        self,
+        command,
+        *,
+        check=False,
+        timeout=None,
+        term_type=None,
+        term_size=None,
+        errors=None,
+    ):
         self.run_calls.append(
             {
                 "command": command,
@@ -44,6 +56,7 @@ class _FakeConnection:
                 "timeout": timeout,
                 "term_type": term_type,
                 "term_size": term_size,
+                "errors": errors,
             }
         )
         return _FakeRunResult()
@@ -74,6 +87,7 @@ async def test_run_command_requests_pty_by_default(monkeypatch: pytest.MonkeyPat
     assert len(fake_conn.run_calls) == 1
     assert fake_conn.run_calls[0]["term_type"] == "xterm"
     assert fake_conn.run_calls[0]["term_size"] == (80, 24)
+    assert fake_conn.run_calls[0]["errors"] == "replace"
 
 
 @pytest.mark.asyncio
