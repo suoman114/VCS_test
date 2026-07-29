@@ -42,7 +42,7 @@ async def test_list_volte_sample_files_parses_and_sorts_ls_output() -> None:
     files = await list_volte_sample_files(settings=settings, connector=connector)
 
     assert files == ["imsVideo30sec.pcap", "zzz.pcap"]
-    assert connector.commands == ["ls -1 /home/vcs/vctp/sample"]
+    assert connector.commands == ["\\ls -1 /home/vcs/vctp/sample"]
     # 주입된 connector는 이 함수가 만든 게 아니므로 닫지 않는다(호출자 책임).
     assert connector.closed is False
 
@@ -54,3 +54,16 @@ async def test_list_volte_sample_files_raises_on_ls_failure() -> None:
 
     with pytest.raises(RuntimeError, match="No such file or directory"):
         await list_volte_sample_files(settings=settings, connector=connector)
+
+
+@pytest.mark.asyncio
+async def test_list_volte_sample_files_strips_ansi_color_codes() -> None:
+    """RHEL 계열 기본 .cshrc의 `alias ls 'ls --color=auto'` 등으로 색상 코드가
+    섞여 들어와도(PTY 할당 시 흔함) 파일명만 깨끗하게 추출되어야 한다."""
+    settings = Settings(vctp_sample_dir="/home/vcs/vctp/sample")
+    colored_stdout = "\x1b[0mimsVideo30sec.pcap\x1b[0m\n\x1b[0mzzz.pcap\x1b[0m\n"
+    connector = _FakeConnector(_FakeResult(exit_status=0, stdout=colored_stdout))
+
+    files = await list_volte_sample_files(settings=settings, connector=connector)
+
+    assert files == ["imsVideo30sec.pcap", "zzz.pcap"]
