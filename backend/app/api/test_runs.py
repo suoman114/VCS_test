@@ -77,6 +77,14 @@ async def trigger_test_run(test_case_id: str, db: Session = Depends(get_db)) -> 
     db.commit()
     db.refresh(test_run)
 
+    # db.commit()은 기본적으로(expire_on_commit=True) 세션 내 모든 객체의 속성을
+    # 만료시킨다 — test_case는 수정하지 않았지만 예외가 아니다. protocol_params처럼
+    # 이 시점까지 한 번도 접근하지 않은 컬럼은 아직 로드되지 않은 채로 남는데,
+    # 바로 아래에서 expunge()로 세션에서 분리해버리면 백그라운드 Job이 나중에
+    # 그 컬럼에 처음 접근할 때 다시 불러올 세션이 없어 DetachedInstanceError가 난다.
+    # expunge 전에 refresh로 강제로 전체 컬럼을 로드해둔다.
+    db.refresh(test_case)
+
     # 백그라운드 Job은 요청 스코프 `db` 세션이 닫힌 뒤 실행되므로, 이미 로드된
     # 컬럼 값만 쓰도록 두 인스턴스를 세션에서 분리(expunge)한다.
     db.expunge(test_case)

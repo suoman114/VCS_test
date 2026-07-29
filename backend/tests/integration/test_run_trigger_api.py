@@ -26,7 +26,14 @@ from app.services.executor_base import TestExecutor, TestCaseLike, executor_regi
 
 
 class _FakeDoneExecutor(TestExecutor):
-    """SSH/SIPp를 전혀 건드리지 않고 즉시 DONE으로 전이하는 가짜 Executor."""
+    """SSH/SIPp를 전혀 건드리지 않고 즉시 DONE으로 전이하는 가짜 Executor.
+
+    실제 VolteBasicCallExecutor.run()의 첫 줄처럼 `test_case.protocol_params`에
+    접근한다 — 라우터가 커밋 후 detach한 test_case 인스턴스를 백그라운드 job에
+    넘기는데, 이 접근이 detach된 뒤 처음 이루어지는 attribute read라 실 서버에서
+    `DetachedInstanceError`가 났었다(트리거 라우터가 expunge 전에 test_case를
+    refresh하지 않아서). 여기서도 똑같이 접근해야 회귀를 잡을 수 있다.
+    """
 
     protocol = "volte"
     test_type = "basic_call"
@@ -34,6 +41,8 @@ class _FakeDoneExecutor(TestExecutor):
     async def run(self, test_case: TestCaseLike):
         from app.core.database import SessionLocal
         from app.models.test_run import TestRun
+
+        _ = dict(getattr(test_case, "protocol_params", {}) or {})
 
         await job_runner.set_status(self.run_id, TestRunStatus.RUNNING, target_host="fake-host")
         await asyncio.sleep(0)  # 다른 태스크에 제어권을 한 번 넘겨 비동기 job임을 반영
@@ -116,16 +125,30 @@ async def test_trigger_run_success_flow_with_fake_executor(
 
 
 @pytest.mark.asyncio
-async def test_trigger_run_ssh_failure_transitions_to_error(client: httpx.AsyncClient) -> None:
-    """CLAUDE.md §3.1: VCS_SSH_HOST 미설정 상태에서는 SSH 연결 자체가 실패해야 한다."""
+async def test_trigger_run_ssh_failure_transitions_to_error(
+    client: httpx.AsyncClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    """CLAUDE.md §3.1: VCS_SSH_HOST 미설정 상태에서는 SSH 연결 자체가 실패해야 한다.
+
+    실패 사유가 반드시 "SSH 설정 없음"이어야 한다 — 예전엔 트리거 라우터가
+    커밋 후 detach하기 전에 test_case를 refresh하지 않아서, executor가
+    `test_case.protocol_params`에 처음 접근하는 순간 DetachedInstanceError가
+    나며 우연히 같은 "error" 상태로 끝났다(원인은 전혀 다른데 상태만 같아서
+    이 assert만으로는 못 잡던 회귀). 로그에서 그 예외가 안 찍혔는지까지 확인한다.
+    """
+    import logging
+
     test_case_id = await _create_test_case(client)
 
-    resp = await client.post(f"/api/test-cases/{test_case_id}/run")
-    assert resp.status_code == 202
-    run_id = resp.json()["id"]
+    with caplog.at_level(logging.ERROR):
+        resp = await client.post(f"/api/test-cases/{test_case_id}/run")
+        assert resp.status_code == 202
+        run_id = resp.json()["id"]
 
-    final_status = await _poll_until_terminal(client, run_id)
+        final_status = await _poll_until_terminal(client, run_id)
+
     assert final_status == "error"
+    assert "DetachedInstanceError" not in caplog.text
 
 
 @pytest.mark.asyncio
