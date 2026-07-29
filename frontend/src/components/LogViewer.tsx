@@ -10,6 +10,10 @@
  *   탭은 고정 목록이 아니라 실제로 로그가 들어온 source를 기준으로 동적으로
  *   생긴다 — VoLTE 실행은 vcsm/vcmm/vctp만, McPTT 실행은 vcmc/vcmm(+sipp)만
  *   나타난다.
+ * - "클릭-투-로그": Call Flow에서 메시지를 클릭하면 `logStore.jumpTarget`이
+ *   설정된다. 해당 source 탭으로 전환하고, 이미 로드된 라이브/과거 로그에서
+ *   해당 seq_no를 찾아 스크롤+하이라이트한다. 없으면(과거 로그 미로드 구간)
+ *   서버에서 한 번 더 가져와 병합을 시도한다.
  */
 import { useEffect, useRef, useState } from "react";
 import { useLogStore } from "../store/logStore";
@@ -43,10 +47,17 @@ function labelOf(source: string): string {
 }
 
 const HISTORY_PAGE_SIZE = 100;
+// 클릭-투-로그로 과거 로그를 찾을 때 쓰는 한 번의 대량 조회 크기. CLAUDE.md
+// 기준 Test Run당 이벤트 수는 수십~수백 건 규모라 1000이면 충분히 큰
+// 여유분이다(백엔드 /events의 limit 상한과 동일).
+const JUMP_FETCH_LIMIT = 1000;
+const HIGHLIGHT_DURATION_MS = 2500;
 
 export function LogViewer({ runId }: { runId: string | null }) {
   const bySource = useLogStore((state) => state.bySource);
   const sourceErrors = useLogStore((state) => state.sourceErrors);
+  const jumpTarget = useLogStore((state) => state.jumpTarget);
+  const clearJumpTarget = useLogStore((state) => state.clearJumpTarget);
 
   const sources = sortSources(Object.keys(bySource));
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -56,8 +67,12 @@ export function LogViewer({ runId }: { runId: string | null }) {
   const [historyTotal, setHistoryTotal] = useState<number | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [highlightSeq, setHighlightSeq] = useState<number | null>(null);
+  const [pendingJumpSeq, setPendingJumpSeq] = useState<number | null>(null);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const historyBodyRef = useRef<HTMLDivElement | null>(null);
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 아직 선택된 탭이 없거나(첫 로그 도착 전), 선택된 탭의 소스가 더 이상 없으면
   // (run 전환 등) 사용 가능한 첫 소스로 자동 전환한다.
@@ -85,10 +100,69 @@ export function LogViewer({ runId }: { runId: string | null }) {
   }, [runId, activeTab]);
 
   useEffect(() => {
-    if (autoScroll && scrollRef.current) {
+    if (autoScroll && !pendingJumpSeq && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [liveLines, autoScroll]);
+  }, [liveLines, autoScroll, pendingJumpSeq]);
+
+  // Call Flow에서 메시지 클릭 -> 해당 source 탭으로 전환하고 목표 seq_no를 예약한다.
+  useEffect(() => {
+    if (!jumpTarget) return;
+    setActiveTab(jumpTarget.source);
+    setPendingJumpSeq(jumpTarget.seqNo);
+    clearJumpTarget();
+  }, [jumpTarget, clearJumpTarget]);
+
+  // 예약된 목표를 매 렌더마다(라이브/과거 로그가 갱신될 때마다) 찾아본다 —
+  // 이미 로드돼 있으면 바로 스크롤, 없으면 한 번 서버에서 더 가져와본다.
+  useEffect(() => {
+    if (pendingJumpSeq === null || !activeTab) return;
+
+    const liveEl = document.getElementById(`log-line-${pendingJumpSeq}`);
+    const historyEl = document.getElementById(`log-history-${pendingJumpSeq}`);
+    const target = liveEl ?? historyEl;
+
+    if (target) {
+      target.scrollIntoView({ block: "center", behavior: "smooth" });
+      setHighlightSeq(pendingJumpSeq);
+      setPendingJumpSeq(null);
+      if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
+      highlightTimeoutRef.current = setTimeout(() => setHighlightSeq(null), HIGHLIGHT_DURATION_MS);
+      return;
+    }
+
+    if (!runId) return;
+    let cancelled = false;
+    testRunsApi
+      .getEvents(runId, { limit: JUMP_FETCH_LIMIT, offset: 0 })
+      .then((res) => {
+        if (cancelled) return;
+        const found = res.items.filter((ev) => ev.source === activeTab);
+        setHistory((prev) => {
+          const known = new Set(prev.map((ev) => ev.id));
+          const merged = [...prev, ...found.filter((ev) => !known.has(ev.id))];
+          return merged;
+        });
+        setHistoryTotal(res.total);
+        if (!found.some((ev) => ev.seq_no === pendingJumpSeq)) {
+          // 그래도 못 찾으면(범위 밖 등) 더는 시도하지 않고 조용히 포기한다.
+          setPendingJumpSeq(null);
+        }
+      })
+      .catch(() => setPendingJumpSeq(null));
+    return () => {
+      cancelled = true;
+    };
+    // liveLines/history가 갱신될 때마다 다시 찾아보되, fetch는 pendingJumpSeq/activeTab이
+    // 바뀔 때만 새로 트리거되도록 의도적으로 최소 의존성만 둔다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingJumpSeq, activeTab, runId, liveLines, history.length]);
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
+    };
+  }, []);
 
   async function loadMoreHistory() {
     if (!runId || !activeTab) return;
@@ -132,7 +206,11 @@ export function LogViewer({ runId }: { runId: string | null }) {
         {!runId && <div className="log-empty">실행 중인 Test Run이 없습니다.</div>}
         {runId && liveLines.length === 0 && <div className="log-empty">아직 수신된 로그가 없습니다.</div>}
         {liveLines.map((l) => (
-          <div key={l.seq} className="log-line">
+          <div
+            key={l.seq}
+            id={`log-line-${l.seq}`}
+            className={l.seq === highlightSeq ? "log-line log-line-highlight" : "log-line"}
+          >
             <span className="log-seq">#{l.seq}</span>
             <span className="log-source">[{l.source}]</span>
             <span className="log-text">{l.line}</span>
@@ -153,9 +231,13 @@ export function LogViewer({ runId }: { runId: string | null }) {
             {history.length} / {historyTotal}건 로드됨
           </div>
         )}
-        <div className="log-history-body">
+        <div className="log-history-body" ref={historyBodyRef}>
           {history.map((ev) => (
-            <div key={ev.id} className="log-line">
+            <div
+              key={ev.id}
+              id={`log-history-${ev.seq_no}`}
+              className={ev.seq_no === highlightSeq ? "log-line log-line-highlight" : "log-line"}
+            >
               <span className="log-seq">#{ev.seq_no}</span>
               <span className="log-source">[{ev.source}]</span>
               <span className="log-text">{ev.raw_line}</span>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { testRunsApi } from "../../api/testRuns";
 import { useTestRunSocket } from "../../api/useTestRunSocket";
-import type { CallFlowResponse, TestRun, WsMessage } from "../../api/types";
+import type { CallFlowMessage, CallFlowResponse, TestRun, WsMessage } from "../../api/types";
 import { useLogStore } from "../../store/logStore";
 import { StatusBadge } from "../../components/StatusBadge";
 import { LogViewer } from "../../components/LogViewer";
@@ -27,6 +27,7 @@ export function ExecutionPage() {
   const setSourceError = useLogStore((s) => s.setSourceError);
   const setLiveStatus = useLogStore((s) => s.setLiveStatus);
   const liveStatus = useLogStore((s) => s.liveStatus);
+  const setJumpTarget = useLogStore((s) => s.setJumpTarget);
 
   const [callFlow, setCallFlow] = useState<CallFlowResponse | null>(null);
   const callFlowPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -44,10 +45,20 @@ export function ExecutionPage() {
           run_id: msg.run_id,
           mermaid_source: msg.mermaid_source,
           generated_at: msg.generated_at,
+          messages: msg.messages,
         });
       }
     },
     [appendLine, setSourceError, setLiveStatus],
+  );
+
+  // Call Flow에서 메시지(INVITE/100/180 등)를 클릭하면 로그 뷰어가 해당
+  // source 탭으로 전환하고 그 줄로 스크롤+하이라이트한다(components/LogViewer.tsx).
+  const handleCallFlowMessageClick = useCallback(
+    (message: CallFlowMessage) => {
+      setJumpTarget({ source: message.source, seqNo: message.seq_no });
+    },
+    [setJumpTarget],
   );
 
   // ASSUMED: WebSocket 경로/메시지 상세는 backend-agent 최종 구현에서 바뀔 수 있다 (api/useTestRunSocket.ts 참고)
@@ -167,7 +178,12 @@ export function ExecutionPage() {
         {callFlow ? (
           <>
             <div className="call-flow-meta">생성 시각: {new Date(callFlow.generated_at).toLocaleString()}</div>
-            <MermaidDiagram source={callFlow.mermaid_source} />
+            <div className="call-flow-hint">메시지를 클릭하면 아래 로그에서 해당 줄로 이동합니다.</div>
+            <MermaidDiagram
+              source={callFlow.mermaid_source}
+              messages={callFlow.messages}
+              onMessageClick={handleCallFlowMessageClick}
+            />
           </>
         ) : (
           <div className="log-empty">

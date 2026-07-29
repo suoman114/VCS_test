@@ -57,9 +57,23 @@ class CallEventListResponse(BaseModel):
     total: int
 
 
+class CallFlowMessageRead(BaseModel):
+    """Call Flow의 메시지(화살표) 하나 -> 원본 CallEvent 참조 (클릭-투-로그용).
+
+    `index`는 렌더된 Mermaid `.messageText` 엘리먼트 순서와 1:1 대응한다
+    (`app.services.callflow.generator.CallFlowMessageRef` 참고).
+    """
+
+    index: int
+    seq_no: int
+    source: CallEventSourceLiteral
+    call_id: str | None
+
+
 class CallFlowRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     run_id: str
     mermaid_source: str
     generated_at: datetime
+    messages: list[CallFlowMessageRead] = []

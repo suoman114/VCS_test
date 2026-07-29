@@ -42,6 +42,12 @@
   color: #6b7280;
 }
 
+.call-flow-hint {
+  font-size: 0.78rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
 .execution-links {
   display: flex;
   gap: 16px;

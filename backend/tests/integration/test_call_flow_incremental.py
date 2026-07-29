@@ -11,12 +11,16 @@ push하도록 고쳤다. 여기서는 폴링 루프의 타이밍과 분리해서
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 
 import app.services.execution_common as execution_common_module
+import httpx
 import pytest
 from app.models.call_event import CallEvent, CallEventSource
 from app.models.call_flow import CallFlowDiagram
+from app.models.test_case import TestCase, TestCaseCategory, TestCaseType
+from app.models.test_run import TestRun, TestRunStatus
 from app.services.execution_common import persist_call_flow
 from sqlalchemy import select
 
@@ -27,6 +31,7 @@ _VOLTE_VCSM_LOG = _REPO_ROOT / "docs" / "log_samples" / "volte" / "vcsm.log"
 def _make_event(run_id: str, seq_no: int, parsed_type: str, raw_line: str = "") -> CallEvent:
     return CallEvent(
         run_id=run_id,
+        ts=datetime.now(timezone.utc),
         source=CallEventSource.VCSM_LOG,
         raw_line=raw_line,
         parsed_type=parsed_type,
@@ -86,6 +91,9 @@ async def test_persist_call_flow_upserts_and_broadcasts(
     assert broadcasts[0]["type"] == "call_flow"
     assert broadcasts[0]["run_id"] == run_id
     assert broadcasts[0]["mermaid_source"] == first_source
+    assert broadcasts[0]["messages"] == [
+        {"index": 0, "seq_no": 1, "source": "vcsm_log", "call_id": None}
+    ]
 
     # 폴링이 이어지며 이벤트가 더 쌓였다고 가정 — 같은 run_id는 새 행이 아니라 갱신돼야 한다.
     fuller_events = partial_events + [_make_event(run_id, 2, "SIP_200OK", raw_line='"reasonCode": 200')]
@@ -149,3 +157,39 @@ async def test_wait_for_completion_persists_call_flow_before_pass_criteria_met(
     finally:
         db.close()
     assert row.mermaid_source  # 비어있지 않은 다이어그램이 실행 종료 전에 이미 저장돼 있었다
+
+
+@pytest.mark.asyncio
+async def test_get_call_flow_api_returns_message_index_for_click_to_log(
+    client: httpx.AsyncClient, isolated_db
+) -> None:
+    """GET /test-runs/{id}/call-flow가 클릭-투-로그용 messages를 CallEvent에서 다시 계산해 반환하는지."""
+    run_id = "run-api"
+    db = isolated_db()
+    try:
+        test_case = TestCase(
+            id="tc-api",
+            name="call-flow-api-fixture",
+            category=TestCaseCategory.VOLTE,
+            test_type=TestCaseType.BASIC_CALL,
+            config_ref="imsVideo30sec.pcap",
+            protocol_params={},
+            pass_criteria={},
+        )
+        db.add(test_case)
+        db.add(TestRun(id=run_id, test_case_id=test_case.id, status=TestRunStatus.DONE))
+        db.add(CallFlowDiagram(run_id=run_id, mermaid_source="sequenceDiagram\n"))
+        db.add(_make_event(run_id, 1, "SIP_INVITE"))
+        db.add(_make_event(run_id, 2, "SIP_200OK", raw_line='"reasonCode": 200'))
+        db.commit()
+    finally:
+        db.close()
+
+    resp = await client.get(f"/api/test-runs/{run_id}/call-flow")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["messages"] == [
+        {"index": 0, "seq_no": 1, "source": "vcsm_log", "call_id": None},
+        {"index": 1, "seq_no": 2, "source": "vcsm_log", "call_id": None},
+    ]

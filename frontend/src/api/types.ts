@@ -98,10 +98,24 @@ export interface TestRunListParams {
   offset?: number;
 }
 
+/**
+ * Call Flow의 메시지(화살표) 하나 -> 원본 CallEvent 참조 (CONFIRMED —
+ * `app.schemas.test_run.CallFlowMessageRead`). `index`는 렌더된 Mermaid
+ * `.messageText` 엘리먼트 순서와 1:1 대응해서, 클릭 시 어떤 CallEvent(로그
+ * 라인)로 이동해야 하는지 알려준다.
+ */
+export interface CallFlowMessage {
+  index: number;
+  seq_no: number;
+  source: CallEventSource;
+  call_id: string | null;
+}
+
 export interface CallFlowResponse {
   run_id: string;
   mermaid_source: string;
   generated_at: string;
+  messages: CallFlowMessage[];
 }
 
 export type CallEventSource =
@@ -181,6 +195,7 @@ export interface WsCallFlowMessage {
   run_id: string;
   mermaid_source: string;
   generated_at: string;
+  messages: CallFlowMessage[];
 }
 
 export type WsMessage = WsLogMessage | WsLogSourceErrorMessage | WsStatusMessage | WsCallFlowMessage;

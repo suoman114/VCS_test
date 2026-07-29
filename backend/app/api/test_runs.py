@@ -24,10 +24,12 @@ import app.services.volte.executor  # noqa: F401
 from app.schemas.test_run import (
     CallEventListResponse,
     CallEventRead,
+    CallFlowMessageRead,
     CallFlowRead,
     TestRunListResponse,
     TestRunRead,
 )
+from app.services.callflow.generator import generate_call_flow
 from app.services.executor_base import executor_registry
 from app.ws.manager import manager
 
@@ -126,7 +128,16 @@ def get_test_run(run_id: str, db: Session = Depends(get_db)) -> TestRun:
 
 
 @router.get("/test-runs/{run_id}/call-flow", response_model=CallFlowRead)
-def get_test_run_call_flow(run_id: str, db: Session = Depends(get_db)) -> CallFlowDiagram:
+def get_test_run_call_flow(run_id: str, db: Session = Depends(get_db)) -> CallFlowRead:
+    """저장된 Mermaid 텍스트 + 메시지별 CallEvent 참조(클릭-투-로그용)를 반환한다.
+
+    `mermaid_source`는 DB에 저장된 값을 그대로 쓰지만(최종 확정 시 명시적
+    protocol로 생성된 값이 더 정확하므로), `messages`는 `CallEvent` 테이블에서
+    다시 계산한다(저장 비용이 낮은 파생 데이터라 DB 스키마를 늘리지 않았다).
+    실행이 아직 진행 중이면 `CallEvent`가 최종 확정(persist_results) 전이라
+    비어있을 수 있다 — 이 경우 WS의 "call_flow" push가 실시간으로 `messages`를
+    채워주므로(실행 중엔 그게 주 경로) 문제되지 않는다.
+    """
     _get_test_run_or_404(db, run_id)
     diagram = db.execute(
         select(CallFlowDiagram).where(CallFlowDiagram.run_id == run_id)
@@ -136,7 +147,23 @@ def get_test_run_call_flow(run_id: str, db: Session = Depends(get_db)) -> CallFl
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Call flow not generated yet (run may still be in progress)",
         )
-    return diagram
+
+    events = (
+        db.execute(select(CallEvent).where(CallEvent.run_id == run_id).order_by(CallEvent.seq_no.asc()))
+        .scalars()
+        .all()
+    )
+    _, message_index = generate_call_flow(list(events))
+
+    return CallFlowRead(
+        run_id=diagram.run_id,
+        mermaid_source=diagram.mermaid_source,
+        generated_at=diagram.generated_at,
+        messages=[
+            CallFlowMessageRead(index=m.index, seq_no=m.seq_no, source=m.source, call_id=m.call_id)
+            for m in message_index
+        ],
+    )
 
 
 @router.get("/test-runs/{run_id}/events", response_model=CallEventListResponse)
