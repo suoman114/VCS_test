@@ -2,6 +2,25 @@
 
 로컬 개발 환경이든 실제 배포 대상 서버든 공통 절차는 `backend/README.md`, `frontend/README.md`를 따른다. 이 문서는 그중 **CentOS 7처럼 오래된 운영체제**에서 겪을 수 있는 환경 문제와 해결책을 정리한다 — 실제로 사내 VCS 시험 서버가 CentOS 7 계열인 경우가 많아, 한 번 겪은 문제를 반복하지 않기 위한 기록이다.
 
+## 시작/종료 스크립트 (`scripts/`)
+
+아래 "표준 절차"(가상환경 activate, `pip install`, `npm install` 등)를 한 번 해둔 뒤에는, 매번 터미널에 `nohup ... &`을 직접 치는 대신 `scripts/`의 스크립트로 백엔드/프론트엔드를 켜고 끌 수 있다.
+
+```bash
+scripts/start.sh     # 백엔드 + 프론트엔드 둘 다 백그라운드로 기동
+scripts/stop.sh      # 둘 다 종료
+scripts/status.sh    # 실행 중인지 + 백엔드 헬스체크(/api/health) 확인
+
+scripts/start-backend.sh   / scripts/stop-backend.sh    # 백엔드만
+scripts/start-frontend.sh  / scripts/stop-frontend.sh   # 프론트엔드만
+```
+
+- 로그는 `backend/backend.log`, `frontend/frontend.log`에 쌓인다(`.gitignore`에 포함, 커밋 안 됨). `tail -f backend/backend.log`로 실시간 확인.
+- PID 파일은 `storage/run/*.pid`(gitignore된 `storage/` 하위)에 저장된다. 이미 떠 있으면 `start-*.sh`는 그냥 상태만 출력하고 재기동하지 않는다(중복 기동 방지).
+- 종료는 SIGTERM → 최대 10초 대기 → 그래도 안 죽으면 SIGKILL 순으로 진행하고, `setsid`로 띄운 프로세스 그룹 전체(vite가 띄우는 esbuild 등 자식 프로세스 포함)를 정리한다.
+- 기본 바인딩은 `127.0.0.1`(로컬only)이다. 외부에서 붙으려면 아래 "외부 접속" 절의 SSH 포트포워딩을 쓰거나, `BACKEND_HOST=0.0.0.0 FRONTEND_HOST=0.0.0.0 scripts/start.sh`처럼 환경변수로 override한다. 포트도 `BACKEND_PORT`/`FRONTEND_PORT`로 바꿀 수 있다.
+- 코드 변경 시 자동 재기동이 필요하면 `BACKEND_RELOAD=1 scripts/start-backend.sh`(uvicorn `--reload`). 프론트는 Vite가 기본적으로 HMR을 지원하므로 별도 옵션이 필요 없다.
+
 ## 표준 절차 (최신 OS 기준)
 
 ### 백엔드
