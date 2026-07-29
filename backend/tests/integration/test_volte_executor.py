@@ -34,6 +34,7 @@ from app.services.volte.executor import VolteBasicCallExecutor
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _VOLTE_VCSM_LOG = _REPO_ROOT / "docs" / "log_samples" / "volte" / "vcsm.log"
 _VOLTE_VCMM_LOG = _REPO_ROOT / "docs" / "log_samples" / "volte" / "vcmm.log"
+_VOLTE_VCTP_LOG = _REPO_ROOT / "docs" / "log_samples" / "volte" / "vctp.log"
 
 
 class _LocalTailStub(LogSource):
@@ -96,6 +97,7 @@ def _seed_test_case_and_run(isolated_db) -> tuple[TestCase, str]:
                 "sample_file": "imsVideo30sec.pcap",
                 "vcsm_log_path": str(_VOLTE_VCSM_LOG),
                 "vcmm_log_path": str(_VOLTE_VCMM_LOG),
+                "vctp_log_path": str(_VOLTE_VCTP_LOG),
                 "timeout_sec": 5,
             },
             pass_criteria={},

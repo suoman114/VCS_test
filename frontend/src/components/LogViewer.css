@@ -29,6 +29,12 @@
   color: #fff;
 }
 
+.log-tabs-empty {
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 .log-autoscroll {
   margin-left: auto;
   font-size: 0.85rem;

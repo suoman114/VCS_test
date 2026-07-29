@@ -53,7 +53,7 @@
 ### 3.1 VoLTE 기본 호처리 시험 (2026-07-29 실 환경 확인 후 확정)
 1. vctp가 재생(replay)할 pcap 샘플은 이미 VCS의 `/home/vcs/vctp/sample`에 있다. "설정 적용"은 새 파일을 업로드하는 게 아니라, vctp 설정(`/home/vcs/vctp/config/vctp_user.config`)의 `SAMPLEFILE1` 항목을 시험하려는 pcap 파일명으로 SSH `sed` 치환하는 것이다. Test Case 등록 폼은 `GET /api/vcs/volte-sample-files`(SSH `ls`)로 조회한 목록을 select box로 보여준다.
 2. SSH로 VCS에 접속하여 `stopmc -b vctp` → `startmc -b vctp` 순서로 vctp를 재기동 → 재기동된 vctp가 pcap을 재생하며 SIP는 VCSM으로, RTP는 VCMM으로 릴레이
-3. 재기동 직후부터 VCS의 관련 로그 파일을 실시간 tail로 수집 시작 — 대상은 `vcsm.log`(`/home/vcs/vcsm/logs/vcsm.log`, SIP 시그널링), `vcmm.log`(`/home/vcs/vcmm/logs/vcmm0.log`, 녹취 제어/결과). `vctp.log`는 패킷 단위 릴레이 로그가 대부분(§9 참고)이라 실시간 스트리밍 대상에서는 저우선순위로 둔다.
+3. 재기동 직후부터 VCS의 관련 로그 파일을 실시간 tail로 수집 시작 — 대상은 `vcsm.log`(`/home/vcs/vcsm/logs/vcsm.log`, SIP 시그널링), `vcmm.log`(`/home/vcs/vcmm/logs/vcmm0.log`, 녹취 제어/결과), `vctp.log`(`/home/vcs/vctp/logs/vctp0.log`, 패킷 릴레이). `vctp.log`는 패킷 단위 릴레이 로그가 대부분(§9 참고)이라 Call Flow/판정에서는 여전히 저비중으로 다루지만, 대시보드에 프로세스별 로그 탭(vcsm/vcmm/vctp)을 제공하기 위해 다른 로그와 동일하게 tail 대상에 포함한다(2026-07-29 실 서버 경로 확인).
 4. 호처리 완료(성공/실패/타임아웃) 판정 기준에 도달할 때까지 수집 — **확인된 성공 판정 근거**: `vcmm.log`에서 VCMM이 보내는 `recording_stop_res` 메시지의 `header.reasonCode == 2000 && header.reason == "Success"`. SIP 레벨에서는 `vcsm.log`의 BYE ↔ 200 OK 교환과 시점이 일치.
 5. 수집 종료 → 원본 로그 저장 → 파싱 → Call Flow 생성 → Pass/Fail 판정 → 대시보드에 결과 반영
 
@@ -177,8 +177,8 @@ Phase 1에서부터 아래 원칙을 지켜서, 나중에 성능/Abnormal 시험
 
 1. **시험 케이스 관리**: 목록/등록/수정/삭제, 프로토콜·유형별 필터
 2. **시험 실행**: 케이스 선택 후 실행, 실행 중 상태 표시(진행중/완료/실패)
-3. **실시간 로그 뷰어**: 실행 중인 Test Run의 로그를 WebSocket으로 실시간 스트리밍 표시 (VCS 로그 / SIPp 로그 탭 구분)
-4. **Call Flow 뷰어**: Test Run 종료 후(또는 진행 중 부분적으로) Mermaid 시퀀스 다이어그램 렌더링
+3. **실시간 로그 뷰어**: 실행 중인 Test Run의 로그를 WebSocket으로 실시간 스트리밍 표시. 탭은 채널(VCS/SIPp) 단위가 아니라 **프로세스 단위**(vcsm/vcmc/vcmm/vctp/sipp)로 세분화되며, 해당 Test Run에서 실제로 로그가 들어오는 프로세스만 동적으로 탭이 생긴다(예: VoLTE는 vcsm/vcmm/vctp, McPTT는 vcmc/vcmm).
+4. **Call Flow 뷰어**: Test Run 종료 후(또는 진행 중 부분적으로) Mermaid 시퀀스 다이어그램 렌더링. 실행 화면(로그 뷰어) 바로 아래에 함께 표시해 페이지 이동 없이 로그와 Call Flow를 동시에 볼 수 있다(별도 `/call-flow/:runId` 페이지는 이력 조회용으로 유지).
 5. **시험 이력**: Test Run 목록, Pass/Fail 통계, 과거 로그/Call Flow 재조회
 6. **(공통) 연결 상태 표시**: VCS SSH 연결 상태, SIPp 실행 가능 여부 등 헬스체크
 

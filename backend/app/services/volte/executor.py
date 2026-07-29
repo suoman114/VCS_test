@@ -25,10 +25,12 @@
                                        조회한 목록 중 하나를 select box로 고른다.
     vctp_config_path (str, 선택)     : 기본값 Settings.vctp_config_path
     stop_cmd / start_cmd (str, 선택) : 기본값 Settings.vctp_stop_cmd / vctp_start_cmd
-    vcsm_log_path / vcmm_log_path    : 기본값 Settings.vcs_vcsm_log_path / vcs_vcmm_log_path
-        (str, 선택)
-    vcs_log_paths (list[str] | dict) : 위 두 기본 경로 외에 추가로 tail할 로그가
-        (선택)                         있으면 병합한다 (예: vctp_log 추가 등).
+    vcsm_log_path / vcmm_log_path    : 기본값 Settings.vcs_vcsm_log_path / vcs_vcmm_log_path /
+        / vctp_log_path (str, 선택)     vcs_vctp_log_path. vctp_log는 패킷 릴레이 노이즈가 대부분
+                                       (CLAUDE.md §9)이지만 대시보드 프로세스별 로그 탭 요구사항에
+                                       따라 다른 로그와 동일하게 tail한다.
+    vcs_log_paths (list[str] | dict) : 위 세 기본 경로 외에 추가로 tail할 로그가 있으면 병합한다.
+        (선택)
     wait_after_restart_sec (float)   : 재기동 후 로그 수집 시작 전 대기(기본 0)
     timeout_sec (float)              : 완료 판정 타임아웃(기본 30초)
 
@@ -131,6 +133,7 @@ class VolteBasicCallExecutor(TestExecutor):
             default_log_paths = {
                 "vcsm_log": params.get("vcsm_log_path", self._settings.vcs_vcsm_log_path),
                 "vcmm_log": params.get("vcmm_log_path", self._settings.vcs_vcmm_log_path),
+                "vctp_log": params.get("vctp_log_path", self._settings.vcs_vctp_log_path),
             }
             extra_log_paths = normalize_log_paths(params.get("vcs_log_paths") or {})
             log_paths = {**default_log_paths, **extra_log_paths}

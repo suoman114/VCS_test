@@ -69,6 +69,9 @@ class Settings(BaseSettings):
     vcs_vcsm_log_path: str = "/home/vcs/vcsm/logs/vcsm.log"
     vcs_vcmm_log_path: str = "/home/vcs/vcmm/logs/vcmm0.log"
     vcs_vcmc_log_path: str = "/home/vcs/vcmc/logs/vcmc.log"
+    # 패킷 릴레이 로그(대부분 노이즈, CLAUDE.md §9)라 우선순위는 낮지만, 대시보드에서
+    # 프로세스별 탭으로 보여달라는 요청에 따라 다른 로그와 동일하게 tail 대상에 포함한다.
+    vcs_vctp_log_path: str = "/home/vcs/vctp/logs/vctp0.log"
 
     # --- SIPp 실행 대상 (실행 위치는 TestCase.protocol_params.sipp_exec_mode 또는
     # 아래 기본값으로 결정. 별도 SIPp 전용 호스트를 쓰는 배포는 SIPP_EXEC_MODE=ssh로 설정) ---

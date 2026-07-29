@@ -2,13 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { testRunsApi } from "../../api/testRuns";
 import { useTestRunSocket } from "../../api/useTestRunSocket";
-import type { TestRun, WsMessage } from "../../api/types";
+import type { CallFlowResponse, TestRun, WsMessage } from "../../api/types";
 import { useLogStore } from "../../store/logStore";
 import { StatusBadge } from "../../components/StatusBadge";
 import { LogViewer } from "../../components/LogViewer";
+import { MermaidDiagram } from "../../components/MermaidDiagram";
 import "./ExecutionPage.css";
 
 const POLL_INTERVAL_MS = 3000;
+const CALL_FLOW_POLL_INTERVAL_MS = 5000;
 const TERMINAL_STATUSES = new Set(["done", "failed", "error"]);
 
 export function ExecutionPage() {
@@ -19,21 +21,24 @@ export function ExecutionPage() {
 
   const setActiveRunId = useLogStore((s) => s.setActiveRunId);
   const appendLine = useLogStore((s) => s.appendLine);
-  const setChannelError = useLogStore((s) => s.setChannelError);
+  const setSourceError = useLogStore((s) => s.setSourceError);
   const setLiveStatus = useLogStore((s) => s.setLiveStatus);
   const liveStatus = useLogStore((s) => s.liveStatus);
+
+  const [callFlow, setCallFlow] = useState<CallFlowResponse | null>(null);
+  const callFlowPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleWsMessage = useCallback(
     (msg: WsMessage) => {
       if (msg.type === "log") {
-        appendLine(msg.channel, { seq: msg.seq, source: msg.source, line: msg.line, ts: msg.ts });
+        appendLine(msg.source, { seq: msg.seq, source: msg.source, line: msg.line, ts: msg.ts });
       } else if (msg.type === "log_source_error") {
-        setChannelError(msg.channel === "sipp_log" ? "sipp_log" : "vcs_log", msg.message);
+        setSourceError(msg.source, msg.message);
       } else if (msg.type === "status") {
         setLiveStatus(msg.status);
       }
     },
-    [appendLine, setChannelError, setLiveStatus],
+    [appendLine, setSourceError, setLiveStatus],
   );
 
   // ASSUMED: WebSocket 경로/메시지 상세는 backend-agent 최종 구현에서 바뀔 수 있다 (api/useTestRunSocket.ts 참고)
@@ -67,6 +72,37 @@ export function ExecutionPage() {
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [runId, fetchRun]);
+
+  // Call Flow는 실행 중에도 부분적으로 생성될 수 있어(CLAUDE.md §8-4) run이
+  // 끝날 때까지 주기적으로 다시 조회한다. 아직 생성 전이면 404가 정상이라
+  // 화면 상단 에러로는 띄우지 않고 "아직 생성되지 않음"으로만 표시한다.
+  const fetchCallFlow = useCallback(async () => {
+    if (!runId) return;
+    try {
+      const data = await testRunsApi.getCallFlow(runId);
+      setCallFlow(data);
+    } catch {
+      // 아직 생성되지 않았을 수 있음(진행 중) — 조용히 무시하고 다음 폴링을 기다린다.
+    }
+  }, [runId]);
+
+  useEffect(() => {
+    if (!runId) return;
+    setCallFlow(null);
+    fetchCallFlow();
+    callFlowPollRef.current = setInterval(fetchCallFlow, CALL_FLOW_POLL_INTERVAL_MS);
+    return () => {
+      if (callFlowPollRef.current) clearInterval(callFlowPollRef.current);
+    };
+  }, [runId, fetchCallFlow]);
+
+  useEffect(() => {
+    if (run && TERMINAL_STATUSES.has(run.status) && callFlowPollRef.current) {
+      fetchCallFlow(); // 종료 직후 마지막 상태를 한 번 더 확실히 받아온다.
+      clearInterval(callFlowPollRef.current);
+      callFlowPollRef.current = null;
+    }
+  }, [run, fetchCallFlow]);
 
   if (!runId) {
     return (
@@ -116,8 +152,23 @@ export function ExecutionPage() {
 
       <LogViewer runId={runId} />
 
+      <div className="call-flow-section">
+        <h3>Call Flow</h3>
+        {callFlow ? (
+          <>
+            <div className="call-flow-meta">생성 시각: {new Date(callFlow.generated_at).toLocaleString()}</div>
+            <MermaidDiagram source={callFlow.mermaid_source} />
+          </>
+        ) : (
+          <div className="log-empty">
+            {run && TERMINAL_STATUSES.has(run.status)
+              ? "Call Flow 데이터가 없습니다."
+              : "아직 생성되지 않았습니다 (진행 중이면 로그 수신에 따라 갱신됩니다)."}
+          </div>
+        )}
+      </div>
+
       <div className="execution-links">
-        <Link to={`/call-flow/${runId}`}>Call Flow 보기 →</Link>
         <Link to="/history">시험 이력으로 이동</Link>
       </div>
     </div>

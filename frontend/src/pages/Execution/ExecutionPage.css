@@ -27,6 +27,21 @@
   overflow-x: auto;
 }
 
+.call-flow-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.call-flow-section h3 {
+  margin: 0;
+}
+
+.call-flow-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
 .execution-links {
   display: flex;
   gap: 16px;
