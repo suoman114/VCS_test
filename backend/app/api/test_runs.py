@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSock
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.job_runner import job_runner
 from app.models.call_event import CallEvent
@@ -30,6 +31,7 @@ from app.schemas.test_run import (
     TestRunRead,
 )
 from app.services.callflow.generator import generate_call_flow
+from app.services.execution_common import ADAPTERS_BY_LOG_NAME, parse_collected_logs
 from app.services.executor_base import executor_registry
 from app.ws.manager import manager
 
@@ -41,6 +43,42 @@ def _get_test_run_or_404(db: Session, run_id: str) -> TestRun:
     if test_run is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="TestRun not found")
     return test_run
+
+
+def _load_events(db: Session, test_run: TestRun) -> list[CallEvent]:
+    """이 run의 CallEvent를 반환한다 — DB에 있으면 DB에서, 없으면(실행 중이라
+    아직 `persist_results`가 한 번도 안 돈 경우) 현재까지 수집된 원본 로그
+    파일을 그 자리에서 파싱해 대체한다.
+
+    `CallEvent`는 실행이 완전히 끝나야만 한 번에 DB로 확정 저장된다
+    (`execution_common.persist_results` — 폴링마다 재저장하면 중복이 생기기
+    때문). 그래서 실행 도중에는 "과거 로그"/클릭-투-로그가 항상 빈 결과만
+    받았다(실 서버에서 확인된 문제). 이 함수가 그 간극을 메운다: DB가
+    비어있으면 `storage/logs/{test_case_id}/{run_id}/*.log`를
+    `parse_collected_logs`로 즉석 파싱해서 돌려준다(같은 파서를 실행기
+    폴링 루프가 쓰는 것과 동일하게 재사용 — 파싱 로직 중복 없음).
+
+    즉석 파싱된 이벤트는 DB에 없으므로 `id`가 없다(SQLAlchemy 컬럼 default는
+    flush 시점에만 적용됨) — 프론트 캐시 키 안정성을 위해 결정론적 id를
+    직접 부여한다.
+    """
+    events = (
+        db.execute(select(CallEvent).where(CallEvent.run_id == test_run.id).order_by(CallEvent.seq_no.asc()))
+        .scalars()
+        .all()
+    )
+    if events:
+        return list(events)
+
+    settings = get_settings()
+    run_dir = settings.log_storage_path / test_run.test_case_id / test_run.id
+    if not run_dir.exists():
+        return []
+    log_names = sorted(p.stem for p in run_dir.glob("*.log") if p.stem in ADAPTERS_BY_LOG_NAME)
+    live_events = parse_collected_logs(run_dir, log_names, test_run.id)
+    for e in live_events:
+        e.id = f"{test_run.id}:{e.source.value}:{e.seq_no}"
+    return live_events
 
 
 @router.post(
@@ -132,13 +170,12 @@ def get_test_run_call_flow(run_id: str, db: Session = Depends(get_db)) -> CallFl
     """저장된 Mermaid 텍스트 + 메시지별 CallEvent 참조(클릭-투-로그용)를 반환한다.
 
     `mermaid_source`는 DB에 저장된 값을 그대로 쓰지만(최종 확정 시 명시적
-    protocol로 생성된 값이 더 정확하므로), `messages`는 `CallEvent` 테이블에서
-    다시 계산한다(저장 비용이 낮은 파생 데이터라 DB 스키마를 늘리지 않았다).
-    실행이 아직 진행 중이면 `CallEvent`가 최종 확정(persist_results) 전이라
-    비어있을 수 있다 — 이 경우 WS의 "call_flow" push가 실시간으로 `messages`를
-    채워주므로(실행 중엔 그게 주 경로) 문제되지 않는다.
+    protocol로 생성된 값이 더 정확하므로), `messages`는 `_load_events()`로
+    구한 이벤트에서 다시 계산한다(저장 비용이 낮은 파생 데이터라 DB 스키마를
+    늘리지 않았다). 실행 중에는 `_load_events`가 원본 로그를 즉석 파싱해서
+    채워주므로, 실행 중에도 클릭-투-로그가 동작한다.
     """
-    _get_test_run_or_404(db, run_id)
+    test_run = _get_test_run_or_404(db, run_id)
     diagram = db.execute(
         select(CallFlowDiagram).where(CallFlowDiagram.run_id == run_id)
     ).scalar_one_or_none()
@@ -148,11 +185,7 @@ def get_test_run_call_flow(run_id: str, db: Session = Depends(get_db)) -> CallFl
             detail="Call flow not generated yet (run may still be in progress)",
         )
 
-    events = (
-        db.execute(select(CallEvent).where(CallEvent.run_id == run_id).order_by(CallEvent.seq_no.asc()))
-        .scalars()
-        .all()
-    )
+    events = _load_events(db, test_run)
     _, message_index = generate_call_flow(list(events))
 
     return CallFlowRead(
@@ -173,14 +206,18 @@ def list_test_run_events(
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ) -> CallEventListResponse:
-    """대용량 대비 페이지네이션 필수 (token-guardian-agent 원칙: 한 응답에 몰아넣지 않음)."""
-    _get_test_run_or_404(db, run_id)
-    stmt = select(CallEvent).where(CallEvent.run_id == run_id)
-    total = db.execute(select(func.count()).select_from(stmt.subquery())).scalar_one()
-    items = (
-        db.execute(stmt.order_by(CallEvent.seq_no.asc()).offset(offset).limit(limit)).scalars().all()
-    )
-    return CallEventListResponse(items=[CallEventRead.model_validate(e) for e in items], total=total)
+    """대용량 대비 페이지네이션 필수 (token-guardian-agent 원칙: 한 응답에 몰아넣지 않음).
+
+    실행 중인 run은 `_load_events()`가 원본 로그를 즉석 파싱한 결과로
+    대체한다 — DB에는 실행이 끝나야만 CallEvent가 채워지므로, 그 전까지는
+    이 엔드포인트가 항상 빈 목록만 반환해서 "과거 로그"/클릭-투-로그가
+    실행 중엔 전혀 동작하지 않는 문제가 있었다(실 서버에서 확인됨).
+    """
+    test_run = _get_test_run_or_404(db, run_id)
+    events = _load_events(db, test_run)
+    total = len(events)
+    page = events[offset : offset + limit]
+    return CallEventListResponse(items=[CallEventRead.model_validate(e) for e in page], total=total)
 
 
 @router.websocket("/ws/test-runs/{run_id}")

@@ -14,9 +14,11 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
+import app.api.test_runs as test_runs_module
 import app.services.execution_common as execution_common_module
 import httpx
 import pytest
+from app.core.config import Settings
 from app.models.call_event import CallEvent, CallEventSource
 from app.models.call_flow import CallFlowDiagram
 from app.models.test_case import TestCase, TestCaseCategory, TestCaseType
@@ -193,3 +195,61 @@ async def test_get_call_flow_api_returns_message_index_for_click_to_log(
         {"index": 0, "seq_no": 1, "source": "vcsm_log", "call_id": None},
         {"index": 1, "seq_no": 2, "source": "vcsm_log", "call_id": None},
     ]
+
+
+@pytest.mark.asyncio
+async def test_events_and_call_flow_fall_back_to_live_parse_while_run_is_still_running(
+    client: httpx.AsyncClient, isolated_db, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """실 서버에서 확인된 문제: 실행 중(아직 persist_results 전)에는 CallEvent가
+    DB에 하나도 없어서 GET /events, GET /call-flow의 messages가 항상 텅
+    비어있었다 — "과거 로그"/클릭-투-로그가 실행 중엔 전혀 동작하지 않았다.
+    DB가 비어있으면 storage/logs/{test_case_id}/{run_id}/*.log를 즉석
+    파싱해서 채우는 fallback(_load_events)이 실제로 동작하는지 확인한다.
+    """
+    run_id = "run-live-parse"
+    test_case_id = "tc-live-parse"
+
+    isolated_settings = Settings(storage_dir=str(tmp_path / "storage"))
+    monkeypatch.setattr(test_runs_module, "get_settings", lambda: isolated_settings)
+
+    run_dir = isolated_settings.log_storage_path / test_case_id / run_id
+    run_dir.mkdir(parents=True)
+    sample_lines = _VOLTE_VCSM_LOG.read_text(encoding="utf-8").splitlines()[:59]
+    (run_dir / "vcsm_log.log").write_text("\n".join(sample_lines) + "\n", encoding="utf-8")
+
+    db = isolated_db()
+    try:
+        db.add(
+            TestCase(
+                id=test_case_id,
+                name="live-parse-fixture",
+                category=TestCaseCategory.VOLTE,
+                test_type=TestCaseType.BASIC_CALL,
+                config_ref="imsVideo30sec.pcap",
+                protocol_params={},
+                pass_criteria={},
+            )
+        )
+        # 실행 중인 run: status=running, CallEvent 없음(persist_results 전),
+        # 다만 CallFlowDiagram은 이미 있다고 가정(진행 중 폴링마다 upsert되므로
+        # 실제로도 존재하는 게 정상 — 없으면 call-flow 자체가 404).
+        db.add(TestRun(id=run_id, test_case_id=test_case_id, status=TestRunStatus.RUNNING))
+        db.add(CallFlowDiagram(run_id=run_id, mermaid_source="sequenceDiagram\n    participant VCSM as VCSM\n"))
+        db.commit()
+        assert db.execute(select(CallEvent).where(CallEvent.run_id == run_id)).first() is None
+    finally:
+        db.close()
+
+    events_resp = await client.get(f"/api/test-runs/{run_id}/events")
+    assert events_resp.status_code == 200
+    events_body = events_resp.json()
+    assert events_body["total"] > 0
+    assert all(item["id"] for item in events_body["items"])  # 즉석 파싱본도 id가 채워져 있어야 함
+    assert any(item["parsed_type"] == "SIP_INVITE" for item in events_body["items"])
+
+    call_flow_resp = await client.get(f"/api/test-runs/{run_id}/call-flow")
+    assert call_flow_resp.status_code == 200
+    messages = call_flow_resp.json()["messages"]
+    assert len(messages) > 0
+    assert messages[0]["source"] == "vcsm_log"
