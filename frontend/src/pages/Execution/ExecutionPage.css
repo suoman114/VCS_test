@@ -27,7 +27,25 @@
   overflow-x: auto;
 }
 
+.execution-split {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.execution-split-log {
+  flex: 1 1 50%;
+  min-width: 0;
+}
+
+.execution-split-log .log-viewer {
+  height: 100%;
+}
+
 .call-flow-section {
+  flex: 1 1 50%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -35,6 +53,18 @@
 
 .call-flow-section h3 {
   margin: 0;
+}
+
+.call-flow-section .mermaid-container {
+  overflow: auto;
+  max-height: 600px;
+}
+
+/* 좁은 화면(태블릿 이하)에서는 가로 배치가 답답해지므로 세로로 되돌린다. */
+@media (max-width: 900px) {
+  .execution-split {
+    flex-direction: column;
+  }
 }
 
 .call-flow-meta {

@@ -171,27 +171,31 @@ export function ExecutionPage() {
         </details>
       )}
 
-      <LogViewer runId={runId} />
+      <div className="execution-split">
+        <div className="execution-split-log">
+          <LogViewer runId={runId} />
+        </div>
 
-      <div className="call-flow-section">
-        <h3>Call Flow</h3>
-        {callFlow ? (
-          <>
-            <div className="call-flow-meta">생성 시각: {new Date(callFlow.generated_at).toLocaleString()}</div>
-            <div className="call-flow-hint">메시지를 클릭하면 아래 로그에서 해당 줄로 이동합니다.</div>
-            <MermaidDiagram
-              source={callFlow.mermaid_source}
-              messages={callFlow.messages}
-              onMessageClick={handleCallFlowMessageClick}
-            />
-          </>
-        ) : (
-          <div className="log-empty">
-            {run && TERMINAL_STATUSES.has(run.status)
-              ? "Call Flow 데이터가 없습니다."
-              : "아직 생성되지 않았습니다 (진행 중이면 로그 수신에 따라 갱신됩니다)."}
-          </div>
-        )}
+        <div className="call-flow-section">
+          <h3>Call Flow</h3>
+          {callFlow ? (
+            <>
+              <div className="call-flow-meta">생성 시각: {new Date(callFlow.generated_at).toLocaleString()}</div>
+              <div className="call-flow-hint">메시지를 클릭하면 왼쪽 로그에서 해당 줄로 이동합니다.</div>
+              <MermaidDiagram
+                source={callFlow.mermaid_source}
+                messages={callFlow.messages}
+                onMessageClick={handleCallFlowMessageClick}
+              />
+            </>
+          ) : (
+            <div className="log-empty">
+              {run && TERMINAL_STATUSES.has(run.status)
+                ? "Call Flow 데이터가 없습니다."
+                : "아직 생성되지 않았습니다 (진행 중이면 로그 수신에 따라 갱신됩니다)."}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="execution-links">

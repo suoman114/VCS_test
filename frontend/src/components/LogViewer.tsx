@@ -11,14 +11,20 @@
  *   생긴다 — VoLTE 실행은 vcsm/vcmm/vctp만, McPTT 실행은 vcmc/vcmm(+sipp)만
  *   나타난다.
  * - "클릭-투-로그": Call Flow에서 메시지를 클릭하면 `logStore.jumpTarget`이
- *   설정된다. 해당 source 탭으로 전환하고, "과거 로그"(파싱된 CallEvent) 목록
- *   에서 seq_no를 찾아 스크롤+하이라이트한다. **반드시 과거 로그 쪽에서만
- *   찾는다** — 위쪽 "실시간" 라이브 라인의 `seq`는 원본(raw) 줄 단위로 1부터
- *   증가하는 완전히 다른 번호 체계라(`log_collector/session.py`의
- *   `_consume()` 참고, 파싱 전 raw tail 스트림 카운터) `CallFlowMessage.seq_no`
- *   (파싱된 CallEvent 전역 순번, `assign_sequence()`)와 우연히 숫자가 겹칠 뿐
- *   실제로는 무관하다 — 예전엔 이 둘을 같은 값으로 착각해서 라이브 버퍼에서
- *   먼저 찾다가 엉뚱한 줄로 이동하는 버그가 있었다.
+ *   설정된다. 해당 source 탭으로 전환하고 "과거 로그"(파싱된 CallEvent)에서
+ *   seq_no를 찾아 하이라이트한다. **반드시 과거 로그 쪽에서만 찾는다** —
+ *   위쪽 "실시간" 라이브 라인의 `seq`는 원본(raw) 줄 단위로 1부터 증가하는
+ *   완전히 다른 번호 체계라(`log_collector/session.py`의 `_consume()` 참고,
+ *   파싱 전 raw tail 스트림 카운터) `CallFlowMessage.seq_no`(파싱된 CallEvent
+ *   전역 순번, `assign_sequence()`)와는 무관하다.
+ *
+ *   스크롤은 `document.getElementById` 폴링 대신 **콜백 ref**로 처리한다 —
+ *   하이라이트 대상 행이 마운트/갱신되는 바로 그 시점에 React가 호출해주므로
+ *   "DOM에 반영됐는지" 타이밍을 직접 재보지 않아도 된다. 이전 버전은 별도
+ *   `pendingJumpSeq` 상태 + `useEffect` 폴링으로 처리했는데, 못 찾은 상태가
+ *   영영 안 풀리는 경로가 있었고(그 상태에 걸리면 자동 스크롤까지 함께
+ *   멈춰버렸다), 그 상태를 지금 방식(파생 상태만 사용, 별도 "pending" 없음)
+ *   으로 없앴다.
  */
 import { useEffect, useRef, useState } from "react";
 import { useLogStore } from "../store/logStore";
@@ -73,10 +79,8 @@ export function LogViewer({ runId }: { runId: string | null }) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [highlightSeq, setHighlightSeq] = useState<number | null>(null);
-  const [pendingJumpSeq, setPendingJumpSeq] = useState<number | null>(null);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const historyBodyRef = useRef<HTMLDivElement | null>(null);
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 아직 선택된 탭이 없거나(첫 로그 도착 전), 선택된 탭의 소스가 더 이상 없으면
@@ -105,35 +109,27 @@ export function LogViewer({ runId }: { runId: string | null }) {
   }, [runId, activeTab]);
 
   useEffect(() => {
-    if (autoScroll && !pendingJumpSeq && scrollRef.current) {
+    if (autoScroll && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [liveLines, autoScroll, pendingJumpSeq]);
+  }, [liveLines, autoScroll]);
 
-  // Call Flow에서 메시지 클릭 -> 해당 source 탭으로 전환하고 목표 seq_no를 예약한다.
+  // Call Flow에서 메시지 클릭 -> 해당 source 탭으로 전환하고 하이라이트 대상을 정한다.
   useEffect(() => {
     if (!jumpTarget) return;
     setActiveTab(jumpTarget.source);
-    setPendingJumpSeq(jumpTarget.seqNo);
+    setHighlightSeq(jumpTarget.seqNo);
     clearJumpTarget();
+    if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
+    highlightTimeoutRef.current = setTimeout(() => setHighlightSeq(null), HIGHLIGHT_DURATION_MS);
   }, [jumpTarget, clearJumpTarget]);
 
-  // 예약된 목표를 "과거 로그"(파싱된 CallEvent)에서만 찾는다 — 실시간 라이브
-  // 라인은 다른 번호 체계라 대상이 될 수 없다(위 컴포넌트 docstring 참고).
+  // 하이라이트 대상이 "과거 로그"에 아직 없으면 한 번 가져와서 채운다(행이
+  // 실제로 나타나면 아래 ref 콜백이 스크롤을 맡는다).
   useEffect(() => {
-    if (pendingJumpSeq === null || !activeTab) return;
+    if (highlightSeq === null || !activeTab || !runId) return;
+    if (history.some((ev) => ev.seq_no === highlightSeq)) return;
 
-    const historyEl = document.getElementById(`log-history-${pendingJumpSeq}`);
-    if (historyEl) {
-      historyEl.scrollIntoView({ block: "center", behavior: "smooth" });
-      setHighlightSeq(pendingJumpSeq);
-      setPendingJumpSeq(null);
-      if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
-      highlightTimeoutRef.current = setTimeout(() => setHighlightSeq(null), HIGHLIGHT_DURATION_MS);
-      return;
-    }
-
-    if (!runId) return;
     let cancelled = false;
     testRunsApi
       .getEvents(runId, { limit: JUMP_FETCH_LIMIT, offset: 0 })
@@ -142,23 +138,17 @@ export function LogViewer({ runId }: { runId: string | null }) {
         const found = res.items.filter((ev) => ev.source === activeTab);
         setHistory((prev) => {
           const known = new Set(prev.map((ev) => ev.id));
-          const merged = [...prev, ...found.filter((ev) => !known.has(ev.id))];
-          return merged;
+          return [...prev, ...found.filter((ev) => !known.has(ev.id))];
         });
         setHistoryTotal(res.total);
-        if (!found.some((ev) => ev.seq_no === pendingJumpSeq)) {
-          // 그래도 못 찾으면(범위 밖 등) 더는 시도하지 않고 조용히 포기한다.
-          setPendingJumpSeq(null);
-        }
       })
-      .catch(() => setPendingJumpSeq(null));
+      .catch(() => {
+        // 조회 실패 시에도 하이라이트 자체는 타임아웃으로 알아서 사라진다 — 조용히 포기.
+      });
     return () => {
       cancelled = true;
     };
-    // history가 갱신될 때마다 다시 찾아보되, fetch는 pendingJumpSeq/activeTab이
-    // 바뀔 때만 새로 트리거되도록 의도적으로 최소 의존성만 둔다.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingJumpSeq, activeTab, runId, history.length]);
+  }, [highlightSeq, activeTab, runId, history]);
 
   useEffect(() => {
     return () => {
@@ -229,11 +219,15 @@ export function LogViewer({ runId }: { runId: string | null }) {
             {history.length} / {historyTotal}건 로드됨
           </div>
         )}
-        <div className="log-history-body" ref={historyBodyRef}>
+        <div className="log-history-body">
           {history.map((ev) => (
             <div
               key={ev.id}
-              id={`log-history-${ev.seq_no}`}
+              ref={
+                ev.seq_no === highlightSeq
+                  ? (el) => el?.scrollIntoView({ block: "center", behavior: "smooth" })
+                  : undefined
+              }
               className={ev.seq_no === highlightSeq ? "log-line log-line-highlight" : "log-line"}
             >
               <span className="log-seq">#{ev.seq_no}</span>
