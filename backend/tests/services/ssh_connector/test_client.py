@@ -35,9 +35,30 @@ class _FakeRunResult:
     stderr: str = ""
 
 
+class _FakeProcess:
+    def __init__(self) -> None:
+        self.stdout = _EmptyAsyncIterable()
+        self.terminated = False
+
+    def terminate(self) -> None:
+        self.terminated = True
+
+    async def wait_closed(self) -> None:
+        return None
+
+
+class _EmptyAsyncIterable:
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        raise StopAsyncIteration
+
+
 class _FakeConnection:
     def __init__(self) -> None:
         self.run_calls: list[dict[str, object]] = []
+        self.create_process_calls: list[dict[str, object]] = []
 
     async def run(
         self,
@@ -60,6 +81,24 @@ class _FakeConnection:
             }
         )
         return _FakeRunResult()
+
+    async def create_process(
+        self,
+        command,
+        *,
+        errors=None,
+        term_type=None,
+        term_size=None,
+    ):
+        self.create_process_calls.append(
+            {
+                "command": command,
+                "errors": errors,
+                "term_type": term_type,
+                "term_size": term_size,
+            }
+        )
+        return _FakeProcess()
 
     def is_closed(self) -> bool:
         return False
@@ -104,3 +143,30 @@ async def test_run_command_request_pty_false_skips_pty(monkeypatch: pytest.Monke
 
     assert fake_conn.run_calls[0]["term_type"] is None
     assert fake_conn.run_calls[0]["term_size"] is None
+
+
+@pytest.mark.asyncio
+async def test_tail_file_requests_pty_and_replace_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`tail_file`도 `run_command`와 동일하게 pty를 요청해야 한다.
+
+    이 함수는 그동안 pty 없이 `create_process`를 호출하고 있었는데,
+    `run_command`를 깨뜨렸던 것과 같은 부류의 셸 시작 스크립트 문제가 여기도
+    남아있어 실 서버에서 tail 세션이 예기치 않게 끊긴다는 리포트가 있었다.
+    """
+    fake_conn = _FakeConnection()
+
+    async def _fake_connect(**kwargs: object) -> _FakeConnection:
+        return fake_conn
+
+    monkeypatch.setattr(ssh_client_module.asyncssh, "connect", _fake_connect)
+
+    connector = SSHConnector(SSHTarget(host="fake-host"))
+    lines = [line async for line in connector.tail_file("/home/vcs/vcsm/logs/vcsm.log")]
+
+    assert lines == []
+    assert len(fake_conn.create_process_calls) == 1
+    call = fake_conn.create_process_calls[0]
+    assert call["command"] == "tail -F /home/vcs/vcsm/logs/vcsm.log"
+    assert call["term_type"] == "xterm"
+    assert call["term_size"] == (80, 24)
+    assert call["errors"] == "replace"

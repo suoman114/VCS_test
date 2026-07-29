@@ -209,11 +209,21 @@ class SSHConnector:
         SSH 커넥션 전체를 끊어버리는 문제가 있다(`run_command` 문서 참고,
         pcap 샘플명 조회에서 실 서버로 확인됨). 로그 tail에서 이 문제가
         나면 스트리밍 전체가 끊기므로 반드시 `errors="replace"`가 필요하다.
+
+        pty도 `run_command`와 동일하게 요청한다(`term_type="xterm"`,
+        `term_size=(80, 24)`) — 이 함수는 그동안 pty 없이 실행하고 있었는데,
+        `run_command`를 깨뜨렸던 것과 같은 부류의 셸 시작 스크립트 문제가
+        여기도 그대로 남아있어 tail 세션이 예기치 않게 끊기고
+        `SshTailSource`의 재연결 백오프(최대 30초) 동안 로그가 멈추는
+        것처럼 보였을 수 있다.
         """
         conn = await self.connect()
         tail_args = "-F -n +1" if from_beginning else "-F"
         process = await conn.create_process(
-            f"tail {tail_args} {remote_path}", errors="replace"
+            f"tail {tail_args} {remote_path}",
+            errors="replace",
+            term_type="xterm",
+            term_size=(80, 24),
         )
         try:
             assert process.stdout is not None
