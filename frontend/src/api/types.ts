@@ -201,13 +201,64 @@ export interface WsCallFlowMessage {
 export type WsMessage = WsLogMessage | WsLogSourceErrorMessage | WsStatusMessage | WsCallFlowMessage;
 
 // ---------------------------------------------------------------------------
-// Health check (CONFIRMED — backend/app/api/health.py: {"status": "ok"} 만 반환)
+// Health check (CONFIRMED — backend/app/api/health.py)
 // ---------------------------------------------------------------------------
 
 export interface HealthResponse {
   status: string;
-  // TODO(ASSUMED): VCS SSH 연결/SIPp 실행가능 여부 등 세부 헬스체크 필드는
-  // 아직 백엔드에 없다. 확장되면 아래 optional 필드로 매핑한다.
+  // VCS SSH 연결/SIPp 실행 가능 여부를 실제로 접속 시도해서 확인한 결과.
+  // "unknown"은 호스트가 아직 설정되지 않은 상태(.env/대시보드 설정 둘 다 없음).
   vcs_ssh?: "ok" | "error" | "unknown";
   sipp?: "ok" | "error" | "unknown";
+}
+
+// ---------------------------------------------------------------------------
+// VCS/SIPp 접속 설정 (CONFIRMED — backend/app/api/settings.py, app/schemas/vcs_settings.py)
+//
+// GET은 "효과값"(effective value)을 돌려준다 — 대시보드에서 오버라이드한 값이
+// 있으면 그 값, 없으면 .env(Settings) 기본값이 그대로 보인다. 비밀번호는
+// 원문으로 절대 내려오지 않고 `*_password_set`(설정 여부)만 알려준다.
+// ---------------------------------------------------------------------------
+
+export type SippExecMode = "local" | "ssh";
+
+export interface VcsSettings {
+  vcs_ssh_host: string | null;
+  vcs_ssh_port: number;
+  vcs_ssh_username: string | null;
+  vcs_ssh_password_set: boolean;
+  vcs_ssh_private_key_path: string | null;
+  vcs_ssh_known_hosts: string | null;
+
+  sipp_exec_mode: SippExecMode;
+  sipp_ssh_host: string | null;
+  sipp_ssh_port: number;
+  sipp_ssh_username: string | null;
+  sipp_ssh_password_set: boolean;
+  sipp_ssh_private_key_path: string | null;
+
+  updated_at: string | null;
+}
+
+/** PATCH 요청 바디. 보낸 필드만 갱신된다 — 빈 문자열("")은 오버라이드 해제(.env로
+ * 복귀), 비밀번호 필드를 아예 안 보내면 기존 값이 유지된다(마스킹 표시 유지용). */
+export interface VcsSettingsUpdate {
+  vcs_ssh_host?: string;
+  vcs_ssh_port?: number;
+  vcs_ssh_username?: string;
+  vcs_ssh_password?: string;
+  vcs_ssh_private_key_path?: string;
+  vcs_ssh_known_hosts?: string;
+
+  sipp_exec_mode?: SippExecMode;
+  sipp_ssh_host?: string;
+  sipp_ssh_port?: number;
+  sipp_ssh_username?: string;
+  sipp_ssh_password?: string;
+  sipp_ssh_private_key_path?: string;
+}
+
+export interface ConnectionTestResult {
+  ok: boolean;
+  message: string;
 }

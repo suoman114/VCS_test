@@ -62,6 +62,7 @@ from app.services.execution_common import normalize_log_paths, persist_results, 
 from app.services.executor_base import TestCaseLike, TestExecutor, executor_registry
 from app.services.log_collector import CollectorSession, CollectorSource, SshTailSource
 from app.services.ssh_connector import SSHConnector, SSHTarget
+from app.services.vcs_settings_store import resolve_vcs_target
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ class VolteBasicCallExecutor(TestExecutor):
         """
         super().__init__(run_id)
         self._settings = settings or get_settings()
-        self._ssh_target_factory = ssh_target_factory or (lambda: SSHTarget.from_vcs_settings(self._settings))
+        self._ssh_target_factory = ssh_target_factory or (lambda: resolve_vcs_target(self._settings))
         self._ssh_connector_factory = ssh_connector_factory or _default_ssh_connector_factory
 
     async def run(self, test_case: TestCaseLike) -> TestRun:

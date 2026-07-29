@@ -19,43 +19,34 @@ from typing import Literal
 from fastapi import APIRouter
 
 from app.core.config import Settings, get_settings
-from app.services.ssh_connector import SSHConnector, SSHTarget
+from app.services.ssh_connector import SSHTarget
+from app.services.ssh_health import check_ssh_reachable
+from app.services.vcs_settings_store import resolve_sipp_exec_mode, resolve_sipp_target, resolve_vcs_target
 
 router = APIRouter(tags=["health"])
 
 HealthState = Literal["ok", "error", "unknown"]
 
-_CONNECT_TIMEOUT_SEC = 3.0
-
 
 async def _check_ssh(build_target: Callable[[], SSHTarget]) -> HealthState:
-    """SSH 연결 + 아주 가벼운 명령(`true`) 실행으로 "정말 붙는지"를 확인한다.
-
-    `build_target`이 `ValueError`를 내면(호스트가 `.env`에 아직 설정 안 됨)
-    "unknown"(회색, 확인중)으로, 연결/실행이 실패하거나 타임아웃되면
-    "error"로 본다. `asyncio.wait_for`로 연결 시도 자체(TCP 핸드셰이크
-    포함)까지 통째로 타임아웃을 씌운다 — 호스트가 방화벽에 막혀 응답이
-    아예 없는 경우 OS 기본 TCP 타임아웃(수십 초)까지 기다리지 않게 하기 위함.
+    """`build_target`이 `ValueError`를 내면(호스트가 아직 설정 안 됨) "unknown"
+    (회색, 확인중)으로, 연결/실행이 실패하거나 타임아웃되면 "error"로 본다.
+    실제 연결 확인 자체는 `check_ssh_reachable`(설정 화면의 "연결 테스트"
+    버튼과 공유하는 로직)을 그대로 쓴다.
     """
     try:
         target = build_target()
     except ValueError:
         return "unknown"
-
-    connector = SSHConnector(target)
-    try:
-        result = await asyncio.wait_for(connector.run_command("true"), timeout=_CONNECT_TIMEOUT_SEC)
-        return "ok" if result.ok else "error"
-    except Exception:  # noqa: BLE001 - 타임아웃/인증실패/네트워크 등 사유 다양, 배지엔 ok/error만 필요
-        return "error"
-    finally:
-        await connector.close()
+    ok, _ = await check_ssh_reachable(target)
+    return "ok" if ok else "error"
 
 
 async def _check_sipp(settings: Settings) -> HealthState:
-    """SIPp "실행 가능" 여부. 실행 위치(local/ssh)에 따라 확인 방법이 다르다."""
-    if settings.sipp_exec_mode == "ssh":
-        return await _check_ssh(lambda: SSHTarget.from_sipp_settings(settings))
+    """SIPp "실행 가능" 여부. 실행 위치(local/ssh, 대시보드 오버라이드 포함)에
+    따라 확인 방법이 다르다."""
+    if resolve_sipp_exec_mode(settings) == "ssh":
+        return await _check_ssh(lambda: resolve_sipp_target(settings))
     return "ok" if shutil.which("sipp") else "error"
 
 
@@ -64,7 +55,7 @@ async def health_check() -> dict[str, str]:
     settings = get_settings()
 
     vcs_ssh_state, sipp_state = await asyncio.gather(
-        _check_ssh(lambda: SSHTarget.from_vcs_settings(settings)),
+        _check_ssh(lambda: resolve_vcs_target(settings)),
         _check_sipp(settings),
     )
 

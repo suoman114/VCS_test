@@ -4,6 +4,7 @@ import { TestCasesPage } from "./pages/TestCases/TestCasesPage";
 import { ExecutionPage } from "./pages/Execution/ExecutionPage";
 import { CallFlowPage } from "./pages/CallFlow/CallFlowPage";
 import { HistoryPage } from "./pages/History/HistoryPage";
+import { SettingsPage } from "./pages/Settings/SettingsPage";
 import "./App.css";
 
 const NAV_ITEMS = [
@@ -11,6 +12,7 @@ const NAV_ITEMS = [
   { to: "/test-cases", label: "시험 케이스 관리" },
   { to: "/execution", label: "시험 실행" },
   { to: "/history", label: "시험 이력" },
+  { to: "/settings", label: "설정" },
 ];
 
 export function App() {
@@ -40,6 +42,7 @@ export function App() {
           <Route path="/execution/:runId" element={<ExecutionPage />} />
           <Route path="/call-flow/:runId" element={<CallFlowPage />} />
           <Route path="/history" element={<HistoryPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<div>페이지를 찾을 수 없습니다.</div>} />
         </Routes>
       </main>

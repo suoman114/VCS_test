@@ -9,7 +9,8 @@ from __future__ import annotations
 import re
 
 from app.core.config import Settings, get_settings
-from app.services.ssh_connector import SSHConnector, SSHTarget
+from app.services.ssh_connector import SSHConnector
+from app.services.vcs_settings_store import resolve_vcs_target
 
 # 원격 계정의 로그인 셸(csh/tcsh)이 `ls`를 색상/페이저 옵션으로 alias해둔 경우
 # (RHEL 계열 기본 .cshrc에 흔함) PTY 할당 후 그 alias가 활성화되면서 ANSI
@@ -28,7 +29,7 @@ async def list_volte_sample_files(
     """
     s = settings or get_settings()
     owns_connector = connector is None
-    conn = connector or SSHConnector(SSHTarget.from_vcs_settings(s))
+    conn = connector or SSHConnector(resolve_vcs_target(s))
     try:
         result = await conn.run_command(f"\\ls -1 {s.vctp_sample_dir}")
         if not result.ok:

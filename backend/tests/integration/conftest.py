@@ -5,9 +5,10 @@
   여러 모듈에서 `from app.core.database import SessionLocal`로 각자
   바인딩해 재사용하고 있어(app.core.database, app.job_runner.runner,
   app.services.execution_common, app.services.volte.executor,
-  app.services.mcptt.executor), 격리를 위해서는 이 5곳 전부를
-  monkeypatch해야 한다(단순히 app.core.database.SessionLocal만 바꾸면
-  나머지 모듈은 여전히 원래 프로세스 전역 DB를 본다).
+  app.services.mcptt.executor, app.services.vcs_settings_store), 격리를
+  위해서는 이 6곳 전부를 monkeypatch해야 한다(단순히
+  app.core.database.SessionLocal만 바꾸면 나머지 모듈은 여전히 원래
+  프로세스 전역 DB를 본다).
 - 실제 SSH/SIPp 실행은 이 파일에서 모킹하지 않는다(개별 executor 테스트가
   각자의 방식으로 모킹). 여기서는 DB 격리 + HTTP 클라이언트 + 폴링 속도
   단축만 공통 처리한다.
@@ -27,6 +28,7 @@ import app.job_runner.runner as job_runner_module
 import app.models  # noqa: F401 - Base.metadata에 전체 모델을 등록시키기 위한 side-effect import
 import app.services.execution_common as execution_common_module
 import app.services.mcptt.executor as mcptt_executor_module
+import app.services.vcs_settings_store as vcs_settings_store_module
 import app.services.volte.executor as volte_executor_module
 from app.main import app as fastapi_app
 
@@ -52,6 +54,7 @@ def isolated_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Callable[[],
     monkeypatch.setattr(execution_common_module, "SessionLocal", session_factory)
     monkeypatch.setattr(volte_executor_module, "SessionLocal", session_factory)
     monkeypatch.setattr(mcptt_executor_module, "SessionLocal", session_factory)
+    monkeypatch.setattr(vcs_settings_store_module, "SessionLocal", session_factory)
 
     yield session_factory
 

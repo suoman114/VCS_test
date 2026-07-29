@@ -1,0 +1,121 @@
+.settings-page {
+  max-width: 640px;
+}
+
+.settings-page .page-error {
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.settings-intro {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.settings-intro code {
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.settings-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-section-header h3 {
+  margin: 0;
+}
+
+.settings-section label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.settings-section input,
+.settings-section select {
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row label {
+  flex: 1;
+}
+
+.form-field-narrow {
+  max-width: 140px;
+}
+
+.form-checkbox-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.form-checkbox-hint input {
+  padding: 0;
+}
+
+.form-error {
+  color: #b91c1c;
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.test-result {
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.test-result-ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.test-result-error {
+  background: #fee2e2;
+  color: #b91c1c;
+}

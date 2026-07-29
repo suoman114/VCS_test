@@ -1,9 +1,11 @@
 """GET /api/health 통합 테스트 — VCS SSH/SIPp 실제 연결 확인 로직 검증.
 
-실제 네트워크 연결은 하지 않는다: `app.api.health.SSHConnector`를 가짜
-커넥터로 monkeypatch해서 성공/실패/타임아웃을 흉내내고, `get_settings`를
-바꿔치기해서 호스트 설정 여부(unknown 케이스)와 `sipp_exec_mode`
-local/ssh 분기를 검증한다.
+실제 네트워크 연결은 하지 않는다: 실제 연결 확인은 `app.services.ssh_health`
+(설정 화면의 "연결 테스트" 버튼과 공유하는 모듈)로 옮겨졌으므로, 그 모듈의
+`SSHConnector`/`DEFAULT_CONNECT_TIMEOUT_SEC`를 가짜 커넥터로 monkeypatch해서
+성공/실패/타임아웃을 흉내낸다. `app.api.health.get_settings`를 바꿔치기해서
+호스트 설정 여부(unknown 케이스)와 `sipp_exec_mode` local/ssh 분기를
+검증한다.
 """
 from __future__ import annotations
 
@@ -13,6 +15,7 @@ import httpx
 import pytest
 
 import app.api.health as health_module
+import app.services.ssh_health as ssh_health_module
 from app.core.config import Settings
 
 
@@ -88,7 +91,7 @@ async def test_health_reports_ok_when_ssh_connects(
         "get_settings",
         lambda: _settings(vcs_ssh_host="192.168.7.64", sipp_exec_mode="local"),
     )
-    monkeypatch.setattr(health_module, "SSHConnector", _FakeOkConnector)
+    monkeypatch.setattr(ssh_health_module, "SSHConnector", _FakeOkConnector)
     monkeypatch.setattr(health_module.shutil, "which", lambda _name: None)
 
     response = await client.get("/api/health")
@@ -107,7 +110,7 @@ async def test_health_reports_error_when_ssh_command_fails(
         "get_settings",
         lambda: _settings(vcs_ssh_host="192.168.7.64"),
     )
-    monkeypatch.setattr(health_module, "SSHConnector", _FakeFailingConnector)
+    monkeypatch.setattr(ssh_health_module, "SSHConnector", _FakeFailingConnector)
 
     response = await client.get("/api/health")
 
@@ -123,8 +126,8 @@ async def test_health_reports_error_on_timeout(
         "get_settings",
         lambda: _settings(vcs_ssh_host="192.168.7.64"),
     )
-    monkeypatch.setattr(health_module, "SSHConnector", _FakeHangingConnector)
-    monkeypatch.setattr(health_module, "_CONNECT_TIMEOUT_SEC", 0.05)
+    monkeypatch.setattr(ssh_health_module, "SSHConnector", _FakeHangingConnector)
+    monkeypatch.setattr(ssh_health_module, "DEFAULT_CONNECT_TIMEOUT_SEC", 0.05)
 
     response = await client.get("/api/health")
 
@@ -144,7 +147,7 @@ async def test_health_checks_sipp_over_ssh_when_exec_mode_is_ssh(
             sipp_ssh_host="192.168.7.70",
         ),
     )
-    monkeypatch.setattr(health_module, "SSHConnector", _FakeOkConnector)
+    monkeypatch.setattr(ssh_health_module, "SSHConnector", _FakeOkConnector)
 
     response = await client.get("/api/health")
 

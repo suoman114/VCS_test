@@ -8,6 +8,7 @@ from app.models.call_event import CallEvent, CallEventSource  # noqa: F401
 from app.models.call_flow import CallFlowDiagram  # noqa: F401
 from app.models.test_case import TestCase, TestCaseCategory, TestCaseType  # noqa: F401
 from app.models.test_run import TestRun, TestRunStatus  # noqa: F401
+from app.models.vcs_settings import VcsSettings  # noqa: F401
 
 __all__ = [
     "CallEvent",
@@ -18,4 +19,5 @@ __all__ = [
     "TestCaseType",
     "TestRun",
     "TestRunStatus",
+    "VcsSettings",
 ]
