@@ -48,6 +48,9 @@
 .execution-split-log {
   flex: 1 1 50%;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .execution-split-log .log-viewer {
@@ -62,8 +65,20 @@
   gap: 8px;
 }
 
+/* 왼쪽(로그)/오른쪽(Call Flow) 헤더를 같은 구조(h3 + 메타 한 줄)로 맞춰서,
+   그 아래 실제 콘텐츠 박스(로그 박스 / Call Flow 다이어그램)의 시작 높이가
+   서로 어긋나지 않게 한다 — 예전엔 Call Flow 쪽에만 "생성 시각"/안내 문구가
+   두 줄 더 있어서 다이어그램이 로그 박스보다 눈에 띄게 아래에서 시작했다. */
+.execution-split-log h3,
 .call-flow-section h3 {
   margin: 0;
+  font-size: 1.05rem;
+}
+
+.split-column-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+  min-height: 1.2em;
 }
 
 .call-flow-section .mermaid-container {
@@ -76,17 +91,6 @@
   .execution-split {
     flex-direction: column;
   }
-}
-
-.call-flow-meta {
-  font-size: 0.8rem;
-  color: #6b7280;
-}
-
-.call-flow-hint {
-  font-size: 0.78rem;
-  color: #6b7280;
-  font-style: italic;
 }
 
 .execution-links {

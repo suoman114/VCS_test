@@ -173,21 +173,24 @@ export function ExecutionPage() {
 
       <div className="execution-split">
         <div className="execution-split-log">
+          <h3>실시간 로그</h3>
+          <div className="split-column-meta">프로세스별 실시간 스트림과 과거 로그를 확인합니다.</div>
           <LogViewer runId={runId} />
         </div>
 
         <div className="call-flow-section">
           <h3>Call Flow</h3>
+          <div className="split-column-meta">
+            {callFlow
+              ? `생성 시각: ${new Date(callFlow.generated_at).toLocaleString()} · 메시지를 클릭하면 왼쪽 로그에서 해당 줄로 이동합니다.`
+              : " "}
+          </div>
           {callFlow ? (
-            <>
-              <div className="call-flow-meta">생성 시각: {new Date(callFlow.generated_at).toLocaleString()}</div>
-              <div className="call-flow-hint">메시지를 클릭하면 왼쪽 로그에서 해당 줄로 이동합니다.</div>
-              <MermaidDiagram
-                source={callFlow.mermaid_source}
-                messages={callFlow.messages}
-                onMessageClick={handleCallFlowMessageClick}
-              />
-            </>
+            <MermaidDiagram
+              source={callFlow.mermaid_source}
+              messages={callFlow.messages}
+              onMessageClick={handleCallFlowMessageClick}
+            />
           ) : (
             <div className="log-empty">
               {run && TERMINAL_STATUSES.has(run.status)
