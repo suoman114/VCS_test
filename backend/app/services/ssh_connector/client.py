@@ -5,9 +5,9 @@ log-collector-agent가 이 클래스를 공용으로 재사용한다.
 
 다른 에이전트 사용법 요약:
     connector = SSHConnector()  # 기본값: VCS 접속 정보 (settings.vcs_ssh_*)
-    result = await connector.run_command("systemctl restart vctp")
+    result = await connector.run_command("stopmc -b vctp")
     await connector.upload_file(local_path, remote_path)
-    async for line in connector.tail_file("/var/log/vcs/vctp.log"):
+    async for line in connector.tail_file("/home/vcs/vcsm/logs/vcsm.log"):
         ...
     await connector.close()
 
@@ -125,15 +125,29 @@ class SSHConnector:
         self._conn = None
 
     async def run_command(
-        self, command: str, *, timeout: float | None = None, check: bool = False
+        self,
+        command: str,
+        *,
+        timeout: float | None = None,
+        check: bool = False,
+        request_pty: bool = True,
     ) -> CommandResult:
         """원격 커맨드를 한 번 실행하고 결과를 반환한다.
 
-        VoLTE executor가 `vctp` 재기동 명령을 실행하는 데 사용할 인터페이스.
-        실제 명령 문자열은 CLAUDE.md §13 TBD 확정 후 volte executor에서 채운다.
+        VoLTE executor의 `vctp` 재기동/`sed`, McPTT의 원격 SIPp 실행, 샘플 파일
+        목록 조회(`ls`)까지 전부 이 함수를 통해 실행된다.
+
+        `request_pty=True`(기본값)로 pseudo-terminal을 요청한다: SSH `exec`
+        채널은 서버가 접속 계정의 로그인 셸(`/etc/passwd`)로 명령을 감싸 실행하는데,
+        로그인 셸이 csh/tcsh이고 `.cshrc`에 무조건 `stty`를 호출하는 줄이 있으면
+        (실제 VCS 계정에서 확인됨) tty가 없는 비대화형 세션에서 `stty: standard
+        input: Inappropriate ioctl for device`로 실패해 원래 명령의 정상 출력을
+        가려버린다. pty를 요청하면 `stty`가 정상적인 pty를 보고 조용히 성공하므로
+        이 문제가 사라진다(원격 `.cshrc`를 건드릴 필요 없음).
         """
         conn = await self.connect()
-        result = await conn.run(command, check=check, timeout=timeout)
+        term_type = "dumb" if request_pty else None
+        result = await conn.run(command, check=check, timeout=timeout, term_type=term_type)
         return CommandResult(
             command=command,
             exit_status=result.exit_status,
