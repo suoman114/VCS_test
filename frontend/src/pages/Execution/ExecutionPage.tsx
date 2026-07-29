@@ -10,7 +10,10 @@ import { MermaidDiagram } from "../../components/MermaidDiagram";
 import "./ExecutionPage.css";
 
 const POLL_INTERVAL_MS = 3000;
-const CALL_FLOW_POLL_INTERVAL_MS = 5000;
+// Call Flow는 이제 WebSocket "call_flow" 메시지로 실시간 push된다(execution_common
+// .persist_call_flow/persist_results). 아래 폴링은 최초 진입 시(WS 연결 전
+// 과거 run 진입 등) 및 메시지 유실 대비 fallback일 뿐이라 간격을 넉넉히 둔다.
+const CALL_FLOW_POLL_INTERVAL_MS = 15000;
 const TERMINAL_STATUSES = new Set(["done", "failed", "error"]);
 
 export function ExecutionPage() {
@@ -36,6 +39,12 @@ export function ExecutionPage() {
         setSourceError(msg.source, msg.message);
       } else if (msg.type === "status") {
         setLiveStatus(msg.status);
+      } else if (msg.type === "call_flow") {
+        setCallFlow({
+          run_id: msg.run_id,
+          mermaid_source: msg.mermaid_source,
+          generated_at: msg.generated_at,
+        });
       }
     },
     [appendLine, setSourceError, setLiveStatus],
@@ -73,9 +82,10 @@ export function ExecutionPage() {
     };
   }, [runId, fetchRun]);
 
-  // Call Flow는 실행 중에도 부분적으로 생성될 수 있어(CLAUDE.md §8-4) run이
-  // 끝날 때까지 주기적으로 다시 조회한다. 아직 생성 전이면 404가 정상이라
-  // 화면 상단 에러로는 띄우지 않고 "아직 생성되지 않음"으로만 표시한다.
+  // 주 경로는 WebSocket "call_flow" push(handleWsMessage)다. 이 REST 폴링은
+  // 최초 로드(WS 연결 완료 전에 이미 일부 진행된 run에 들어온 경우)와
+  // fallback용이다. 아직 생성 전이면 404가 정상이라 화면 상단 에러로는
+  // 띄우지 않고 "아직 생성되지 않음"으로만 표시한다.
   const fetchCallFlow = useCallback(async () => {
     if (!runId) return;
     try {

@@ -17,10 +17,12 @@ import logging
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
 from app.models.call_event import CallEvent, CallEventSource
@@ -34,6 +36,7 @@ from app.services.log_parser.vcmc_adapter import VcmcLogAdapter
 from app.services.log_parser.vcmm_adapter import VcmmLogAdapter
 from app.services.log_parser.vcsm_adapter import VcsmLogAdapter
 from app.services.log_parser.vctp_adapter import VctpLogAdapter
+from app.ws.manager import manager
 
 logger = logging.getLogger(__name__)
 
@@ -135,12 +138,74 @@ async def wait_for_completion(
 
     while True:
         events = parse_collected_logs(run_dir, log_names, run_id)
+        # CLAUDE.md §8-4 "진행 중 부분적으로" 렌더링: 최종 확정(persist_results)을
+        # 기다리지 않고, 폴링마다 그때까지 모인 이벤트로 Call Flow를 미리
+        # 갱신해서 WS로 push한다 — 실행이 끝나야만 다이어그램이 나타나던
+        # 문제(대시보드에서 "실시간"으로 안 느껴진다는 피드백)를 해결한다.
+        await persist_call_flow(run_id, events)
         result = evaluate_pass_fail(events, pass_criteria)
         if result.passed:
             return CompletionResult(events=events, pass_fail=result, timed_out=False)
         if time.monotonic() >= deadline:
             return CompletionResult(events=events, pass_fail=result, timed_out=True)
         await asyncio.sleep(poll_interval_sec)
+
+
+def _upsert_call_flow(
+    db: Session, run_id: str, events: list[CallEvent], protocol: CallFlowProtocol | None
+) -> str:
+    """`CallFlowDiagram`을 run_id 기준으로 upsert한다 (커밋은 호출자 책임).
+
+    진행 중 미리보기(`persist_call_flow`)와 최종 확정(`persist_results`)이
+    이 로직을 공유한다 — 몇 번을 덮어써도 항상 run_id당 최신 다이어그램
+    하나만 남는다.
+    """
+    mermaid_source = generate_mermaid(events, protocol=protocol)
+    existing = db.execute(
+        select(CallFlowDiagram).where(CallFlowDiagram.run_id == run_id)
+    ).scalar_one_or_none()
+    if existing is not None:
+        existing.mermaid_source = mermaid_source
+    else:
+        db.add(CallFlowDiagram(run_id=run_id, mermaid_source=mermaid_source))
+    return mermaid_source
+
+
+async def _broadcast_call_flow(run_id: str, mermaid_source: str) -> None:
+    await manager.broadcast_to_run(
+        run_id,
+        {
+            "type": "call_flow",
+            "run_id": run_id,
+            "mermaid_source": mermaid_source,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        },
+    )
+
+
+def _persist_call_flow_sync(run_id: str, events: list[CallEvent]) -> str:
+    db = SessionLocal()
+    try:
+        mermaid_source = _upsert_call_flow(db, run_id, events, protocol=None)
+        db.commit()
+        return mermaid_source
+    finally:
+        db.close()
+
+
+async def persist_call_flow(run_id: str, events: list[CallEvent]) -> None:
+    """실행 도중 그때까지 수집된 이벤트만으로 Call Flow를 미리 갱신하고 WS로 push한다.
+
+    `events`가 비어있으면(아직 아무 로그도 안 들어온 초반) 건너뛴다 —
+    프로토콜 자동판별(`generate_mermaid`의 `protocol=None`)이 기본값(volte)으로
+    잘못 표시되는 걸 막고, 의미 없는 DB 쓰기/브로드캐스트도 줄인다. `CallEvent`
+    자체는 여기서 저장하지 않는다(최종 확정은 `persist_results`가 한 번만
+    수행 — 매 폴링마다 재파싱한 이벤트를 그때마다 insert하면 중복이 생긴다).
+    """
+    if not events:
+        return
+    mermaid_source = await asyncio.to_thread(_persist_call_flow_sync, run_id, events)
+    await _broadcast_call_flow(run_id, mermaid_source)
 
 
 def _persist_results_sync(
@@ -150,14 +215,7 @@ def _persist_results_sync(
     try:
         for event in events:
             db.add(event)
-        mermaid_source = generate_mermaid(events, protocol=protocol)
-        existing = db.execute(
-            select(CallFlowDiagram).where(CallFlowDiagram.run_id == run_id)
-        ).scalar_one_or_none()
-        if existing is not None:
-            existing.mermaid_source = mermaid_source
-        else:
-            db.add(CallFlowDiagram(run_id=run_id, mermaid_source=mermaid_source))
+        mermaid_source = _upsert_call_flow(db, run_id, events, protocol)
         db.commit()
         return mermaid_source
     finally:
@@ -171,6 +229,9 @@ async def persist_results(
 
     DB I/O는 동기 SQLAlchemy Session이므로 `asyncio.to_thread`로 감싼다
     (job_runner의 `set_status`와 동일한 패턴). 반환값은 저장된
-    mermaid_source(작은 텍스트, 대용량 아님).
+    mermaid_source(작은 텍스트, 대용량 아님). 마지막으로 한 번 더 WS push해서
+    최종 상태를 폴링 없이 즉시 반영할 수 있게 한다.
     """
-    return await asyncio.to_thread(_persist_results_sync, run_id, events, protocol)
+    mermaid_source = await asyncio.to_thread(_persist_results_sync, run_id, events, protocol)
+    await _broadcast_call_flow(run_id, mermaid_source)
+    return mermaid_source

@@ -9,6 +9,7 @@
  * 메시지 스키마(CONFIRMED, log-collector-agent):
  *   {"type": "log", "run_id", "channel": "vcs_log"|"sipp_log", "source", "seq", "line", "ts"}
  *   {"type": "log_source_error", "run_id", "channel", "source", "message", "ts"}
+ *   {"type": "call_flow", "run_id", "mermaid_source", "generated_at"} (execution_common.persist_call_flow/persist_results)
  */
 import { useEffect, useRef, useState } from "react";
 import { buildWsUrl } from "./client";

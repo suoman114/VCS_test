@@ -170,7 +170,20 @@ export interface WsStatusMessage {
   ts: string;
 }
 
-export type WsMessage = WsLogMessage | WsLogSourceErrorMessage | WsStatusMessage;
+/**
+ * Call Flow(Mermaid) 갱신 브로드캐스트 (CONFIRMED —
+ * `execution_common.persist_call_flow`/`persist_results`). 실행 도중 폴링마다,
+ * 그리고 종료 시점에 한 번 더 push된다 — 대시보드가 폴링 없이도 실시간으로
+ * Call Flow를 갱신할 수 있게 한다.
+ */
+export interface WsCallFlowMessage {
+  type: "call_flow";
+  run_id: string;
+  mermaid_source: string;
+  generated_at: string;
+}
+
+export type WsMessage = WsLogMessage | WsLogSourceErrorMessage | WsStatusMessage | WsCallFlowMessage;
 
 // ---------------------------------------------------------------------------
 // Health check (CONFIRMED — backend/app/api/health.py: {"status": "ok"} 만 반환)
