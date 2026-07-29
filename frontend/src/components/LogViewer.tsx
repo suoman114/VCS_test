@@ -62,6 +62,20 @@ function labelOf(source: string): string {
   return KNOWN_SOURCE_LABELS[source] ?? source;
 }
 
+/** ISO 타임스탬프(예: "2026-07-29T14:05:17.900000+00:00")를 "YYYY-MM-DD HH:MM:SS.mmm"로
+ * 표시한다. `Date` 객체를 거치지 않고 문자열을 직접 잘라서 만든다 — 브라우저
+ * 로컬 타임존으로 변환하면(특히 `CallEvent.ts`처럼 타임존 정보 없이 VCS 서버의
+ * 로그에 찍힌 시각을 그대로 담은 값은) 실제 로그 파일의 시각과 화면에 보이는
+ * 값이 달라져 헷갈릴 수 있다. */
+function formatTs(ts: string): string {
+  const [datePart, rest] = ts.split("T");
+  if (!rest) return ts;
+  const withoutOffset = rest.replace(/(Z|[+-]\d{2}:\d{2})$/, "");
+  const [hms, frac = ""] = withoutOffset.split(".");
+  const time = frac ? `${hms}.${frac.slice(0, 3)}` : hms;
+  return `${datePart} ${time}`;
+}
+
 const HISTORY_PAGE_SIZE = 100;
 // 클릭-투-로그로 과거 로그를 찾을 때 쓰는 한 번의 대량 조회 크기. CLAUDE.md
 // 기준 Test Run당 이벤트 수는 수십~수백 건 규모라 1000이면 충분히 큰
@@ -234,6 +248,7 @@ export function LogViewer({ runId }: { runId: string | null }) {
         {runId && liveLines.length === 0 && <div className="log-empty">아직 수신된 로그가 없습니다.</div>}
         {liveLines.map((l) => (
           <div key={l.seq} className="log-line">
+            <span className="log-ts">{formatTs(l.ts)}</span>
             <span className="log-seq">#{l.seq}</span>
             <span className="log-source">[{l.source}]</span>
             <span className="log-text">{l.line}</span>
@@ -265,6 +280,7 @@ export function LogViewer({ runId }: { runId: string | null }) {
               }
               className={ev.seq_no === highlightSeq ? "log-line log-line-highlight" : "log-line"}
             >
+              <span className="log-ts">{formatTs(ev.ts)}</span>
               <span className="log-seq">#{ev.seq_no}</span>
               <span className="log-source">[{ev.source}]</span>
               <span className="log-text">{ev.raw_line}</span>
