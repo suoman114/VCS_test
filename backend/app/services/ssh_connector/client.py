@@ -85,13 +85,21 @@ class CommandResult:
 class SSHConnector:
     """단일 SSHTarget에 대한 연결을 재사용하는 비동기 SSH/SCP 클라이언트."""
 
-    def __init__(self, target: SSHTarget | None = None, *, connect_timeout: float | None = None) -> None:
+    def __init__(
+        self,
+        target: SSHTarget | None = None,
+        *,
+        connect_timeout: float | None = None,
+        close_timeout: float | None = None,
+    ) -> None:
         self._target = target or SSHTarget.from_vcs_settings()
         self._conn: asyncssh.SSHClientConnection | None = None
         self._lock = asyncio.Lock()
+        settings = get_settings()
         self._connect_timeout = (
-            connect_timeout if connect_timeout is not None else get_settings().vcs_ssh_connect_timeout_sec
+            connect_timeout if connect_timeout is not None else settings.vcs_ssh_connect_timeout_sec
         )
+        self._close_timeout = close_timeout if close_timeout is not None else settings.vcs_ssh_close_timeout_sec
 
     async def __aenter__(self) -> "SSHConnector":
         await self.connect()
@@ -145,7 +153,15 @@ class SSHConnector:
     async def close(self) -> None:
         if self._conn is not None and not self._conn.is_closed():
             self._conn.close()
-            await self._conn.wait_closed()
+            try:
+                await asyncio.wait_for(self._conn.wait_closed(), timeout=self._close_timeout)
+            except TimeoutError:
+                logger.warning(
+                    "SSH connection to %s:%s did not confirm close within %.1fs — abandoning wait",
+                    self._target.host,
+                    self._target.port,
+                    self._close_timeout,
+                )
         self._conn = None
 
     async def run_command(
@@ -240,6 +256,14 @@ class SSHConnector:
         여기도 그대로 남아있어 tail 세션이 예기치 않게 끊기고
         `SshTailSource`의 재연결 백오프(최대 30초) 동안 로그가 멈추는
         것처럼 보였을 수 있다.
+
+        `finally`의 `process.wait_closed()`에도 타임아웃을 건다: `terminate()`는
+        TERM 신호만 보내고 바로 리턴되지만, 그 뒤 원격이 채널 종료를
+        확인(`Received channel close`)해줄 때까지 기다리는 `wait_closed()`엔
+        원래 타임아웃이 없었다. 실 서버에서 tail 채널 3개 모두 TERM 신호까지는
+        로그가 남는데 그 뒤로 채널 종료 확인이 전혀 없이 조용히 멈추는 장애가
+        확인됐다(2026-07-29) — `CollectorSession.stop()`이 이 지점에서 영원히
+        `asyncio.gather`로 기다리게 되어 TestRun이 `running`에서 못 벗어났다.
         """
         conn = await self.connect()
         tail_args = "-F -n +1" if from_beginning else "-F"
@@ -257,4 +281,11 @@ class SSHConnector:
                     break
         finally:
             process.terminate()
-            await process.wait_closed()
+            try:
+                await asyncio.wait_for(process.wait_closed(), timeout=self._close_timeout)
+            except TimeoutError:
+                logger.warning(
+                    "tail_file(%s): process did not confirm close within %.1fs — abandoning wait",
+                    remote_path,
+                    self._close_timeout,
+                )

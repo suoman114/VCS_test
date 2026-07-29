@@ -64,6 +64,13 @@ class Settings(BaseSettings):
     # 수집이 조용히 죽는 실 서버 장애가 관찰됐다. `asyncio.wait_for`로 이
     # 값만큼 강제 타임아웃을 건다(SSHConnector.connect 참고).
     vcs_ssh_connect_timeout_sec: float = 15.0
+    # SSH 채널/커넥션 종료(wait_closed) 타임아웃. `terminate()`/`close()`는 신호만
+    # 보내고 바로 리턴되지만, 그 뒤 원격이 채널/커넥션 종료를 확인해줄 때까지
+    # 기다리는 `wait_closed()`에도 원래 타임아웃이 없었다 — 원격이 종료 확인을
+    # 안 보내주면(네트워크 불안정 등) 여기서도 영원히 멈춘다. 실 서버에서
+    # tail 채널에 TERM 신호까지는 로그가 남는데 그 뒤 `Received channel close`가
+    # 전혀 없이 멈추는 장애로 확인됐다(2026-07-29).
+    vcs_ssh_close_timeout_sec: float = 10.0
 
     # --- VoLTE(vctp) 실제 경로/명령 (CLAUDE.md §13 확정: 2026-07-29) ---
     # vctp가 재생(replay)할 pcap 샘플 파일들이 있는 디렉토리. Test Case 등록 폼의

@@ -37,15 +37,17 @@ class _FakeRunResult:
 
 
 class _FakeProcess:
-    def __init__(self) -> None:
+    def __init__(self, *, wait_closed_hangs: bool = False) -> None:
         self.stdout = _EmptyAsyncIterable()
         self.terminated = False
+        self._wait_closed_hangs = wait_closed_hangs
 
     def terminate(self) -> None:
         self.terminated = True
 
     async def wait_closed(self) -> None:
-        return None
+        if self._wait_closed_hangs:
+            await asyncio.sleep(3600)
 
 
 class _EmptyAsyncIterable:
@@ -57,9 +59,11 @@ class _EmptyAsyncIterable:
 
 
 class _FakeConnection:
-    def __init__(self) -> None:
+    def __init__(self, *, process_wait_closed_hangs: bool = False, conn_wait_closed_hangs: bool = False) -> None:
         self.run_calls: list[dict[str, object]] = []
         self.create_process_calls: list[dict[str, object]] = []
+        self._process_wait_closed_hangs = process_wait_closed_hangs
+        self._conn_wait_closed_hangs = conn_wait_closed_hangs
 
     async def run(
         self,
@@ -99,7 +103,7 @@ class _FakeConnection:
                 "term_size": term_size,
             }
         )
-        return _FakeProcess()
+        return _FakeProcess(wait_closed_hangs=self._process_wait_closed_hangs)
 
     def is_closed(self) -> bool:
         return False
@@ -108,7 +112,8 @@ class _FakeConnection:
         return None
 
     async def wait_closed(self) -> None:
-        return None
+        if self._conn_wait_closed_hangs:
+            await asyncio.sleep(3600)
 
 
 @pytest.mark.asyncio
@@ -193,3 +198,48 @@ async def test_connect_times_out_instead_of_hanging_forever(monkeypatch: pytest.
 
     with pytest.raises(TimeoutError):
         await asyncio.wait_for(connector.connect(), timeout=2)
+
+
+@pytest.mark.asyncio
+async def test_tail_file_finally_does_not_hang_when_process_wait_closed_never_returns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """실 서버 장애 재현: tail 채널에 TERM 신호는 보내지지만(로그에 남지만)
+    원격이 채널 종료를 확인해주지 않으면 `process.wait_closed()`가 영원히
+    안 끝날 수 있었다 — `Sending TERM signal`까지만 찍히고 `Received channel
+    close`/`Channel closed`는 전혀 없이 멈추는 실 서버 로그로 확인됐다
+    (2026-07-29). `close_timeout`으로 이 대기도 유한 시간에 포기해야 한다.
+    """
+    fake_conn = _FakeConnection(process_wait_closed_hangs=True)
+
+    async def _fake_connect(**kwargs: object) -> _FakeConnection:
+        return fake_conn
+
+    monkeypatch.setattr(ssh_client_module.asyncssh, "connect", _fake_connect)
+
+    connector = SSHConnector(SSHTarget(host="fake-host"), close_timeout=0.05)
+
+    async def _drain() -> None:
+        async for _ in connector.tail_file("/home/vcs/vcsm/logs/vcsm.log"):
+            pass
+
+    await asyncio.wait_for(_drain(), timeout=2)  # 안 걸리면(=finally가 안 끝나면) 여기서 실패
+
+
+@pytest.mark.asyncio
+async def test_close_does_not_hang_when_conn_wait_closed_never_returns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`SSHConnector.close()`도 동일한 문제가 있었다 — `conn.wait_closed()`가
+    영원히 안 끝나면 세션 정리 전체가 멈춘다."""
+    fake_conn = _FakeConnection(conn_wait_closed_hangs=True)
+
+    async def _fake_connect(**kwargs: object) -> _FakeConnection:
+        return fake_conn
+
+    monkeypatch.setattr(ssh_client_module.asyncssh, "connect", _fake_connect)
+
+    connector = SSHConnector(SSHTarget(host="fake-host"), close_timeout=0.05)
+    await connector.connect()
+
+    await asyncio.wait_for(connector.close(), timeout=2)
