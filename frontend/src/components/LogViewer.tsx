@@ -9,7 +9,12 @@
  * - 프로세스별(vcsm/vcmm/vctp/vcmc/sipp) 탭으로 구분 표시, 자동 스크롤 옵션 지원.
  *   탭은 고정 목록이 아니라 실제로 로그가 들어온 source를 기준으로 동적으로
  *   생긴다 — VoLTE 실행은 vcsm/vcmm/vctp만, McPTT 실행은 vcmc/vcmm(+sipp)만
- *   나타난다.
+ *   나타난다. "실제로 로그가 들어온"의 기준은 두 가지를 합친 것이다: (a)
+ *   WebSocket으로 들어온 라이브 소스(`bySource`), (b) 이미 DB에 저장된
+ *   CallEvent의 source(`historicalSources`, 마운트 시 한 번 조회). (b)가
+ *   없으면 시험 이력에서 이미 종료된 run의 로그를 볼 때(WS로 더 들어올
+ *   라이브 데이터가 없음) 탭 자체가 하나도 안 생겨서 "과거 로그" 섹션조차
+ *   못 여는 문제가 있었다.
  * - "클릭-투-로그": Call Flow에서 메시지를 클릭하면 `logStore.jumpTarget`이
  *   설정된다. 해당 source 탭으로 전환하고 "과거 로그"(파싱된 CallEvent)에서
  *   seq_no를 찾아 하이라이트한다. **반드시 과거 로그 쪽에서만 찾는다** —
@@ -70,7 +75,8 @@ export function LogViewer({ runId }: { runId: string | null }) {
   const jumpTarget = useLogStore((state) => state.jumpTarget);
   const clearJumpTarget = useLogStore((state) => state.clearJumpTarget);
 
-  const sources = sortSources(Object.keys(bySource));
+  const [historicalSources, setHistoricalSources] = useState<string[]>([]);
+  const sources = sortSources(Array.from(new Set([...Object.keys(bySource), ...historicalSources])));
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [history, setHistory] = useState<CallEvent[]>([]);
@@ -82,6 +88,29 @@ export function LogViewer({ runId }: { runId: string | null }) {
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 이미 종료된 run(시험 이력에서 들어온 경우)은 라이브 WS 데이터가 더 이상
+  // 없으므로, DB에 저장된 CallEvent만으로도 탭이 생기도록 마운트/run 전환
+  // 시 한 번 소스 목록을 조회해둔다.
+  useEffect(() => {
+    if (!runId) {
+      setHistoricalSources([]);
+      return;
+    }
+    let cancelled = false;
+    testRunsApi
+      .getEvents(runId, { limit: JUMP_FETCH_LIMIT, offset: 0 })
+      .then((res) => {
+        if (cancelled) return;
+        setHistoricalSources(Array.from(new Set(res.items.map((ev) => ev.source))));
+      })
+      .catch(() => {
+        // 아직 조회할 로그가 없을 수 있음(신규 run) — 조용히 무시, 이후 WS 라이브 소스로 채워진다.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [runId]);
 
   // 아직 선택된 탭이 없거나(첫 로그 도착 전), 선택된 탭의 소스가 더 이상 없으면
   // (run 전환 등) 사용 가능한 첫 소스로 자동 전환한다.
@@ -148,7 +177,13 @@ export function LogViewer({ runId }: { runId: string | null }) {
     return () => {
       cancelled = true;
     };
-  }, [highlightSeq, activeTab, runId, history]);
+    // history 배열 자체가 아니라 length로만 비교한다 — setHistory가 매번 새
+    // 배열 참조를 만들기 때문에(내용이 안 바뀌어도) 전체 배열을 의존성에 넣으면
+    // 이 effect가 자기 자신을 계속 재트리거하는 무한 루프가 된다(찾는 대상이
+    // 없을 때 특히 심각 — 응답이 올 때마다 재요청을 반복해 브라우저가 멎어
+    // 보일 정도로 부하가 걸렸다. "탭 전환 시 로그가 멈춘다"는 리포트의 원인).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightSeq, activeTab, runId, history.length]);
 
   useEffect(() => {
     return () => {

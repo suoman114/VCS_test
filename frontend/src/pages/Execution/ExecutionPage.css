@@ -2,6 +2,17 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* 로그/Call Flow를 넓게 보려면 화면 전체 폭이 필요해서, 상위 `.app-main`의
+     max-width:1200px 중앙정렬 제약을 이 페이지에서만 벗어난다("full-bleed"
+     기법 — 뷰포트 폭 100%로 확장 후 좌우 패딩만 자체적으로 다시 준다). */
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  padding: 0 24px;
+  box-sizing: border-box;
 }
 
 .execution-page .page-header {
