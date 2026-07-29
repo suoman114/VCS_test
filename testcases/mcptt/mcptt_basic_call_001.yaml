@@ -14,7 +14,10 @@ description: >
 config_ref: "scenarios/sipp/mcptt_basic_call.xml"
 
 protocol_params:
-  # TBD(CLAUDE.md §13): SIPp 실행 위치(local/ssh)는 sipp_exec_mode 설정(app/core/config.py)을 따른다.
+  # SIPp는 VCS와 별도인 전용 호스트에서 실행된다 (2026-07-29 확인) — sipp_exec_mode를
+  # "ssh"로 지정하면 SIPP_SSH_* 설정(.env)의 호스트에 시나리오를 업로드하고 원격 실행한다.
+  # 생략하면 Settings.sipp_exec_mode(기본 "local")를 따른다.
+  sipp_exec_mode: "ssh"
   target_ip: "10.0.0.10"
   target_port: 5060
   call_rate: 1
@@ -22,6 +25,7 @@ protocol_params:
   extra_sipp_args:
     - "-trace_msg"
     - "-trace_screen"
+  # vcmc_log_path/vcmm_log_path 기본값은 Settings(app/core/config.py)에 있으므로 생략 가능.
 
 pass_criteria:
   required_events:

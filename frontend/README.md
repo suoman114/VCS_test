@@ -29,3 +29,6 @@ npm run build           # 프로덕션 빌드 (dist/)
   실제 백엔드 API가 확정되면 이 파일들만 수정하면 되도록 페이지/컴포넌트와 분리되어 있다.
 - `api/health.ts`: `/api/health`는 현재 `{"status": "ok"}`만 반환한다(CONFIRMED). VCS SSH/SIPp
   세부 헬스체크 필드는 아직 백엔드에 없어 `HealthResponse` 타입에 optional로만 예약되어 있다.
+- `api/vcs.ts`: `GET /api/vcs/volte-sample-files`(CONFIRMED) — VoLTE 등록 폼의 pcap 샘플
+  select box가 쓴다. VCS SSH 연결이 안 되면 502를 반환하며, 폼은 이 경우 텍스트 입력으로
+  폴백한다.

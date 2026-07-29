@@ -50,24 +50,28 @@
 
 ## 3. 시험 실행 방식 (핵심 도메인 로직)
 
-### 3.1 VoLTE 기본 호처리 시험
-1. Test Case에 연결된 설정 파일을 VCS 서버의 지정 경로에 적용(SCP/SFTP 전송) — `docs/log_samples/volte/vctp.log` 근거상 `/home/vcs/vctp/config/.vctp_default.config`, `/home/vcs/vctp/config/vctp_user.config`가 vctp의 실제 설정 경로이며, `SAMPLEHOME=/home/vcs/vctp/sample/` 아래 `SAMPLEFILE1`(예: `imsVideo30sec.pcap`)로 지정된 사전 캡처 pcap 파일을 재생하는 구조로 보인다. 즉 "설정 파일 적용"은 **시험하려는 호 시나리오가 담긴 pcap 샘플 파일을 SAMPLEFILE로 교체/배치하는 것**일 가능성이 높다(최종 확인 필요, 아래 TBD).
-2. SSH로 VCS에 접속하여 `vctp` 프로세스 재기동 명령 실행 → 재기동된 vctp가 pcap을 재생하며 SIP는 VCSM으로, RTP는 VCMM으로 릴레이
-3. 재기동 직후부터 VCS의 관련 로그 파일을 실시간 tail로 수집 시작 — 대상은 `vcsm.log`(SIP 시그널링), `vcmm.log`(녹취 제어/결과). `vctp.log`는 패킷 단위 릴레이 로그가 대부분(§9 참고)이라 실시간 스트리밍 대상에서는 저우선순위로 둔다.
+### 3.1 VoLTE 기본 호처리 시험 (2026-07-29 실 환경 확인 후 확정)
+1. vctp가 재생(replay)할 pcap 샘플은 이미 VCS의 `/home/vcs/vctp/sample`에 있다. "설정 적용"은 새 파일을 업로드하는 게 아니라, vctp 설정(`/home/vcs/vctp/config/vctp_user.config`)의 `SAMPLEFILE1` 항목을 시험하려는 pcap 파일명으로 SSH `sed` 치환하는 것이다. Test Case 등록 폼은 `GET /api/vcs/volte-sample-files`(SSH `ls`)로 조회한 목록을 select box로 보여준다.
+2. SSH로 VCS에 접속하여 `stopmc -b vctp` → `startmc -b vctp` 순서로 vctp를 재기동 → 재기동된 vctp가 pcap을 재생하며 SIP는 VCSM으로, RTP는 VCMM으로 릴레이
+3. 재기동 직후부터 VCS의 관련 로그 파일을 실시간 tail로 수집 시작 — 대상은 `vcsm.log`(`/home/vcs/vcsm/logs/vcsm.log`, SIP 시그널링), `vcmm.log`(`/home/vcs/vcmm/logs/vcmm0.log`, 녹취 제어/결과). `vctp.log`는 패킷 단위 릴레이 로그가 대부분(§9 참고)이라 실시간 스트리밍 대상에서는 저우선순위로 둔다.
 4. 호처리 완료(성공/실패/타임아웃) 판정 기준에 도달할 때까지 수집 — **확인된 성공 판정 근거**: `vcmm.log`에서 VCMM이 보내는 `recording_stop_res` 메시지의 `header.reasonCode == 2000 && header.reason == "Success"`. SIP 레벨에서는 `vcsm.log`의 BYE ↔ 200 OK 교환과 시점이 일치.
 5. 수집 종료 → 원본 로그 저장 → 파싱 → Call Flow 생성 → Pass/Fail 판정 → 대시보드에 결과 반영
 
-> **미확정(TBD)**: (1) "설정 파일 적용"이 실제로 vctp의 pcap 샘플 교체 방식이 맞는지, 아니라면 정확한 절차. (2) `vctp` 재기동 명령(`systemctl` / 커스텀 스크립트 / 시그널 등)과 권한. (3) 실패/타임아웃 케이스의 실제 로그 패턴(현재 확보한 샘플은 성공 케이스 1건뿐이라 실패 판정 규칙을 아직 못 만든다 — 실패/에러 로그 샘플 추가로 필요). VCS 접근 정보를 받는 즉시 확정한다. 그 전까지 Backend Agent는 이 구간을 인터페이스(어댑터)로 추상화해서 구현한다.
+구현: `backend/app/services/volte/executor.py`(`VolteBasicCallExecutor`), 샘플 목록 조회는 `backend/app/services/volte/sample_files.py` + `GET /api/vcs/volte-sample-files`. 경로/명령 기본값은 `Settings`(`app/core/config.py`)에 있고 `.env`로 배포 환경마다 override 가능.
 
-### 3.2 McPTT 기본 호처리 시험
+> **미확정(TBD)**: 실패/타임아웃 케이스의 실제 로그 패턴(현재 확보한 샘플은 성공 케이스 1건뿐이라 실패 판정 규칙을 아직 못 만든다 — 실패/에러 로그 샘플 추가 필요). `sed` 치환 대상 라인의 정확한 문법(공백 등)은 vctp.log의 파싱된 출력에서 역추정한 것이라 실 서버 최초 실행 시 검증 필요.
+
+### 3.2 McPTT 기본 호처리 시험 (2026-07-29 실 환경 확인 후 확정)
 1. Test Case에 연결된 SIPp 시나리오(XML) + 파라미터(대상 IP/Port, 호 수, 호 발생율 등) 로드
-2. SIPp 프로세스 실행 (McPTT 호 발생)
-3. SIPp 실행과 동시에 VCS 측 로그도 실시간 수집 시작 (SSH tail) — 대상은 `vcmc.log`(SIP+MCPTT 시그널링), `vcmm.log`(녹취 제어/결과). `docs/log_samples/mcptt/`에서 확인된 VCS 측 프로세스는 이 둘뿐이며(VoLTE의 vctp/vcsm에 대응하는 별도 프로세스가 McPTT에도 있는지는 미확인, TBD), `vcmc.log`는 SIP 메시지 원문(멀티파트 MIME, `application/vnd.3gpp.mcptt-info+xml` 등 MCPTT 전용 바디 포함)을 그대로 담고 있다.
+2. SIPp는 VCS와 별도인 전용 호스트에서 실행된다(SSH로 시나리오 업로드 → 원격 실행 → SIPp 자체 로그 다운로드, `sipp_exec_mode="ssh"`). VCS측 로그 tail을 SIPp 실행 전에 먼저 시작한다.
+3. SIPp 실행과 동시에 VCS 측 로그도 실시간 수집 — 대상은 `vcmc.log`(`/home/vcs/vcmc/logs/vcmc.log`, SIP+MCPTT 시그널링), `vcmm.log`(`/home/vcs/vcmm/logs/vcmm0.log`, 녹취 제어/결과). `docs/log_samples/mcptt/`에서 확인된 VCS 측 프로세스는 이 둘뿐이며(VoLTE의 vctp/vcsm에 대응하는 별도 프로세스가 McPTT에도 있는지는 미확인, TBD), `vcmc.log`는 SIP 메시지 원문(멀티파트 MIME, `application/vnd.3gpp.mcptt-info+xml` 등 MCPTT 전용 바디 포함)을 그대로 담고 있다.
 4. SIPp 자체 로그/통계(csv, 스크린 로그)와 VCS 로그를 **Call-ID / 타임스탬프 기준으로 상관관계 매칭**
 5. 두 로그 소스를 병합하여 하나의 Call Flow로 재구성
 6. Pass/Fail 판정 → 결과 저장 → 대시보드 반영 — **확인된 성공 판정 근거**: VoLTE와 동일하게 `vcmm.log`의 `recording_stop_res`가 `reasonCode == 2000 && reason == "Success"`. McPTT 샘플에는 `recording_change_req/res`(21회, 그룹 통화 중 발언권/플로어 변경으로 추정)가 추가로 존재 — Call Flow에는 표시하되 Pass/Fail 판정에는 필수 아님(추정, 확인 필요).
 
-> **미확정(TBD)**: SIPp 실행 위치(자동화 서버 로컬 vs 별도 SIPp 전용 호스트에 SSH로 원격 실행), `recording_change_req/res`의 정확한 의미와 판정 영향 여부, 실패/타임아웃 케이스의 실제 로그 패턴(현재 샘플은 성공 케이스 1건).
+구현: `backend/app/services/mcptt/executor.py`(`McpttBasicCallExecutor`, 로컬/원격 SIPp 실행 모두 지원).
+
+> **미확정(TBD)**: `recording_change_req/res`의 정확한 의미와 판정 영향 여부, 실패/타임아웃 케이스의 실제 로그 패턴(현재 샘플은 성공 케이스 1건), Call-ID/타임스탬프 기반 SIPp↔VCS 로그 상관관계 매칭(SippLogAdapter는 아직 스텁).
 
 ### 3.3 공통 실행 원칙
 - 모든 시험 실행은 **비동기 Job**으로 처리하고 Test Run 레코드를 즉시 생성한다(상태: `pending → running → parsing → done/failed/error`).
@@ -256,12 +260,13 @@ Log Parser & Call Flow Agent는 위 4개 어댑터부터 구현하고, 실패/�
 - [x] 실제 VCS 로그 포맷 샘플 — `docs/log_samples/volte/{vctp,vcsm,vcmm}.log`, `docs/log_samples/mcptt/{vcmc,vcmm}.log`로 확보 완료. 라인 그래머·프로세스 역할·성공 판정 기준을 §2, §3, §9에 반영함.
 - [x] (부분) 시험 "완료"/Pass 판정 기준 — `vcmm.log`의 `recording_stop_res` 메시지 `reasonCode == 2000 && reason == "Success"`로 확인. **단, 이는 성공 케이스 근거일 뿐, 실패/타임아웃 시 어떤 로그 패턴이 남는지는 아직 미확인.**
 - [ ] **실패/에러/타임아웃 케이스의 실제 로그 샘플** — 현재 확보한 샘플은 VoLTE·McPTT 각 1건씩, 전부 성공 케이스다. Pass/Fail 판정 규칙(특히 Fail 쪽)을 완성하려면 실패 사례 로그가 필요.
-- [ ] "설정 파일 적용 후 vctp 재기동"이 실제로 vctp의 `SAMPLEFILE`(사전 캡처 pcap, 예: `/home/vcs/vctp/sample/imsVideo30sec.pcap`) 교체 방식이 맞는지 확인 (vctp.log의 `DefaultConfig` 로드 내역에서 강하게 시사됨, §3.1 참고)
-- [ ] `vctp` 재기동 정확한 명령/권한(`systemctl` / 커스텀 스크립트 / 시그널 등)
+- [x] "설정 파일 적용 후 vctp 재기동"의 정확한 절차 (2026-07-29 실 환경 확인) — vctp는 이미 `/home/vcs/vctp/sample`에 있는 pcap 샘플 중 하나를 재생한다. "적용"은 vctp 설정(`/home/vcs/vctp/config/vctp_user.config`)의 `SAMPLEFILE1` 항목을 선택된 파일명으로 바꾸는 것이며(SSH `sed`), 파일을 새로 업로드하지 않는다. `VolteBasicCallExecutor`(`backend/app/services/volte/executor.py`)가 이 절차로 재작성됨. Test Case 등록 폼은 `GET /api/vcs/volte-sample-files`로 조회한 목록을 select box로 보여준다.
+- [x] `vctp` 재기동 정확한 명령 — `stopmc -b vctp` → `startmc -b vctp` 순차 실행(`Settings.vctp_stop_cmd`/`vctp_start_cmd`, `.env`로 override 가능). 권한(sudo 필요 여부 등)은 실 서버에서 아직 검증 전.
 - [ ] McPTT에도 VoLTE의 vctp/vcsm에 대응하는 별도 프로세스가 있는지, 아니면 vcmc가 그 역할까지 겸하는지
 - [ ] McPTT `recording_change_req/res`(그룹 발언권/플로어 변경 추정)의 정확한 의미와 Pass/Fail 판정 영향 여부
-- [ ] SIPp 실행 위치(로컬 vs 원격 SSH) 및 실행 파라미터 표준
-- [ ] VCS SSH 접속 정보/인증 방식(키 vs 패스워드), 접근 가능한 네트워크 환경
+- [x] SIPp 실행 위치 — VCS와 별도인 전용 SIPp 호스트에서 실행됨(2026-07-29 확인). `sipp_exec_mode="ssh"`로 원격 실행(시나리오 업로드 → SSH 실행 → 로그 다운로드) 구현 완료(`McpttBasicCallExecutor._run_sipp_remote`). 실행 파라미터 표준은 `scenarios/sipp/README.md` 참고.
+- [x] VCS/SIPp 로그의 실제 경로 확인 — `vcsm.log`(`/home/vcs/vcsm/logs/vcsm.log`), `vcmm.log`(`/home/vcs/vcmm/logs/vcmm0.log`), `vcmc.log`(`/home/vcs/vcmc/logs/vcmc.log`). `Settings.vcs_vcsm_log_path`/`vcs_vcmm_log_path`/`vcs_vcmc_log_path` 기본값으로 반영, `.env`로 override 가능.
+- [ ] VCS SSH 접속 정보/인증 방식은 확인됨(비밀번호 인증) — **호스트/계정은 보안상 이 문서·저장소에 기록하지 않고 각자 `.env`에만 채운다.**
 - [ ] Pass/Fail 판정 세부 기준(케이스별로 다를 수 있음 — 성공 기준 외 추가 검증 항목 여부)
 
-Log Parser & Call Flow Agent는 위에서 이미 확보된 로그 샘플을 기준으로 `VctpLogAdapter`/`VcsmLogAdapter`/`VcmmLogAdapter`/`VcmcLogAdapter` 구현을 우선 진행할 수 있다. 실패 케이스 로그가 추가되면 이 문서의 §3, §6, §9를 다시 갱신한다.
+Log Parser & Call Flow Agent는 위에서 이미 확보된 로그 샘플을 기준으로 `VctpLogAdapter`/`VcsmLogAdapter`/`VcmmLogAdapter`/`VcmcLogAdapter` 구현을 우선 진행할 수 있다. 실패 케이스 로그가 추가되면 이 문서의 §3, §6, §9를 다시 갱신한다. VCS 실 서버 연동 상세(pcap 샘플 select box, vctp 정지/시작 명령, 로그 경로, SIPp 원격 실행)는 §3, `docs/DEPLOYMENT.md`에도 반영되어 있다.

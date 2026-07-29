@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { ApiError } from "../../api/client";
 import type { TestCaseCategory, TestCaseCreate, TestCaseRead, TestCaseType, TestCaseUpdate } from "../../api/types";
+import { vcsApi } from "../../api/vcs";
 
 interface TestCaseFormProps {
   initial?: TestCaseRead | null;
@@ -37,6 +39,37 @@ export function TestCaseForm({ initial, onCancel, onSubmit }: TestCaseFormProps)
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // VoLTE 전용: VCS의 vctp 샘플 pcap 디렉토리 목록 (select box용).
+  const [volteSampleFiles, setVolteSampleFiles] = useState<string[] | null>(null);
+  const [volteSampleFilesError, setVolteSampleFilesError] = useState<string | null>(null);
+  const [volteSampleFilesLoading, setVolteSampleFilesLoading] = useState(false);
+
+  useEffect(() => {
+    if (category !== "volte") return;
+    let cancelled = false;
+    setVolteSampleFilesLoading(true);
+    setVolteSampleFilesError(null);
+    vcsApi
+      .volteSampleFiles()
+      .then((res) => {
+        if (!cancelled) setVolteSampleFiles(res.items);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setVolteSampleFiles(null);
+          setVolteSampleFilesError(
+            err instanceof ApiError ? err.message : "VCS 서버에서 샘플 파일 목록을 가져오지 못했습니다",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setVolteSampleFilesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [category]);
+
   useEffect(() => {
     setId(initial?.id ?? "");
     setName(initial?.name ?? "");
@@ -59,6 +92,12 @@ export function TestCaseForm({ initial, onCancel, onSubmit }: TestCaseFormProps)
     } catch {
       setError("protocol_params / pass_criteria는 올바른 JSON 객체여야 합니다");
       return;
+    }
+
+    // VoLTE는 select box에서 고른 파일명을 protocol_params.sample_file에도 반영한다
+    // (config_ref와 항상 동일한 값을 쓰게 해서 둘이 어긋나는 걸 방지).
+    if (category === "volte" && configRef) {
+      protocolParams = { ...protocolParams, sample_file: configRef };
     }
 
     setSubmitting(true);
@@ -139,10 +178,44 @@ export function TestCaseForm({ initial, onCancel, onSubmit }: TestCaseFormProps)
         </label>
       </div>
 
-      <label>
-        config_ref * (VoLTE: vctp 설정 파일 경로 / McPTT: SIPp 시나리오 XML 경로)
-        <input value={configRef} onChange={(e) => setConfigRef(e.target.value)} required />
-      </label>
+      {category === "volte" ? (
+        <label>
+          pcap 샘플 파일 * (VCS의 /home/vcs/vctp/sample 목록)
+          {volteSampleFilesLoading && <div className="form-hint">목록 불러오는 중...</div>}
+          {volteSampleFilesError && (
+            <div className="form-hint form-hint-error">
+              {volteSampleFilesError} — VCS 연결을 확인하거나 파일명을 직접 입력하세요.
+            </div>
+          )}
+          {volteSampleFiles ? (
+            <select value={configRef} onChange={(e) => setConfigRef(e.target.value)} required>
+              <option value="" disabled>
+                파일 선택...
+              </option>
+              {volteSampleFiles.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+              {configRef && !volteSampleFiles.includes(configRef) && (
+                <option value={configRef}>{configRef} (현재 값, 목록에 없음)</option>
+              )}
+            </select>
+          ) : (
+            <input
+              value={configRef}
+              onChange={(e) => setConfigRef(e.target.value)}
+              placeholder="예: imsVideo30sec.pcap"
+              required
+            />
+          )}
+        </label>
+      ) : (
+        <label>
+          config_ref * (McPTT: SIPp 시나리오 XML 경로, 저장소 기준 상대경로)
+          <input value={configRef} onChange={(e) => setConfigRef(e.target.value)} required />
+        </label>
+      )}
 
       <label>
         protocol_params (JSON)

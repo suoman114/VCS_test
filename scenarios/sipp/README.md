@@ -57,10 +57,13 @@ sipp <target_host>:<target_port> \
 ```
 
 - `<target_host>`, `<local_ip>` 등 실제 호스트/경로 값은 이 문서에 하드코딩하지 않는다 — 실행 시점에
-  backend-agent가 Test Case의 `protocol_params`와 실행 환경(로컬/원격 SIPp 호스트 TBD, §13)에 맞게 채운다.
+  backend-agent가 Test Case의 `protocol_params`에 맞게 채운다.
 - `storage/logs/{test_case_id}/{run_id}/` 하위 경로는 CLAUDE.md §3.3(원본 로그 보존 원칙)을 따른다.
-- SIPp 실행 위치(로컬 vs SSH 원격)가 TBD이므로, 원격 실행 시에는 동일 커맨드라인을 SSH로 감싸서 실행하면 된다
-  (이 시나리오/파라미터 정의 자체는 실행 위치와 무관하게 그대로 재사용 가능).
+- SIPp 실행 위치(2026-07-29 확인: 실제 배포는 VCS와 별도인 전용 SIPp 호스트) —
+  `protocol_params.sipp_exec_mode`("local"|"ssh")로 선택하며 기본값은 `Settings.sipp_exec_mode`.
+  `ssh` 모드는 `McpttBasicCallExecutor._run_sipp_remote`(`backend/app/services/mcptt/executor.py`)가
+  이 시나리오/커맨드라인 정의를 그대로 재사용해, 시나리오 XML을 SIPp 호스트로 업로드한 뒤 SSH로
+  실행하고 SIPp 로그(message/screen/stat)를 로컬로 다운로드한다.
 
 ## 알려진 제약 (backend-agent/log-parser-callflow-agent 공유용 요약)
 

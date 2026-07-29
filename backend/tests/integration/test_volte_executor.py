@@ -2,7 +2,8 @@
 
 실제 SSH 연결은 하지 않는다:
 - `ssh_target_factory`/`ssh_connector_factory`(executor 생성자에 이미 열려있는
-  주입 지점)에 가짜 SSH 커넥터를 넣어 `upload_file`/`run_command`를 흉내낸다.
+  주입 지점)에 가짜 SSH 커넥터를 넣어 `run_command`(SAMPLEFILE1 sed 치환,
+  vctp 정지/시작)를 흉내낸다.
 - 로그 tail(`SshTailSource`)은 `app.services.volte.executor.SshTailSource`
   이름 자체를 monkeypatch해서, 실제 SSH 대신 로컬 샘플 로그 파일
   (`docs/log_samples/volte/{vcsm,vcmm}.log`)을 폴링하는 `LocalFileSource`
@@ -59,15 +60,16 @@ class _LocalTailStub(LogSource):
 
 
 class _FakeSSHConnector:
-    """`upload_file`/`run_command`/`close`만 성공 응답을 흉내내는 가짜 SSH 커넥터."""
+    """`run_command`/`close`만 성공 응답을 흉내내는 가짜 SSH 커넥터.
+
+    VoLTE 실행기는 더 이상 파일을 업로드하지 않는다(pcap 샘플은 이미 VCS에
+    있고, SAMPLEFILE1을 sed로 바꿀 뿐이다) — 그래서 `upload_file`은 정의하지
+    않는다. 만약 executor가 실수로 다시 호출하면 AttributeError로 즉시 드러난다.
+    """
 
     def __init__(self, target: SSHTarget) -> None:
         self.target = target
-        self.uploaded: list[tuple[str, str]] = []
         self.commands: list[str] = []
-
-    async def upload_file(self, local_path: str | Path, remote_path: str) -> None:
-        self.uploaded.append((str(local_path), remote_path))
 
     async def run_command(self, command: str) -> CommandResult:
         self.commands.append(command)
@@ -89,14 +91,11 @@ def _seed_test_case_and_run(isolated_db) -> tuple[TestCase, str]:
             name="volte-executor-qa-fixture",
             category=TestCaseCategory.VOLTE,
             test_type=TestCaseType.BASIC_CALL,
-            config_ref="configs/volte/basic_call_default.conf",
+            config_ref="imsVideo30sec.pcap",
             protocol_params={
-                "dest_path": "/opt/vcs/conf/vctp.conf",
-                "restart_cmd": "systemctl restart vctp",
-                "vcs_log_paths": {
-                    "vcsm_log": str(_VOLTE_VCSM_LOG),
-                    "vcmm_log": str(_VOLTE_VCMM_LOG),
-                },
+                "sample_file": "imsVideo30sec.pcap",
+                "vcsm_log_path": str(_VOLTE_VCSM_LOG),
+                "vcmm_log_path": str(_VOLTE_VCMM_LOG),
                 "timeout_sec": 5,
             },
             pass_criteria={},
@@ -142,11 +141,15 @@ async def test_volte_executor_run_passes_with_sample_logs(isolated_db, tmp_path:
     assert summary["event_count"] > 0
     assert summary["timed_out"] is False
 
-    # CLAUDE.md §3.1 1~2단계: 설정 파일 업로드 + vctp 재기동 명령이 실제로 호출됐는지.
-    assert fake_connector.uploaded == [
-        (str(_REPO_ROOT / "configs" / "volte" / "basic_call_default.conf"), "/opt/vcs/conf/vctp.conf")
-    ]
-    assert fake_connector.commands == ["systemctl restart vctp"]
+    # CLAUDE.md §3.1 1~2단계: SAMPLEFILE1 치환(sed) + vctp 정지/시작 명령이 순서대로 호출됐는지.
+    assert len(fake_connector.commands) == 3
+    sed_cmd, stop_cmd, start_cmd = fake_connector.commands
+    assert "sed -i -E" in sed_cmd
+    assert "SAMPLEFILE1" in sed_cmd
+    assert "imsVideo30sec.pcap" in sed_cmd
+    assert isolated_settings.vctp_config_path in sed_cmd
+    assert stop_cmd == isolated_settings.vctp_stop_cmd
+    assert start_cmd == isolated_settings.vctp_start_cmd
 
     assert result_run.target_host == "fake-vcs"
     assert result_run.raw_log_path is not None

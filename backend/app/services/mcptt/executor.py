@@ -10,10 +10,15 @@
        수집된 로그를 재파싱하며 대기한다.
     4. 수집 종료 -> CallEvent 저장 -> Call Flow 생성 -> 최종 상태 반영.
 
-SIPp 실행 위치(`sipp_exec_mode`)는 CLAUDE.md §13 TBD다. `local`(기본값,
-`Settings.sipp_exec_mode` 또는 `protocol_params["sipp_exec_mode"]`)은
-자동화 서버에서 `asyncio.create_subprocess_exec`로 바로 실행한다. `ssh`는
-인터페이스만 열어두고 TODO로 남긴다(`_run_sipp_remote`).
+SIPp 실행 위치(`sipp_exec_mode`, `Settings.sipp_exec_mode` 또는
+`protocol_params["sipp_exec_mode"]`로 결정, 기본값 `local`):
+    - `local`: 자동화 서버에서 `asyncio.create_subprocess_exec`로 바로 실행.
+    - `ssh`: 별도 SIPp 전용 호스트에 SSH로 접속해 실행한다(2026-07-29 확인:
+      실제 배포에서는 SIPp가 VCS와 다른 서버에 있음). 시나리오 XML을
+      `Settings.sipp_remote_work_dir/{test_case_id}/{run_id}/`로 업로드하고
+      그 원격 경로 기준으로 커맨드라인을 구성해 실행한 뒤, SIPp 자체 로그
+      (message/screen/stat)를 로컬 `storage/logs/...`로 다운로드해 원본을
+      보존한다 (`_run_sipp_remote`).
 
 `TestCase.protocol_params` 키(요구 사항, 완료 보고 참고 — `scenarios/sipp/README.md`
 제안표와 실제 `testcases/mcptt/mcptt_basic_call_001.yaml` 예시 사이의 이름 불일치를
@@ -30,9 +35,12 @@ SIPp 실행 위치(`sipp_exec_mode`)는 CLAUDE.md §13 TBD다. `local`(기본값
     calls_count | max_calls (int, 기본 1): 총 호 발생 수 (-m)
     call_rate (float, 기본 1)            : 초당 호 발생율 (-r)
     extra_sipp_args (list[str], 선택)    : 추가 SIPp 인자 그대로 append
-    vcs_log_paths (list[str] | dict, 필수): VCS측 tail 대상 로그 경로들
-                                            (예: vcmc.log, vcmm.log)
+    vcmc_log_path / vcmm_log_path        : 기본값 Settings.vcs_vcmc_log_path / vcs_vcmm_log_path
+        (str, 선택)
+    vcs_log_paths (list[str] | dict, 선택): 위 두 기본 경로 외에 추가로 tail할 로그
     sipp_exec_mode ("local"|"ssh", 선택) : 기본값은 Settings.sipp_exec_mode
+    sipp_remote_work_dir (str, 선택)     : ssh 모드일 때 원격 작업 디렉토리
+                                            (기본값 Settings.sipp_remote_work_dir)
     timeout_sec (float, 기본 30)         : 완료 판정 타임아웃
     sipp_bin (str, 기본 "sipp")          : SIPp 실행 파일 경로/이름
 """
@@ -41,9 +49,10 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import shlex
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from app.core.config import Settings, get_settings
@@ -53,9 +62,13 @@ from app.models.test_run import TestRun, TestRunStatus
 from app.services.execution_common import normalize_log_paths, persist_results, wait_for_completion
 from app.services.executor_base import TestCaseLike, TestExecutor, executor_registry
 from app.services.log_collector import CollectorSession, CollectorSource, SshTailSource
-from app.services.ssh_connector import SSHTarget
+from app.services.ssh_connector import SSHConnector, SSHTarget
 
 logger = logging.getLogger(__name__)
+
+
+def _default_ssh_connector_factory(target: SSHTarget) -> SSHConnector:
+    return SSHConnector(target)
 
 
 @dataclass
@@ -184,14 +197,21 @@ class McpttBasicCallExecutor(TestExecutor):
         settings: Settings | None = None,
         sipp_runner: SippRunner | None = None,
         ssh_target_factory: Callable[[], SSHTarget] | None = None,
+        sipp_ssh_target_factory: Callable[[], SSHTarget] | None = None,
+        sipp_ssh_connector_factory: Callable[[SSHTarget], SSHConnector] | None = None,
     ) -> None:
-        """`sipp_runner`는 QA/Integration Agent가 실제 SIPp 바이너리 없이
-        모킹할 수 있도록 열어둔 의존성 주입 지점이다.
+        """`sipp_runner`(로컬 실행용)와 `sipp_ssh_connector_factory`(원격 실행용)는
+        QA/Integration Agent가 실제 SIPp 바이너리/SSH 연결 없이 모킹할 수 있도록
+        열어둔 의존성 주입 지점이다.
         """
         super().__init__(run_id)
         self._settings = settings or get_settings()
         self._sipp_runner = sipp_runner or _default_local_sipp_runner
         self._ssh_target_factory = ssh_target_factory or (lambda: SSHTarget.from_vcs_settings(self._settings))
+        self._sipp_ssh_target_factory = sipp_ssh_target_factory or (
+            lambda: SSHTarget.from_sipp_settings(self._settings)
+        )
+        self._sipp_ssh_connector_factory = sipp_ssh_connector_factory or _default_ssh_connector_factory
 
     async def run(self, test_case: TestCaseLike) -> TestRun:
         run_id = self.run_id
@@ -203,11 +223,13 @@ class McpttBasicCallExecutor(TestExecutor):
             await job_runner.set_status(run_id, TestRunStatus.RUNNING, target_host=target.host)
 
             # VCS측 로그 tail을 SIPp 실행 전에 먼저 시작한다 (CLAUDE.md §3.2 2~3단계).
-            log_paths = normalize_log_paths(params.get("vcs_log_paths") or {})
-            if not log_paths:
-                raise ValueError(
-                    "protocol_params.vcs_log_paths가 비어있다 — 최소 vcmc_log/vcmm_log 경로가 필요하다"
-                )
+            # 기본 경로는 Settings, protocol_params로 override/추가 가능.
+            default_log_paths = {
+                "vcmc_log": params.get("vcmc_log_path", self._settings.vcs_vcmc_log_path),
+                "vcmm_log": params.get("vcmm_log_path", self._settings.vcs_vcmm_log_path),
+            }
+            extra_log_paths = normalize_log_paths(params.get("vcs_log_paths") or {})
+            log_paths = {**default_log_paths, **extra_log_paths}
             sources = [
                 CollectorSource(SshTailSource(name, path, target=target), channel="vcs_log")
                 for name, path in log_paths.items()
@@ -217,14 +239,30 @@ class McpttBasicCallExecutor(TestExecutor):
             )
             await session.start()
 
-            scenario_path = self._resolve_repo_path(test_case.config_ref)
+            scenario_local_path = self._resolve_repo_path(test_case.config_ref)
             timeout_sec = float(params.get("timeout_sec", 30) or 30)
-            argv = build_sipp_args(
-                scenario_path, params, session.run_dir, sipp_bin=params.get("sipp_bin", "sipp")
-            )
-
             exec_mode = params.get("sipp_exec_mode", self._settings.sipp_exec_mode)
-            sipp_result = await self._run_sipp(argv, exec_mode, timeout_sec)
+            sipp_bin = params.get("sipp_bin", "sipp")
+
+            if exec_mode == "ssh":
+                remote_base = params.get("sipp_remote_work_dir", self._settings.sipp_remote_work_dir)
+                remote_run_dir = PurePosixPath(remote_base) / test_case.id / run_id
+                remote_scenario_path = remote_run_dir / scenario_local_path.name
+                argv = build_sipp_args(remote_scenario_path, params, remote_run_dir, sipp_bin=sipp_bin)
+                sipp_result = await self._run_sipp_remote(
+                    argv=argv,
+                    scenario_local_path=scenario_local_path,
+                    remote_scenario_path=remote_scenario_path,
+                    remote_run_dir=remote_run_dir,
+                    local_run_dir=session.run_dir,
+                    timeout_sec=timeout_sec,
+                )
+            elif exec_mode == "local":
+                argv = build_sipp_args(scenario_local_path, params, session.run_dir, sipp_bin=sipp_bin)
+                sipp_result = await self._sipp_runner(argv, self._settings.repo_root_path, timeout_sec)
+            else:
+                raise ValueError(f"unknown sipp_exec_mode: {exec_mode!r}")
+
             if not sipp_result.ok:
                 logger.warning(
                     "McpttExecutor(%s): sipp exited non-zero (%s): stderr=%s",
@@ -267,19 +305,56 @@ class McpttBasicCallExecutor(TestExecutor):
 
         return await asyncio.to_thread(self._fetch_run, run_id)
 
-    async def _run_sipp(self, argv: list[str], exec_mode: str, timeout_sec: float) -> SippRunResult:
-        if exec_mode == "local":
-            return await self._sipp_runner(argv, self._settings.repo_root_path, timeout_sec)
-        if exec_mode == "ssh":
-            # TODO(CLAUDE.md §13 TBD): SIPp 원격(전용 호스트) 실행. 시나리오/파라미터
-            # 정의는 실행 위치와 무관하게 재사용 가능하다고 문서화되어 있으므로
-            # (scenarios/sipp/README.md), SSHTarget.from_sipp_settings()로 연결해
-            # 동일 argv를 원격 커맨드라인으로 감싸 실행하면 된다. 실제 배포 환경
-            # 확인 전까지는 명시적으로 미구현 상태로 남긴다.
-            raise NotImplementedError(
-                "sipp_exec_mode='ssh' (원격 SIPp 실행)은 아직 구현하지 않았다 (CLAUDE.md §13 TBD)"
+    async def _run_sipp_remote(
+        self,
+        *,
+        argv: list[str],
+        scenario_local_path: Path,
+        remote_scenario_path: PurePosixPath,
+        remote_run_dir: PurePosixPath,
+        local_run_dir: Path,
+        timeout_sec: float,
+    ) -> SippRunResult:
+        """SIPp 전용 원격 호스트에서 시나리오를 실행한다.
+
+        1. 원격 작업 디렉토리 생성
+        2. 시나리오 XML 업로드(로컬 저장소 -> 원격)
+        3. `argv`(이미 원격 경로 기준으로 구성됨)를 SSH 커맨드로 실행
+        4. SIPp 자체 로그(message/screen/stat)를 로컬로 다운로드 (원본 로그 보존 원칙,
+           CLAUDE.md §3.3). 실행이 실패해 파일이 아예 안 만들어졌을 수도 있어
+           다운로드 실패는 개별적으로 warning만 남기고 계속 진행한다.
+        """
+        target = self._sipp_ssh_target_factory()
+        connector = self._sipp_ssh_connector_factory(target)
+        try:
+            await connector.run_command(f"mkdir -p {shlex.quote(str(remote_run_dir))}")
+            await connector.upload_file(scenario_local_path, str(remote_scenario_path))
+
+            command = " ".join(shlex.quote(a) for a in argv)
+            try:
+                result = await connector.run_command(command, timeout=timeout_sec)
+            except TimeoutError:
+                return SippRunResult(
+                    argv=argv, exit_status=None, stdout="", stderr="sipp process timed out (remote)"
+                )
+
+            local_run_dir.mkdir(parents=True, exist_ok=True)
+            for filename in ("sipp_messages.log", "sipp_screen.log", "sipp_stats.csv"):
+                try:
+                    await connector.download_file(str(remote_run_dir / filename), local_run_dir / filename)
+                except Exception as exc:  # noqa: BLE001 - 원격에 파일이 없을 수도 있음(예: 실행 실패)
+                    logger.warning(
+                        "McpttExecutor(%s): failed to download %s from remote sipp host: %s",
+                        self.run_id,
+                        filename,
+                        exc,
+                    )
+
+            return SippRunResult(
+                argv=argv, exit_status=result.exit_status, stdout=result.stdout, stderr=result.stderr
             )
-        raise ValueError(f"unknown sipp_exec_mode: {exec_mode!r}")
+        finally:
+            await connector.close()
 
     def _resolve_repo_path(self, config_ref: str) -> Path:
         p = Path(config_ref)

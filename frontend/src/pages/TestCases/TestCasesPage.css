@@ -131,6 +131,16 @@
   color: #b91c1c;
 }
 
+.form-hint {
+  font-size: 0.78rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.form-hint-error {
+  color: #b91c1c;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

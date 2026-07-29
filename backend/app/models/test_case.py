@@ -73,12 +73,14 @@ class TestCase(Base):
         index=True,
     )
 
-    # 대표 경로 1개: VoLTE는 vctp 설정 파일 경로, McPTT는 메인 SIPp 시나리오(XML) 경로.
+    # 대표 값 1개: VoLTE는 선택된 pcap 샘플 파일명(protocol_params.sample_file과 동일 값,
+    # 화면 표시용), McPTT는 메인 SIPp 시나리오(XML)의 저장소 기준 상대 경로.
     config_ref: Mapped[str] = mapped_column(String(512), nullable=False)
 
-    # 프로토콜별 부가 파라미터 (자유 JSON 구조, 예시는 완료 보고 참고).
-    # VoLTE 예: {"dest_path": ..., "restart_cmd": ..., "vcs_log_paths": [...]}
-    # McPTT 예: {"target_ip": ..., "target_port": ..., "call_rate": ..., "max_calls": ...}
+    # 프로토콜별 부가 파라미터 (자유 JSON 구조, 상세는 app/services/{volte,mcptt}/executor.py 참고).
+    # VoLTE 예: {"sample_file": "imsVideo30sec.pcap"} (경로/재기동 명령 기본값은 Settings)
+    # McPTT 예: {"target_ip": ..., "target_port": ..., "call_rate": ..., "max_calls": ...,
+    #           "sipp_exec_mode": "ssh"}
     protocol_params: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
     # 판정 기준 (CLAUDE.md §9의 규칙 엔진이 파싱 결과와 비교).

@@ -84,9 +84,27 @@ Node 16은 glibc 2.17에서 동작하는 마지막 LTS 라인이다.
 - 프론트엔드: 대시보드 로드 확인, `API 서버` 헬스체크 정상 표시
 - `VCS SSH 연결` / `SIPp 실행 가능` 배지는 아직 "확인중" 고정 — 백엔드에 실제 헬스체크 로직이 없어서다(TBD, 아래 참고)
 
+## 실 VCS 서버 연동 (2026-07-29 확인 완료)
+
+`.env`에 아래를 채우면 실제 장비로 시험을 실행할 수 있다(호스트/계정 값 자체는 이 문서에 적지 않는다 — `.env`에만 채운다).
+
+```bash
+VCS_SSH_HOST=<VCS IP>
+VCS_SSH_PORT=22
+VCS_SSH_USERNAME=<계정>
+VCS_SSH_PASSWORD=<비밀번호>
+
+SIPP_EXEC_MODE=ssh
+SIPP_SSH_HOST=<SIPp 전용 서버 IP>
+SIPP_SSH_USERNAME=<계정>
+SIPP_SSH_PASSWORD=<비밀번호>
+```
+
+나머지(vctp 재기동 명령, pcap 샘플 디렉토리, vcsm/vcmm/vcmc 로그 경로)는 `backend/app/core/config.py`에 확인된 기본값으로 이미 들어가 있다 — 배포 환경이 다르면 `.env`에서 override(`.env.example`에 주석으로 키 이름 목록 있음). VoLTE Test Case 등록 시 pcap 샘플은 `GET /api/vcs/volte-sample-files`가 VCS의 `/home/vcs/vctp/sample`을 SSH로 조회해 select box로 보여준다(VCS 연결이 안 되면 502 → 폼이 텍스트 입력으로 자동 폴백).
+
 ## 아직 남은 것 (CLAUDE.md §13 TBD)
 
-- 실제 VCS SSH 접속 정보(`.env`의 `VCS_SSH_*`) — 없으면 시험 실행 시 `error` 상태로 끝남(SSH 연결 자체가 안 되므로 정상 동작)
-- SIPp 실행 위치(로컬/원격) 확정 및 원격 실행(`sipp_exec_mode=ssh`) 구현
 - 실패/타임아웃 케이스 로그 샘플 — 현재는 성공 케이스만 있어 Pass 판정만 구현됨
 - 대시보드 헬스체크 배지(`VCS SSH 연결`, `SIPp 실행 가능`)를 실제로 채우는 백엔드 로직
+- vctp 설정 파일의 `SAMPLEFILE1` 라인 문법(공백 등) — sed 치환 로직이 vctp.log의 파싱된 출력에서 역추정한 것이라, 실 서버 최초 실행 시 검증 필요
+- vctp/vctp 재기동 명령 실행 권한(sudo 필요 여부 등) 검증

@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     # --- Storage ---
     storage_dir: str = Field(default_factory=lambda: str(_DEFAULT_STORAGE_DIR))
 
-    # --- VCS SSH 접속 정보 (TBD: CLAUDE.md §13 - 인증 방식/네트워크 환경 미확정) ---
+    # --- VCS SSH 접속 정보 (호스트/계정은 배포 환경마다 다르므로 반드시 .env로만 채운다) ---
     vcs_ssh_host: str | None = None
     vcs_ssh_port: int = 22
     vcs_ssh_username: str | None = None
@@ -58,13 +58,28 @@ class Settings(BaseSettings):
     vcs_ssh_private_key_path: str | None = None
     vcs_ssh_known_hosts: str | None = None
 
-    # --- SIPp 실행 대상 (TBD: CLAUDE.md §13 - 로컬 실행 vs 원격 SSH 실행 미확정) ---
+    # --- VoLTE(vctp) 실제 경로/명령 (CLAUDE.md §13 확정: 2026-07-29) ---
+    # vctp가 재생(replay)할 pcap 샘플 파일들이 있는 디렉토리. Test Case 등록 폼의
+    # select box가 이 디렉토리 목록을 보여준다 (app/services/volte/sample_files.py).
+    vctp_sample_dir: str = "/home/vcs/vctp/sample"
+    # SAMPLEFILE1 항목을 갖고 있는 vctp 사용자 설정 파일의 경로.
+    vctp_config_path: str = "/home/vcs/vctp/config/vctp_user.config"
+    vctp_stop_cmd: str = "stopmc -b vctp"
+    vctp_start_cmd: str = "startmc -b vctp"
+    vcs_vcsm_log_path: str = "/home/vcs/vcsm/logs/vcsm.log"
+    vcs_vcmm_log_path: str = "/home/vcs/vcmm/logs/vcmm0.log"
+    vcs_vcmc_log_path: str = "/home/vcs/vcmc/logs/vcmc.log"
+
+    # --- SIPp 실행 대상 (실행 위치는 TestCase.protocol_params.sipp_exec_mode 또는
+    # 아래 기본값으로 결정. 별도 SIPp 전용 호스트를 쓰는 배포는 SIPP_EXEC_MODE=ssh로 설정) ---
     sipp_exec_mode: str = "local"  # "local" | "ssh"
     sipp_ssh_host: str | None = None
     sipp_ssh_port: int = 22
     sipp_ssh_username: str | None = None
     sipp_ssh_password: str | None = None
     sipp_ssh_private_key_path: str | None = None
+    # SIPp 원격 호스트에 시나리오/로그를 두는 작업 디렉토리 (실행마다 test_case_id/run_id 하위에 생성).
+    sipp_remote_work_dir: str = "/tmp/vcs_test_sipp"
 
     @property
     def cors_origin_list(self) -> list[str]:
