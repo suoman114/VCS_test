@@ -7,7 +7,11 @@
 호출해서, pty 없는(비대화형) SSH exec에서 `stty: standard input:
 Inappropriate ioctl for device`로 실패해 원래 명령 결과를 가려버리는 문제가
 있었다(2026-07-29 실 서버에서 확인). `run_command`가 기본적으로 pty를
-요청(`term_type="dumb"`)하도록 고쳐서 해결했다 (`app/services/ssh_connector/client.py`).
+요청(`term_type="xterm"`)하도록 고쳐서 해결했다 (`app/services/ssh_connector/client.py`).
+
+`term_type`을 처음엔 `"dumb"`으로 했었는데, `.cshrc`의 "`$term`이 dumb이면
+exit" 관용구에 걸려 명령이 아예 실행되지 않는(exit_status=0, stdout/stderr
+둘 다 빈 값) 문제가 실 서버에서 추가로 확인되어 `"xterm"`으로 변경했다.
 """
 from __future__ import annotations
 
@@ -60,7 +64,7 @@ async def test_run_command_requests_pty_by_default(monkeypatch: pytest.MonkeyPat
 
     assert result.exit_status == 0
     assert len(fake_conn.run_calls) == 1
-    assert fake_conn.run_calls[0]["term_type"] == "dumb"
+    assert fake_conn.run_calls[0]["term_type"] == "xterm"
 
 
 @pytest.mark.asyncio

@@ -144,9 +144,16 @@ class SSHConnector:
         input: Inappropriate ioctl for device`로 실패해 원래 명령의 정상 출력을
         가려버린다. pty를 요청하면 `stty`가 정상적인 pty를 보고 조용히 성공하므로
         이 문제가 사라진다(원격 `.cshrc`를 건드릴 필요 없음).
+
+        `term_type`은 반드시 실제 터미널처럼 보이는 값("xterm")을 써야 한다.
+        처음엔 `"dumb"`으로 pty를 요청했었는데, 그러면 `.cshrc`에 흔한 관용구인
+        "`$term`이 dumb이면(비대화형 자동화로 판단해) 그냥 `exit`" 분기에 걸려
+        `.cshrc`가 우리 명령을 실행하기도 전에 셸 자체를 조용히 종료시켜버렸다
+        (exit_status=0인데 stdout/stderr 둘 다 완전히 빈 결과 — 실 서버에서
+        확인됨). `xterm`으로 바꾸면 pty는 여전히 잡히면서 이 분기를 피한다.
         """
         conn = await self.connect()
-        term_type = "dumb" if request_pty else None
+        term_type = "xterm" if request_pty else None
         result = await conn.run(command, check=check, timeout=timeout, term_type=term_type)
         return CommandResult(
             command=command,
