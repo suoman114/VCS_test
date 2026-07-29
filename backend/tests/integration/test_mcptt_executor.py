@@ -160,12 +160,19 @@ class _FakeSippSshConnector:
     def __init__(self, target: SSHTarget) -> None:
         self.target = target
         self.commands: list[str] = []
+        self.su_commands: list[tuple[str, str, str]] = []
         self.uploaded: list[tuple[str, str]] = []
         self.downloaded: list[tuple[str, str]] = []
         self.closed = False
 
     async def run_command(self, command: str, timeout: float | None = None) -> CommandResult:
         self.commands.append(command)
+        return CommandResult(command=command, exit_status=0, stdout="sipp ok", stderr="")
+
+    async def run_command_as_su(
+        self, command: str, su_password: str, *, su_user: str = "root", timeout: float | None = None
+    ) -> CommandResult:
+        self.su_commands.append((command, su_password, su_user))
         return CommandResult(command=command, exit_status=0, stdout="sipp ok", stderr="")
 
     async def upload_file(self, local_path: str | Path, remote_path: str) -> None:
@@ -220,9 +227,10 @@ async def test_mcptt_executor_remote_sipp_exec_mode_uploads_and_runs_remotely(
     assert test_case.id in remote_scenario
     assert run_id in remote_scenario
 
-    # 3. sipp 커맨드가 원격 경로 기준으로 구성되어 실행됐는지
+    # 3. sipp 커맨드가 원격 경로 기준으로 구성되어 실행됐는지 (기본 sipp_bin은
+    # Settings.sipp_bin_path, 2026-07-29 확인: /root/SIPP/sipp)
     sipp_cmd = fake_sipp_connector.commands[-1]
-    assert sipp_cmd.startswith("sipp ")
+    assert sipp_cmd.startswith("/root/SIPP/sipp ")
     assert remote_scenario in sipp_cmd or shlex.quote(remote_scenario) in sipp_cmd
 
     # 4. SIPp 자체 로그 3종이 로컬로 다운로드됐는지 (원본 로그 보존)
@@ -231,3 +239,39 @@ async def test_mcptt_executor_remote_sipp_exec_mode_uploads_and_runs_remotely(
     assert downloaded_names == {"sipp_messages.log", "sipp_screen.log", "sipp_stats.csv"}
 
     assert fake_sipp_connector.closed is True
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_remote_sipp_uses_su_root_when_password_configured(
+    isolated_db, tmp_path: Path
+) -> None:
+    """`sipp_ssh_root_password`가 설정돼 있으면(root 직접 SSH 로그인이 막힌
+    환경, 2026-07-29) 원격 작업 디렉토리 생성과 sipp 실행을
+    `run_command_as_su()`로 root 권한으로 돌려야 한다 — 일반 `run_command()`가
+    아니라."""
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+    test_case.protocol_params = {**test_case.protocol_params, "sipp_exec_mode": "ssh"}
+
+    fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        settings=Settings(storage_dir=str(tmp_path / "storage"), sipp_ssh_root_password="r00t-pw"),
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        sipp_ssh_target_factory=lambda: SSHTarget(host="fake-sipp"),
+        sipp_ssh_connector_factory=lambda target: fake_sipp_connector,
+    )
+
+    result_run = await executor.run(test_case)
+
+    assert result_run.status == TestRunStatus.DONE
+
+    # mkdir+chmod, sipp 실행, 실행 후 chmod -R a+r 까지 총 3번이 su로 실행돼야 한다.
+    assert len(fake_sipp_connector.su_commands) == 3
+    assert all(pw == "r00t-pw" and su_user == "root" for _cmd, pw, su_user in fake_sipp_connector.su_commands)
+    assert fake_sipp_connector.su_commands[0][0].startswith("mkdir -p")
+    assert fake_sipp_connector.su_commands[1][0].startswith("/root/SIPP/sipp ")
+    assert fake_sipp_connector.su_commands[2][0].startswith("chmod -R a+r")
+
+    # 일반 run_command()로는 아무것도 안 돌아야 한다(전부 su 경유).
+    assert fake_sipp_connector.commands == []

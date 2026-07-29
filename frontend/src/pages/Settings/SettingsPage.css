@@ -66,6 +66,27 @@
   gap: 12px;
 }
 
+.settings-subsection {
+  border-top: 1px dashed #d1d5db;
+  padding-top: 12px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-subsection-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.settings-subsection .form-hint code {
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
 .form-row label {
   flex: 1;
 }

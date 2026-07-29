@@ -220,6 +220,119 @@ class SSHConnector:
             stderr=str(result.stderr) if result.stderr is not None else "",
         )
 
+    async def run_command_as_su(
+        self,
+        command: str,
+        su_password: str,
+        *,
+        su_user: str = "root",
+        timeout: float | None = None,
+    ) -> CommandResult:
+        """로그인 계정(예: sysadm)으로 접속한 뒤 `su - {su_user}`로 전환해서
+        명령을 실행한다.
+
+        일부 배포 환경은 root 직접 SSH 로그인을 막아놔서(`PermitRootLogin no`)
+        일반 계정으로 먼저 접속한 뒤 `su`로 전환해야 한다(2026-07-29, McPTT
+        SIPp 전용 호스트 요구사항). `su`는 보안상 비밀번호를 stdin 파이프로
+        받지 않고 항상 제어 터미널(tty)에서만 읽으므로, `run_command()`처럼
+        `conn.run()`으로 한 번에 실행할 수 없다 — 대신 PTY 위에 인터랙티브
+        쉘을 띄우고 `su`의 비밀번호 프롬프트에 직접 응답하는 방식으로
+        구현한다. PTY를 쓰면 stdin에 쓴 데이터가 곧 "터미널에 입력한 것"과
+        동일하게 취급되므로 이 방식이 통한다.
+
+        먼저 `stty -echo`로 로컬 에코를 꺼서, 우리가 typing한 명령 자체가
+        출력 스트림에 다시 섞여 들어와 마커 파싱을 헷갈리게 만드는 것을
+        막는다. `su` 성공 여부는 비밀번호 입력 직후 `whoami`를 실행해
+        `su_user`가 나오는지로 확인한다(실패하면 여전히 원래 계정인 채로
+        프롬프트만 다시 나타나는 경우가 많아, exit code만으로는 판단하기
+        어렵다).
+
+        **주의**: 이 로직은 실제 su 프롬프트를 가진 원격 서버로 검증하지
+        못했다(개발 환경에서는 재현 불가) — 단위 테스트는 가짜 프로세스로
+        상태 머신 자체만 검증한다. 실 서버 최초 사용 시 프롬프트 문구가
+        예상과 다르면(예: "Password:"가 아닌 다른 언어) 실패할 수 있다.
+        """
+        conn = await self.connect()
+        process = await conn.create_process(term_type="xterm", term_size=(80, 24), errors="replace")
+        op_timeout = timeout if timeout is not None else self._connect_timeout
+        assert process.stdin is not None and process.stdout is not None
+
+        buf = ""
+
+        async def read_until(marker: str, read_timeout: float) -> str:
+            nonlocal buf
+            deadline = asyncio.get_event_loop().time() + read_timeout
+            while marker not in buf:
+                remaining = deadline - asyncio.get_event_loop().time()
+                if remaining <= 0:
+                    raise TimeoutError(
+                        f"su_user={su_user!r} 전환 중 {marker!r} 대기 타임아웃"
+                        f" (누적 출력 마지막 500자: {buf[-500:]!r})"
+                    )
+                try:
+                    chunk = await asyncio.wait_for(process.stdout.read(4096), timeout=remaining)
+                except TimeoutError as exc:
+                    raise TimeoutError(
+                        f"su_user={su_user!r} 전환 중 {marker!r} 대기 타임아웃"
+                        f" (누적 출력 마지막 500자: {buf[-500:]!r})"
+                    ) from exc
+                if not chunk:
+                    raise RuntimeError(
+                        f"su_user={su_user!r} 전환 중 원격 쉘 연결이 끊김"
+                        f" (누적 출력 마지막 500자: {buf[-500:]!r})"
+                    )
+                buf += chunk
+            return buf
+
+        try:
+            process.stdin.write("stty -echo\n")
+            await process.stdin.drain()
+
+            process.stdin.write(f"su - {su_user}\n")
+            await process.stdin.drain()
+            await read_until("assword", op_timeout)  # "Password:"/"암호:" 등 대소문자·언어 무관 매칭
+            buf = ""
+
+            process.stdin.write(f"{su_password}\n")
+            await process.stdin.drain()
+            process.stdin.write("whoami; echo __SU_CHECK__:$?\n")
+            await process.stdin.drain()
+            su_check_output = await read_until("__SU_CHECK__:", op_timeout)
+            if "__SU_CHECK__:0" not in su_check_output or su_user not in su_check_output:
+                raise RuntimeError(
+                    f"su - {su_user} 인증 실패로 보임"
+                    f" (출력 마지막 300자: {su_check_output[-300:]!r})"
+                )
+            buf = ""
+
+            process.stdin.write(f"echo __CMD_START__; {command}; echo __CMD_END__:$?\n")
+            await process.stdin.drain()
+            cmd_output = await read_until("__CMD_END__:", op_timeout)
+
+            start_idx = cmd_output.rfind("__CMD_START__")
+            body = cmd_output[start_idx + len("__CMD_START__") :] if start_idx >= 0 else cmd_output
+            end_idx = body.rfind("__CMD_END__:")
+            stdout_text = body[:end_idx].strip("\r\n") if end_idx >= 0 else body.strip("\r\n")
+            trailer = body[end_idx + len("__CMD_END__:") :] if end_idx >= 0 else ""
+            exit_token = trailer.strip().split()[0] if trailer.strip() else ""
+            try:
+                exit_status = int(exit_token)
+            except ValueError:
+                exit_status = None
+
+            return CommandResult(command=command, exit_status=exit_status, stdout=stdout_text, stderr="")
+        finally:
+            process.stdin.write("exit\n")  # su 쉘 종료
+            process.stdin.write("exit\n")  # 로그인 쉘 종료
+            process.terminate()
+            try:
+                await asyncio.wait_for(process.wait_closed(), timeout=self._close_timeout)
+            except TimeoutError:
+                logger.warning(
+                    "run_command_as_su: process did not confirm close within %.1fs — abandoning wait",
+                    self._close_timeout,
+                )
+
     async def upload_file(self, local_path: str | Path, remote_path: str) -> None:
         """SCP/SFTP로 로컬 파일을 원격 경로에 업로드한다 (VoLTE 설정 파일 적용용)."""
         conn = await self.connect()

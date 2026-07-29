@@ -95,6 +95,16 @@ class Settings(BaseSettings):
     sipp_ssh_username: str | None = None
     sipp_ssh_password: str | None = None
     sipp_ssh_private_key_path: str | None = None
+    # SIPp 원격 호스트에 root 직접 SSH 로그인이 막혀있어(PermitRootLogin no)
+    # sipp_ssh_username(예: sysadm)으로 먼저 접속한 뒤 `su - root`로 전환해야
+    # 하는 환경 대응(2026-07-29 확인). 이 값이 채워져 있으면(.env 또는
+    # 대시보드) SIPp 실행 관련 원격 명령을 `SSHConnector.run_command_as_su()`로
+    # 돌린다 — 비어있으면 기존처럼 sipp_ssh_username 권한으로 직접 실행한다.
+    sipp_ssh_root_password: str | None = None
+    # SIPp 실행 파일의 원격 경로(2026-07-29 확인: /root/SIPP/sipp). 비어있으면
+    # PATH에 있는 `sipp`를 그대로 쓴다. Test Case별 protocol_params.sipp_bin이
+    # 있으면 그게 우선한다.
+    sipp_bin_path: str = "/root/SIPP/sipp"
     # SIPp 원격 호스트에 시나리오/로그를 두는 작업 디렉토리 (실행마다 test_case_id/run_id 하위에 생성).
     sipp_remote_work_dir: str = "/tmp/vcs_test_sipp"
 

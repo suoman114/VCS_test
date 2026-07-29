@@ -158,3 +158,24 @@ async def test_sipp_test_connection_local_mode_checks_binary(
     body = resp.json()
     assert body["ok"] is False
     assert "sipp" in body["message"]
+
+
+@pytest.mark.asyncio
+async def test_sipp_root_password_is_masked_and_patchable(
+    client: httpx.AsyncClient, isolated_db, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """root 직접 SSH 로그인이 막힌 환경 대응(2026-07-29)으로 추가된
+    su root 비밀번호도 다른 비밀번호 필드와 동일한 마스킹/부분갱신 계약을
+    따라야 한다."""
+    env_settings = _settings_no_overrides(vcs_ssh_host="10.0.0.1")
+    monkeypatch.setattr(settings_api_module, "get_settings", lambda: env_settings)
+
+    initial = await client.get("/api/settings/vcs")
+    assert initial.json()["sipp_ssh_root_password_set"] is False
+
+    resp = await client.patch("/api/settings/vcs", json={"sipp_ssh_root_password": "r00t-pw"})
+    assert resp.json()["sipp_ssh_root_password_set"] is True
+
+    # 다른 필드만 바꿔도(비밀번호 필드 생략) 기존 값이 유지되는지
+    resp2 = await client.patch("/api/settings/vcs", json={"sipp_ssh_username": "sysadm"})
+    assert resp2.json()["sipp_ssh_root_password_set"] is True

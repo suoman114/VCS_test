@@ -8,6 +8,7 @@ API 스키마로 변환만 한다.
 """
 from __future__ import annotations
 
+import asyncio
 import shutil
 
 from fastapi import APIRouter, Depends
@@ -16,11 +17,13 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.schemas.vcs_settings import ConnectionTestResult, VcsSettingsRead, VcsSettingsUpdate
+from app.services.ssh_connector import SSHConnector
 from app.services.ssh_health import check_ssh_reachable
 from app.services.vcs_settings_store import (
     apply_update,
     effective_value,
     get_or_create,
+    resolve_sipp_root_password,
     resolve_sipp_target,
     resolve_vcs_target,
 )
@@ -42,6 +45,7 @@ def _to_read(row, settings) -> VcsSettingsRead:
         sipp_ssh_username=effective_value(row, "sipp_ssh_username", settings),
         sipp_ssh_password_set=bool(effective_value(row, "sipp_ssh_password", settings)),
         sipp_ssh_private_key_path=effective_value(row, "sipp_ssh_private_key_path", settings),
+        sipp_ssh_root_password_set=bool(effective_value(row, "sipp_ssh_root_password", settings)),
         updated_at=row.updated_at,
     )
 
@@ -85,5 +89,26 @@ async def test_sipp_connection(db: Session = Depends(get_db)) -> ConnectionTestR
         target = resolve_sipp_target()
     except ValueError as exc:
         return ConnectionTestResult(ok=False, message=str(exc))
-    ok, message = await check_ssh_reachable(target)
-    return ConnectionTestResult(ok=ok, message=message)
+
+    root_password = resolve_sipp_root_password(settings)
+    if not root_password:
+        ok, message = await check_ssh_reachable(target)
+        return ConnectionTestResult(ok=ok, message=message)
+
+    # root 비밀번호가 설정돼 있으면 SSH 접속뿐 아니라 su - root 전환까지
+    # 실제로 확인한다 — 이 체인(sysadm 접속 -> su root)이 실제 배포 환경의
+    # 핵심 요구사항이라, 단순 접속 성공만으로는 충분한 검증이 아니다.
+    connector = SSHConnector(target)
+    try:
+        result = await asyncio.wait_for(connector.run_command_as_su("whoami", root_password), timeout=10)
+        if result.ok and "root" in result.stdout:
+            return ConnectionTestResult(
+                ok=True, message=f"{target.host}:{target.port} 접속 성공, su - root 전환 확인됨"
+            )
+        return ConnectionTestResult(
+            ok=False, message=f"su - root 전환 실패: {(result.stdout or result.stderr).strip()[:200]}"
+        )
+    except Exception as exc:  # noqa: BLE001 - 인증 실패/타임아웃 등 사유가 다양해 메시지 그대로 전달
+        return ConnectionTestResult(ok=False, message=f"{target.host}:{target.port} — {exc}")
+    finally:
+        await connector.close()

@@ -6,6 +6,12 @@
 `protocol_params["sipp_exec_mode"]`가 한 단계 더 우선한다(호출부에서 처리,
 CLAUDE.md §7 시험 유형별 오버라이드와 동일한 패턴).
 
+`resolve_sipp_root_password()`: SIPp 전용 호스트가 root 직접 SSH 로그인을
+막아놔서(`PermitRootLogin no`) `sipp_ssh_username`(예: sysadm)으로 먼저
+접속한 뒤 `su - root`로 전환해야 하는 환경 대응(2026-07-29). 값이 있으면
+호출부가 `SSHConnector.run_command_as_su()`를 쓰고, 없으면 기존처럼
+`sipp_ssh_username` 권한으로 직접 실행한다.
+
 `SSHConnector`/`executor` 등 SSH 연결이 필요한 곳은 전부 이 모듈의
 `resolve_vcs_target()`/`resolve_sipp_target()`을 통해서만 `SSHTarget`을
 얻는다 — `SSHTarget.from_vcs_settings()`를 직접 부르면 DB 오버라이드를
@@ -40,7 +46,7 @@ SIPP_FIELDS = (
     "sipp_ssh_username",
     "sipp_ssh_private_key_path",
 )
-PASSWORD_FIELDS = ("vcs_ssh_password", "sipp_ssh_password")
+PASSWORD_FIELDS = ("vcs_ssh_password", "sipp_ssh_password", "sipp_ssh_root_password")
 ALL_FIELDS = VCS_FIELDS + SIPP_FIELDS + PASSWORD_FIELDS
 
 
@@ -103,6 +109,19 @@ def resolve_sipp_exec_mode(settings: Settings | None = None) -> str:
     try:
         row = get_or_create(db)
         return str(effective_value(row, "sipp_exec_mode", s))
+    finally:
+        db.close()
+
+
+def resolve_sipp_root_password(settings: Settings | None = None) -> str | None:
+    """`su - root` 전환에 쓸 root 비밀번호. 비어있으면(None) 호출부가 su 없이
+    `sipp_ssh_username` 권한으로 직접 실행한다(기존 동작, 하위 호환)."""
+    s = settings or get_settings()
+    db = SessionLocal()
+    try:
+        row = get_or_create(db)
+        value = effective_value(row, "sipp_ssh_root_password", s)
+        return str(value) if value else None
     finally:
         db.close()
 

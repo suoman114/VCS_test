@@ -30,6 +30,8 @@ export function SettingsPage() {
   const [sippPassword, setSippPassword] = useState("");
   const [sippClearPassword, setSippClearPassword] = useState(false);
   const [sippPrivateKeyPath, setSippPrivateKeyPath] = useState("");
+  const [sippRootPassword, setSippRootPassword] = useState("");
+  const [sippClearRootPassword, setSippClearRootPassword] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -54,6 +56,8 @@ export function SettingsPage() {
     setVcsClearPassword(false);
     setSippPassword("");
     setSippClearPassword(false);
+    setSippRootPassword("");
+    setSippClearRootPassword(false);
   }
 
   useEffect(() => {
@@ -101,6 +105,11 @@ export function SettingsPage() {
         body.sipp_ssh_password = "";
       } else if (sippPassword) {
         body.sipp_ssh_password = sippPassword;
+      }
+      if (sippClearRootPassword) {
+        body.sipp_ssh_root_password = "";
+      } else if (sippRootPassword) {
+        body.sipp_ssh_root_password = sippRootPassword;
       }
 
       const updated = await settingsApi.updateVcs(body);
@@ -306,6 +315,36 @@ export function SettingsPage() {
                 SSH 개인키 경로(선택)
                 <input value={sippPrivateKeyPath} onChange={(e) => setSippPrivateKeyPath(e.target.value)} />
               </label>
+
+              <div className="settings-subsection">
+                <div className="settings-subsection-title">
+                  root 직접 SSH 로그인이 막혀있는 서버(sysadm 등으로 접속 후 su로 전환)
+                </div>
+                <label>
+                  su root 비밀번호(선택)
+                  <input
+                    type="password"
+                    value={sippRootPassword}
+                    onChange={(e) => setSippRootPassword(e.target.value)}
+                    disabled={sippClearRootPassword}
+                    placeholder={
+                      settings.sipp_ssh_root_password_set ? "변경하려면 입력 (설정됨)" : "비워두면 su 없이 직접 실행"
+                    }
+                  />
+                  <span className="form-checkbox-hint">
+                    <input
+                      type="checkbox"
+                      checked={sippClearRootPassword}
+                      onChange={(e) => setSippClearRootPassword(e.target.checked)}
+                    />
+                    삭제(.env 값으로 되돌리기)
+                  </span>
+                </label>
+                <div className="form-hint">
+                  설정하면 위 사용자명 계정으로 접속한 뒤 <code>su - root</code>로 전환해서 SIPp 실행 관련
+                  명령을 root 권한으로 실행합니다(예: <code>/root/SIPP/sipp</code> 실행 파일 접근용).
+                </div>
+              </div>
             </>
           )}
         </section>

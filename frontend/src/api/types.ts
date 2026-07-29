@@ -236,6 +236,10 @@ export interface VcsSettings {
   sipp_ssh_username: string | null;
   sipp_ssh_password_set: boolean;
   sipp_ssh_private_key_path: string | null;
+  // root 직접 SSH 로그인이 막힌 환경(2026-07-29)에서 sipp_ssh_username 접속 후
+  // `su - root`로 전환할 때 쓰는 비밀번호. 설정돼 있으면 SIPp 실행 관련 원격
+  // 명령을 root 권한으로 돌린다.
+  sipp_ssh_root_password_set: boolean;
 
   updated_at: string | null;
 }
@@ -256,6 +260,7 @@ export interface VcsSettingsUpdate {
   sipp_ssh_username?: string;
   sipp_ssh_password?: string;
   sipp_ssh_private_key_path?: string;
+  sipp_ssh_root_password?: string;
 }
 
 export interface ConnectionTestResult {

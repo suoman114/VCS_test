@@ -46,7 +46,17 @@ SIPp 실행 위치(`sipp_exec_mode`, `Settings.sipp_exec_mode` 또는
                                             즉시 종료된다(`wait_for_completion`) — 시나리오마다
                                             실제 호 길이가 다르므로 정확한 값을 몰라도, 가장
                                             오래 걸리는 시나리오보다 넉넉하게만 잡으면 된다.
-    sipp_bin (str, 기본 "sipp")          : SIPp 실행 파일 경로/이름
+    sipp_bin (str, 선택)                 : SIPp 실행 파일 경로/이름. 기본값은
+                                            Settings.sipp_bin_path(2026-07-29 확인: `/root/SIPP/sipp`).
+
+SIPp 전용 호스트가 root 직접 SSH 로그인을 막아놔서(`PermitRootLogin no`)
+`sipp_ssh_username`(예: sysadm)으로 접속한 뒤 `su - root`로 전환해야 하는
+환경 대응(2026-07-29): `Settings.sipp_ssh_root_password`(또는 대시보드
+"설정"의 SIPp root 비밀번호)가 채워져 있으면, 원격 작업 디렉토리 생성과
+SIPp 실행 자체를 `SSHConnector.run_command_as_su()`로 root 권한으로
+돌린다. 시나리오 업로드/로그 다운로드(SFTP)는 sysadm 권한 그대로
+수행하므로, su 단계에서 작업 디렉토리를 `chmod 777`로 열어 sysadm이
+파일을 쓰고 읽을 수 있게 한다.
 """
 from __future__ import annotations
 
@@ -66,8 +76,13 @@ from app.models.test_run import TestRun, TestRunStatus
 from app.services.execution_common import normalize_log_paths, persist_results, wait_for_completion
 from app.services.executor_base import TestCaseLike, TestExecutor, executor_registry
 from app.services.log_collector import CollectorSession, CollectorSource, SshTailSource
-from app.services.ssh_connector import SSHConnector, SSHTarget
-from app.services.vcs_settings_store import resolve_sipp_exec_mode, resolve_sipp_target, resolve_vcs_target
+from app.services.ssh_connector import CommandResult, SSHConnector, SSHTarget
+from app.services.vcs_settings_store import (
+    resolve_sipp_exec_mode,
+    resolve_sipp_root_password,
+    resolve_sipp_target,
+    resolve_vcs_target,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -247,9 +262,9 @@ class McpttBasicCallExecutor(TestExecutor):
             scenario_local_path = self._resolve_repo_path(test_case.config_ref)
             timeout_sec = float(params.get("timeout_sec", 120) or 120)
             exec_mode = params.get("sipp_exec_mode", resolve_sipp_exec_mode(self._settings))
-            sipp_bin = params.get("sipp_bin", "sipp")
 
             if exec_mode == "ssh":
+                sipp_bin = params.get("sipp_bin", self._settings.sipp_bin_path)
                 remote_base = params.get("sipp_remote_work_dir", self._settings.sipp_remote_work_dir)
                 remote_run_dir = PurePosixPath(remote_base) / test_case.id / run_id
                 remote_scenario_path = remote_run_dir / scenario_local_path.name
@@ -263,6 +278,7 @@ class McpttBasicCallExecutor(TestExecutor):
                     timeout_sec=timeout_sec,
                 )
             elif exec_mode == "local":
+                sipp_bin = params.get("sipp_bin", "sipp")
                 argv = build_sipp_args(scenario_local_path, params, session.run_dir, sipp_bin=sipp_bin)
                 sipp_result = await self._sipp_runner(argv, self._settings.repo_root_path, timeout_sec)
             else:
@@ -322,26 +338,45 @@ class McpttBasicCallExecutor(TestExecutor):
     ) -> SippRunResult:
         """SIPp 전용 원격 호스트에서 시나리오를 실행한다.
 
-        1. 원격 작업 디렉토리 생성
-        2. 시나리오 XML 업로드(로컬 저장소 -> 원격)
+        1. 원격 작업 디렉토리 생성(권한 오픈 포함, root 전환 시)
+        2. 시나리오 XML 업로드(로컬 저장소 -> 원격, 항상 로그인 계정 권한)
         3. `argv`(이미 원격 경로 기준으로 구성됨)를 SSH 커맨드로 실행
         4. SIPp 자체 로그(message/screen/stat)를 로컬로 다운로드 (원본 로그 보존 원칙,
            CLAUDE.md §3.3). 실행이 실패해 파일이 아예 안 만들어졌을 수도 있어
            다운로드 실패는 개별적으로 warning만 남기고 계속 진행한다.
+
+        root 직접 SSH 로그인이 막힌 환경(2026-07-29, `resolve_sipp_root_password`)
+        에서는 디렉토리 생성/sipp 실행을 `run_command_as_su()`로 root 권한으로
+        돌린다. SFTP 업로드/다운로드는 root 전환이 안 되는 별도 서브시스템이라
+        항상 로그인 계정(sysadm) 권한 그대로 수행하므로, root로 만든 작업
+        디렉토리를 `chmod 777`로 열어 sysadm이 파일을 넣고 뺄 수 있게 하고,
+        sipp 실행이 끝난 뒤에도 출력 로그를 `chmod -R a+r`로 열어야 다운로드가
+        권한 오류 없이 된다.
         """
         target = self._sipp_ssh_target_factory()
         connector = self._sipp_ssh_connector_factory(target)
+        root_password = resolve_sipp_root_password(self._settings)
+
+        async def _exec(cmd: str, *, timeout: float | None = None) -> CommandResult:
+            if root_password:
+                return await connector.run_command_as_su(cmd, root_password, timeout=timeout)
+            return await connector.run_command(cmd, timeout=timeout)
+
         try:
-            await connector.run_command(f"mkdir -p {shlex.quote(str(remote_run_dir))}")
+            quoted_dir = shlex.quote(str(remote_run_dir))
+            await _exec(f"mkdir -p {quoted_dir} && chmod 777 {quoted_dir}")
             await connector.upload_file(scenario_local_path, str(remote_scenario_path))
 
             command = " ".join(shlex.quote(a) for a in argv)
             try:
-                result = await connector.run_command(command, timeout=timeout_sec)
+                result = await _exec(command, timeout=timeout_sec)
             except TimeoutError:
                 return SippRunResult(
                     argv=argv, exit_status=None, stdout="", stderr="sipp process timed out (remote)"
                 )
+
+            if root_password:
+                await _exec(f"chmod -R a+r {quoted_dir}")
 
             local_run_dir.mkdir(parents=True, exist_ok=True)
             for filename in ("sipp_messages.log", "sipp_screen.log", "sipp_stats.csv"):

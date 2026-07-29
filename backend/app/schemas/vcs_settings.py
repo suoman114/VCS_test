@@ -37,6 +37,10 @@ class VcsSettingsRead(BaseModel):
     sipp_ssh_username: str | None
     sipp_ssh_password_set: bool
     sipp_ssh_private_key_path: str | None
+    # root 직접 SSH 로그인이 막힌 환경(2026-07-29)에서 sipp_ssh_username으로
+    # 접속 후 `su - root`로 전환할 때 쓰는 root 비밀번호. 비어있으면(false)
+    # su 없이 sipp_ssh_username 권한으로 직접 실행한다.
+    sipp_ssh_root_password_set: bool
 
     updated_at: datetime | None
 
@@ -57,6 +61,7 @@ class VcsSettingsUpdate(BaseModel):
     sipp_ssh_username: str | None = None
     sipp_ssh_password: str | None = None
     sipp_ssh_private_key_path: str | None = None
+    sipp_ssh_root_password: str | None = None
 
 
 class ConnectionTestResult(BaseModel):

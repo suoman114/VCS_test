@@ -46,6 +46,9 @@ class VcsSettings(Base):
     sipp_ssh_username: Mapped[str | None] = mapped_column(String(255), nullable=True)
     sipp_ssh_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
     sipp_ssh_private_key_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    # sysadm 등 일반 계정으로 SSH 접속 후 `su - root`로 전환할 때 쓰는 root
+    # 비밀번호 (root 직접 SSH 로그인이 막혀있는 환경 대응, 2026-07-29).
+    sipp_ssh_root_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False
