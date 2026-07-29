@@ -41,7 +41,11 @@ SIPp 실행 위치(`sipp_exec_mode`, `Settings.sipp_exec_mode` 또는
     sipp_exec_mode ("local"|"ssh", 선택) : 기본값은 Settings.sipp_exec_mode
     sipp_remote_work_dir (str, 선택)     : ssh 모드일 때 원격 작업 디렉토리
                                             (기본값 Settings.sipp_remote_work_dir)
-    timeout_sec (float, 기본 30)         : 완료 판정 타임아웃
+    timeout_sec (float, 기본 120)        : 완료 판정 타임아웃(상한). `recording_stop_res`
+                                            성공 이벤트가 확인되면 이 값을 다 기다리지 않고
+                                            즉시 종료된다(`wait_for_completion`) — 시나리오마다
+                                            실제 호 길이가 다르므로 정확한 값을 몰라도, 가장
+                                            오래 걸리는 시나리오보다 넉넉하게만 잡으면 된다.
     sipp_bin (str, 기본 "sipp")          : SIPp 실행 파일 경로/이름
 """
 from __future__ import annotations
@@ -240,7 +244,7 @@ class McpttBasicCallExecutor(TestExecutor):
             await session.start()
 
             scenario_local_path = self._resolve_repo_path(test_case.config_ref)
-            timeout_sec = float(params.get("timeout_sec", 30) or 30)
+            timeout_sec = float(params.get("timeout_sec", 120) or 120)
             exec_mode = params.get("sipp_exec_mode", self._settings.sipp_exec_mode)
             sipp_bin = params.get("sipp_bin", "sipp")
 

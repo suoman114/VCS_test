@@ -32,7 +32,12 @@
     vcs_log_paths (list[str] | dict) : 위 세 기본 경로 외에 추가로 tail할 로그가 있으면 병합한다.
         (선택)
     wait_after_restart_sec (float)   : 재기동 후 로그 수집 시작 전 대기(기본 0)
-    timeout_sec (float)              : 완료 판정 타임아웃(기본 30초)
+    timeout_sec (float)              : 완료 판정 타임아웃(기본 120초). `recording_stop_res`
+                                       성공 이벤트가 확인되면 이 값을 다 기다리지 않고 즉시
+                                       종료된다(`wait_for_completion`) — pcap마다 실제 통화
+                                       길이가 다르므로 정확한 값을 몰라도, 가장 긴 pcap보다
+                                       넉넉하게만 잡으면 된다. 너무 짧게 잡으면(예: 기존 기본값
+                                       30초) 호가 끝나기 전에 타임아웃으로 실패 처리될 수 있다.
 
 > `sed`로 `SAMPLEFILE1`을 치환하는 정확한 라인 문법은 `vctp.log`에 찍히는
 > 파싱된 출력(`Config [SAMPLEFILE1 = imsVideo30sec.pcap]`)에서 역추정한
@@ -147,7 +152,7 @@ class VolteBasicCallExecutor(TestExecutor):
             await session.start()
 
             # 4. 완료(Pass) 또는 타임아웃까지 대기
-            timeout_sec = float(params.get("timeout_sec", 30) or 30)
+            timeout_sec = float(params.get("timeout_sec", 120) or 120)
             pass_criteria = getattr(test_case, "pass_criteria", {}) or {}
             completion = await wait_for_completion(
                 run_dir=session.run_dir,
