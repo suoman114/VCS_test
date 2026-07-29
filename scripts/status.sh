@@ -5,15 +5,19 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 BACKEND_PID_FILE="$RUN_DIR/backend.pid"
 FRONTEND_PID_FILE="$RUN_DIR/frontend.pid"
-BACKEND_HOST="${BACKEND_HOST:-127.0.0.1}"
+BACKEND_HOST="${BACKEND_HOST:-0.0.0.0}"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
-FRONTEND_HOST="${FRONTEND_HOST:-127.0.0.1}"
+FRONTEND_HOST="${FRONTEND_HOST:-0.0.0.0}"
 FRONTEND_PORT="${FRONTEND_PORT:-5173}"
+# 헬스체크는 서버 자신에서 로컬로 찌르는 것이라, 바인딩 호스트가 0.0.0.0이든
+# 뭐든 항상 127.0.0.1로 확인한다(0.0.0.0은 "붙을" 주소가 아니라 "듣는"
+# 주소라 curl 목적지로는 부적절).
+BACKEND_CHECK_HOST="127.0.0.1"
 
 if is_running "$BACKEND_PID_FILE"; then
   echo "backend:  실행 중 (pid $(cat "$BACKEND_PID_FILE"))"
   if command -v curl >/dev/null 2>&1; then
-    if curl -s -o /dev/null -w '' --max-time 2 "http://${BACKEND_HOST}:${BACKEND_PORT}/api/health"; then
+    if curl -s -o /dev/null -w '' --max-time 2 "http://${BACKEND_CHECK_HOST}:${BACKEND_PORT}/api/health"; then
       echo "  health: OK (http://${BACKEND_HOST}:${BACKEND_PORT}/api/health)"
     else
       echo "  health: 응답 없음 (기동 중이거나 포트/호스트 설정 확인 필요)"

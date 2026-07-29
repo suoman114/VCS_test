@@ -18,7 +18,7 @@ scripts/start-frontend.sh  / scripts/stop-frontend.sh   # 프론트엔드만
 - 로그는 `backend/backend.log`, `frontend/frontend.log`에 쌓인다(`.gitignore`에 포함, 커밋 안 됨). `tail -f backend/backend.log`로 실시간 확인.
 - PID 파일은 `storage/run/*.pid`(gitignore된 `storage/` 하위)에 저장된다. 이미 떠 있으면 `start-*.sh`는 그냥 상태만 출력하고 재기동하지 않는다(중복 기동 방지).
 - 종료는 SIGTERM → 최대 10초 대기 → 그래도 안 죽으면 SIGKILL 순으로 진행하고, `setsid`로 띄운 프로세스 그룹 전체(vite가 띄우는 esbuild 등 자식 프로세스 포함)를 정리한다.
-- 기본 바인딩은 `127.0.0.1`(로컬only)이다. 외부에서 붙으려면 아래 "외부 접속" 절의 SSH 포트포워딩을 쓰거나, `BACKEND_HOST=0.0.0.0 FRONTEND_HOST=0.0.0.0 scripts/start.sh`처럼 환경변수로 override한다. 포트도 `BACKEND_PORT`/`FRONTEND_PORT`로 바꿀 수 있다.
+- 기본 바인딩은 `0.0.0.0`(모든 인터페이스 — 브라우저에서 서버 IP로 직접 접속하는 배포 환경 기준)이다. SSH 포트포워딩만 쓰고 내부망에도 노출하고 싶지 않으면 `BACKEND_HOST=127.0.0.1 FRONTEND_HOST=127.0.0.1 scripts/start.sh`처럼 좁혀서 실행한다. 포트도 `BACKEND_PORT`/`FRONTEND_PORT`로 바꿀 수 있다. 이 프로그램은 별도 인증이 없으므로, `0.0.0.0`으로 띄울 때는 방화벽으로 신뢰할 수 있는 네트워크만 접근하도록 제한하는 걸 권장한다.
 - 코드 변경 시 자동 재기동이 필요하면 `BACKEND_RELOAD=1 scripts/start-backend.sh`(uvicorn `--reload`). 프론트는 Vite가 기본적으로 HMR을 지원하므로 별도 옵션이 필요 없다.
 
 ## 표준 절차 (최신 OS 기준)

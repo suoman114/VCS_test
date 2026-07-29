@@ -3,8 +3,9 @@
 #
 # 사용법: scripts/start-backend.sh
 # 환경변수로 조정 가능:
-#   BACKEND_HOST   기본 127.0.0.1 (외부 노출하려면 0.0.0.0 — DEPLOYMENT.md의
-#                  SSH 포트포워딩 권장 사항 참고)
+#   BACKEND_HOST   기본 0.0.0.0(모든 인터페이스에 노출 — 브라우저에서 서버
+#                  IP로 직접 접속하는 배포 환경 기준). SSH 포트포워딩만 쓰고
+#                  싶으면 BACKEND_HOST=127.0.0.1로 좁혀서 실행해라.
 #   BACKEND_PORT   기본 8000
 #   BACKEND_RELOAD 1로 주면 --reload 추가(코드 변경 시 자동 재기동, 개발용)
 #
@@ -16,7 +17,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 BACKEND_DIR="$REPO_ROOT/backend"
 PID_FILE="$RUN_DIR/backend.pid"
 LOG_FILE="$BACKEND_DIR/backend.log"
-HOST="${BACKEND_HOST:-127.0.0.1}"
+HOST="${BACKEND_HOST:-0.0.0.0}"
 PORT="${BACKEND_PORT:-8000}"
 
 if is_running "$PID_FILE"; then
