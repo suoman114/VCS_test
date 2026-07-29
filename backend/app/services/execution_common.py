@@ -138,7 +138,16 @@ async def wait_for_completion(
     result = PassFailResult(passed=False, reasons=["polling not started"])
 
     while True:
-        events = parse_collected_logs(run_dir, log_names, run_id)
+        # asyncio.to_thread로 오프로드한다: parse_collected_logs는 매 폴링마다
+        # run_dir의 로그 파일을 처음부터 다시 통째로 읽어 재파싱하는 O(파일
+        # 크기) 동기 작업이다. vctp.log처럼 초당 수십~백 줄씩 계속 자라는
+        # 소스가 있으면(실 서버에서 확인: 통화가 길어질수록 파일이 계속
+        # 커짐) 이 작업 자체가 poll_interval_sec(기본 2초)보다 오래 걸리게
+        # 되고, 이벤트 루프에서 직접 실행하면 그동안 SSH tail 읽기/WS
+        # 브로드캐스트/HTTP 요청 처리가 전부 멈춘다 — 장시간 실행되는 시험에서
+        # 로그 스트리밍이 알 수 없이 멈추는 현상(원격 SSH 연결이 아무 에러
+        # 로그도 없이 끊기는 것처럼 보임)의 유력한 원인으로 지목됨.
+        events = await asyncio.to_thread(parse_collected_logs, run_dir, log_names, run_id)
         # CLAUDE.md §8-4 "진행 중 부분적으로" 렌더링: 최종 확정(persist_results)을
         # 기다리지 않고, 폴링마다 그때까지 모인 이벤트로 Call Flow를 미리
         # 갱신해서 WS로 push한다 — 실행이 끝나야만 다이어그램이 나타나던
