@@ -11,9 +11,14 @@
  *   생긴다 — VoLTE 실행은 vcsm/vcmm/vctp만, McPTT 실행은 vcmc/vcmm(+sipp)만
  *   나타난다.
  * - "클릭-투-로그": Call Flow에서 메시지를 클릭하면 `logStore.jumpTarget`이
- *   설정된다. 해당 source 탭으로 전환하고, 이미 로드된 라이브/과거 로그에서
- *   해당 seq_no를 찾아 스크롤+하이라이트한다. 없으면(과거 로그 미로드 구간)
- *   서버에서 한 번 더 가져와 병합을 시도한다.
+ *   설정된다. 해당 source 탭으로 전환하고, "과거 로그"(파싱된 CallEvent) 목록
+ *   에서 seq_no를 찾아 스크롤+하이라이트한다. **반드시 과거 로그 쪽에서만
+ *   찾는다** — 위쪽 "실시간" 라이브 라인의 `seq`는 원본(raw) 줄 단위로 1부터
+ *   증가하는 완전히 다른 번호 체계라(`log_collector/session.py`의
+ *   `_consume()` 참고, 파싱 전 raw tail 스트림 카운터) `CallFlowMessage.seq_no`
+ *   (파싱된 CallEvent 전역 순번, `assign_sequence()`)와 우연히 숫자가 겹칠 뿐
+ *   실제로는 무관하다 — 예전엔 이 둘을 같은 값으로 착각해서 라이브 버퍼에서
+ *   먼저 찾다가 엉뚱한 줄로 이동하는 버그가 있었다.
  */
 import { useEffect, useRef, useState } from "react";
 import { useLogStore } from "../store/logStore";
@@ -113,17 +118,14 @@ export function LogViewer({ runId }: { runId: string | null }) {
     clearJumpTarget();
   }, [jumpTarget, clearJumpTarget]);
 
-  // 예약된 목표를 매 렌더마다(라이브/과거 로그가 갱신될 때마다) 찾아본다 —
-  // 이미 로드돼 있으면 바로 스크롤, 없으면 한 번 서버에서 더 가져와본다.
+  // 예약된 목표를 "과거 로그"(파싱된 CallEvent)에서만 찾는다 — 실시간 라이브
+  // 라인은 다른 번호 체계라 대상이 될 수 없다(위 컴포넌트 docstring 참고).
   useEffect(() => {
     if (pendingJumpSeq === null || !activeTab) return;
 
-    const liveEl = document.getElementById(`log-line-${pendingJumpSeq}`);
     const historyEl = document.getElementById(`log-history-${pendingJumpSeq}`);
-    const target = liveEl ?? historyEl;
-
-    if (target) {
-      target.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (historyEl) {
+      historyEl.scrollIntoView({ block: "center", behavior: "smooth" });
       setHighlightSeq(pendingJumpSeq);
       setPendingJumpSeq(null);
       if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
@@ -153,10 +155,10 @@ export function LogViewer({ runId }: { runId: string | null }) {
     return () => {
       cancelled = true;
     };
-    // liveLines/history가 갱신될 때마다 다시 찾아보되, fetch는 pendingJumpSeq/activeTab이
+    // history가 갱신될 때마다 다시 찾아보되, fetch는 pendingJumpSeq/activeTab이
     // 바뀔 때만 새로 트리거되도록 의도적으로 최소 의존성만 둔다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingJumpSeq, activeTab, runId, liveLines, history.length]);
+  }, [pendingJumpSeq, activeTab, runId, history.length]);
 
   useEffect(() => {
     return () => {
@@ -206,11 +208,7 @@ export function LogViewer({ runId }: { runId: string | null }) {
         {!runId && <div className="log-empty">실행 중인 Test Run이 없습니다.</div>}
         {runId && liveLines.length === 0 && <div className="log-empty">아직 수신된 로그가 없습니다.</div>}
         {liveLines.map((l) => (
-          <div
-            key={l.seq}
-            id={`log-line-${l.seq}`}
-            className={l.seq === highlightSeq ? "log-line log-line-highlight" : "log-line"}
-          >
+          <div key={l.seq} className="log-line">
             <span className="log-seq">#{l.seq}</span>
             <span className="log-source">[{l.source}]</span>
             <span className="log-text">{l.line}</span>
