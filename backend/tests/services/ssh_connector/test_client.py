@@ -20,6 +20,7 @@ stdout/stderr만 텅 빔). `errors="replace"`로 해결했다(`term_type`/`term_
 """
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 
 import pytest
@@ -170,3 +171,25 @@ async def test_tail_file_requests_pty_and_replace_errors(monkeypatch: pytest.Mon
     assert call["term_type"] == "xterm"
     assert call["term_size"] == (80, 24)
     assert call["errors"] == "replace"
+
+
+@pytest.mark.asyncio
+async def test_connect_times_out_instead_of_hanging_forever(monkeypatch: pytest.MonkeyPatch) -> None:
+    """실 서버 장애 재현: TCP handshake가 응답 없이 멈추면 `asyncssh.connect()`가
+    영원히 안 끝날 수 있다(asyncssh의 login_timeout은 TCP 연결이 이미 수립된
+    뒤에야 시작되므로 이 구간은 보호 대상이 아니다). `connect_timeout`으로
+    강제 타임아웃을 걸어 유한 시간 안에 실패하는지 확인한다 — 이게 없으면
+    `SshTailSource`의 재연결 시도, 나아가 `CollectorSession.stop()`이
+    영원히 멈춰 TestRun이 "running"에서 끝나지 않는 실 서버 장애로
+    이어졌다(2026-07-29 확인).
+    """
+
+    async def _hangs_forever(**kwargs: object) -> None:
+        await asyncio.sleep(3600)
+
+    monkeypatch.setattr(ssh_client_module.asyncssh, "connect", _hangs_forever)
+
+    connector = SSHConnector(SSHTarget(host="fake-host"), connect_timeout=0.05)
+
+    with pytest.raises(TimeoutError):
+        await asyncio.wait_for(connector.connect(), timeout=2)

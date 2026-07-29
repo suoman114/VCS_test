@@ -57,6 +57,13 @@ class Settings(BaseSettings):
     vcs_ssh_password: str | None = None
     vcs_ssh_private_key_path: str | None = None
     vcs_ssh_known_hosts: str | None = None
+    # SSH 접속(TCP handshake~인증) 타임아웃. asyncssh의 login_timeout(기본 120초)은
+    # TCP 연결이 이미 수립된 뒤에야 타이머가 시작돼서, TCP 핸드셰이크 자체가
+    # 응답 없이 멈추는 경우(네트워크 순단 등)에는 보호되지 않는다 — 이 경우
+    # `SshTailSource`의 재연결 시도가 영원히 멈춰서(예외/로그 없이) 로그
+    # 수집이 조용히 죽는 실 서버 장애가 관찰됐다. `asyncio.wait_for`로 이
+    # 값만큼 강제 타임아웃을 건다(SSHConnector.connect 참고).
+    vcs_ssh_connect_timeout_sec: float = 15.0
 
     # --- VoLTE(vctp) 실제 경로/명령 (CLAUDE.md §13 확정: 2026-07-29) ---
     # vctp가 재생(replay)할 pcap 샘플 파일들이 있는 디렉토리. Test Case 등록 폼의

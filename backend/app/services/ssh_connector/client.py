@@ -85,10 +85,13 @@ class CommandResult:
 class SSHConnector:
     """단일 SSHTarget에 대한 연결을 재사용하는 비동기 SSH/SCP 클라이언트."""
 
-    def __init__(self, target: SSHTarget | None = None) -> None:
+    def __init__(self, target: SSHTarget | None = None, *, connect_timeout: float | None = None) -> None:
         self._target = target or SSHTarget.from_vcs_settings()
         self._conn: asyncssh.SSHClientConnection | None = None
         self._lock = asyncio.Lock()
+        self._connect_timeout = (
+            connect_timeout if connect_timeout is not None else get_settings().vcs_ssh_connect_timeout_sec
+        )
 
     async def __aenter__(self) -> "SSHConnector":
         await self.connect()
@@ -108,14 +111,35 @@ class SSHConnector:
                 client_keys = [self._target.private_key_path] if self._target.private_key_path else None
                 known_hosts = self._target.known_hosts if self._target.known_hosts else None
                 logger.info("Connecting to SSH target %s:%s", self._target.host, self._target.port)
-                self._conn = await asyncssh.connect(
-                    host=self._target.host,
-                    port=self._target.port,
-                    username=self._target.username,
-                    password=self._target.password or None,
-                    client_keys=client_keys,
-                    known_hosts=known_hosts,
-                )
+                try:
+                    self._conn = await asyncio.wait_for(
+                        asyncssh.connect(
+                            host=self._target.host,
+                            port=self._target.port,
+                            username=self._target.username,
+                            password=self._target.password or None,
+                            client_keys=client_keys,
+                            known_hosts=known_hosts,
+                        ),
+                        timeout=self._connect_timeout,
+                    )
+                except TimeoutError as exc:
+                    # asyncssh의 login_timeout(기본 120초)은 TCP 연결이 이미 수립된
+                    # 뒤에야 시작된다 — TCP handshake 자체가 응답 없이 멈추는 경우
+                    # (네트워크 순단 등)는 보호되지 않아 이 호출이 영원히 멈출 수
+                    # 있었다. 실 서버에서 SSH tail 재연결이 예외/로그 하나 없이
+                    # 조용히 멈추고, CollectorSession.stop()이 그 태스크를 영원히
+                    # 기다리며 TestRun이 "running"에서 멈추는 장애로 관찰됐다.
+                    logger.error(
+                        "Connecting to SSH target %s:%s timed out after %.1fs",
+                        self._target.host,
+                        self._target.port,
+                        self._connect_timeout,
+                    )
+                    raise TimeoutError(
+                        f"SSH connect to {self._target.host}:{self._target.port} timed out"
+                        f" after {self._connect_timeout}s"
+                    ) from exc
             return self._conn
 
     async def close(self) -> None:
