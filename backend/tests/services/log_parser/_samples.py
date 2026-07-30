@@ -15,4 +15,8 @@ VOLTE_VCTP_LOG = LOG_SAMPLES_ROOT / "volte" / "vctp.log"
 VOLTE_VCSM_LOG = LOG_SAMPLES_ROOT / "volte" / "vcsm.log"
 VOLTE_VCMM_LOG = LOG_SAMPLES_ROOT / "volte" / "vcmm.log"
 MCPTT_VCMC_LOG = LOG_SAMPLES_ROOT / "mcptt" / "vcmc.log"
+# 2026-07-30 실 서버 캡처 — vcmc.log 포맷 B(`<message>` XML 래퍼 없이
+# `[SIP] INCOMING|OUTGOING REQUEST|RESPONSE [...]`). MCPTT_VCMC_LOG(포맷 A)와
+# 별개 배포/버전에서 관측됐다 (vcmc_adapter.py 모듈 docstring 참고).
+MCPTT_VCMC_LOG_FORMAT_B = LOG_SAMPLES_ROOT / "mcptt" / "vcmc_format_b.log"
 MCPTT_VCMM_LOG = LOG_SAMPLES_ROOT / "mcptt" / "vcmm.log"

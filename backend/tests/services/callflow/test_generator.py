@@ -17,6 +17,7 @@ from app.services.log_parser import (
 )
 from tests.services.log_parser._samples import (
     MCPTT_VCMC_LOG,
+    MCPTT_VCMC_LOG_FORMAT_B,
     MCPTT_VCMM_LOG,
     VOLTE_VCMM_LOG,
     VOLTE_VCSM_LOG,
@@ -99,6 +100,26 @@ def test_mcptt_mermaid_is_well_formed() -> None:
     assert "participant VCMC as VCMC" in mermaid
     assert "SIP_INVITE" in mermaid
     assert "RECORDING_STOP_RES" in mermaid
+
+
+def test_mcptt_mermaid_renders_invite_and_bye_for_vcmc_format_b() -> None:
+    """2026-07-30 실 서버 캡처(vcmc.log 포맷 B) 기반 회귀 — INVITE/BYE가
+    Call Flow 화살표로 실제 렌더링되는지 종단 확인(어댑터 파싱 +
+    generator 방향 판단 둘 다)."""
+    events = []
+    events += parse_lines_with_adapter(
+        VcmcLogAdapter(), read_file_lines(str(MCPTT_VCMC_LOG_FORMAT_B)), run_id="run-mcptt-b"
+    )
+    events += parse_lines_with_adapter(
+        VcmmLogAdapter(), read_file_lines(str(MCPTT_VCMM_LOG)), run_id="run-mcptt-b"
+    )
+    events = assign_sequence(events)
+
+    mermaid = generate_mermaid(events, protocol="mcptt")
+
+    assert "SIPp_UE->>VCMC: SIP_INVITE" in mermaid
+    assert "SIPp_UE->>VCMC: SIP_BYE" in mermaid
+    assert "VCMC-->>SIPp_UE: SIP_200" in mermaid
 
 
 def test_include_vctp_relay_opt_in() -> None:

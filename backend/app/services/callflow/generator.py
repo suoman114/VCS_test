@@ -51,6 +51,7 @@ _PARTICIPANTS: dict[Protocol, list[tuple[str, str]]] = {
 }
 
 _IS_SENDER_RE = re.compile(r'isSender="(?P<val>true|false)"')
+_SIP_TRACE_DIRECTION_RE = re.compile(r"\[SIP\]\s+(?P<direction>INCOMING|OUTGOING)")
 _MSG_FROM_RE = re.compile(r'"msgFrom":\s*"(?P<val>[^"]+)"')
 _MESSAGE_ACTION_RE = re.compile(r"message\s+(?P<action>receive|send)\s+ok\.")
 
@@ -100,17 +101,22 @@ def _edge_for_vcsm(event: CallEvent) -> tuple[str, str] | None:
 
 
 def _edge_for_vcmc(event: CallEvent) -> tuple[str, str] | None:
-    """`isSender` 속성으로 방향을 정확히 판단하되, 못 찾아도 이벤트를
-    통째로 버리지 않는다(2026-07-30: 실 서버에서 INVITE/BYE가 Call Flow에
-    아예 안 보인다는 리포트 — `isSender`가 어떤 이유로든 raw_line에서 안
-    잡히면 예전엔 여기서 None을 반환해 해당 메시지가 조용히 사라졌다).
-    `isSender`가 없으면 `_edge_for_vcsm`과 동일한 방식으로 응답/요청
-    여부(`reason_code`)만으로 근사한다 — 방향이 완벽하진 않아도 최소한
-    메시지 자체는 항상 화면에 보여야 실 서버에서 무엇이 파싱되고 있는지
-    확인할 수 있다."""
+    """vcmc.log의 두 실제 포맷(`vcmc_adapter.py` 모듈 docstring 참고) 각각의
+    방향 마커를 raw_line에서 다시 찾는다: 포맷 A는 `isSender="true|false"`,
+    포맷 B는 `[SIP] INCOMING|OUTGOING`. 어느 쪽도 못 찾으면(2026-07-30: 실
+    서버에서 INVITE/BYE가 Call Flow에 아예 안 보인다는 리포트로 발견 —
+    예전엔 여기서 None을 반환해 메시지가 조용히 사라졌다) `_edge_for_vcsm`과
+    동일하게 응답/요청 여부(`reason_code`)만으로 근사한다 — 방향이 완벽하진
+    않아도 최소한 메시지 자체는 항상 화면에 보여야 실 서버에서 무엇이
+    파싱되고 있는지 확인할 수 있다."""
     m = _IS_SENDER_RE.search(event.raw_line)
     if m is not None:
         if m.group("val") == "true":
+            return _VCMC, _SIPP_UE
+        return _SIPP_UE, _VCMC
+    m2 = _SIP_TRACE_DIRECTION_RE.search(event.raw_line)
+    if m2 is not None:
+        if m2.group("direction") == "OUTGOING":
             return _VCMC, _SIPP_UE
         return _SIPP_UE, _VCMC
     if event.reason_code is not None:  # 응답(상태코드)
