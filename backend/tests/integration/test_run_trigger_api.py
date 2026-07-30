@@ -99,6 +99,31 @@ async def test_trigger_run_returns_pending_immediately(client: httpx.AsyncClient
     body = resp.json()
     assert body["status"] == "pending"
     assert body["test_case_id"] == test_case_id
+    assert body["test_case_name"] == "trigger-qa-volte"
+
+
+@pytest.mark.asyncio
+async def test_get_and_list_test_runs_include_test_case_name(
+    client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """2026-07-30 UI 개선 요청: 대시보드/이력/실행 화면에 UUID만 보이던 문제 —
+    GET(단건)/GET(목록) 둘 다 test_case_name이 채워져 내려와야 한다."""
+    test_case_id = await _create_test_case(client, category="mcptt")
+    monkeypatch.setitem(executor_registry._registry, ("mcptt", "basic_call"), _FakeDoneExecutor)
+
+    resp = await client.post(f"/api/test-cases/{test_case_id}/run")
+    run_id = resp.json()["id"]
+    await _poll_until_terminal(client, run_id)
+
+    get_resp = await client.get(f"/api/test-runs/{run_id}")
+    assert get_resp.status_code == 200
+    assert get_resp.json()["test_case_name"] == "trigger-qa-mcptt"
+
+    list_resp = await client.get("/api/test-runs", params={"test_case_id": test_case_id})
+    assert list_resp.status_code == 200
+    items = list_resp.json()["items"]
+    assert len(items) == 1
+    assert items[0]["test_case_name"] == "trigger-qa-mcptt"
 
 
 @pytest.mark.asyncio

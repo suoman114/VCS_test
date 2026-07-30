@@ -158,8 +158,8 @@ export function DashboardPage() {
         <ul className="recent-runs-list">
           {recentRuns.map((run) => (
             <li key={run.id}>
-              <Link to={`/execution/${run.id}`}>{run.id}</Link>
-              <span className="mono"> ({run.test_case_id})</span>
+              <Link to={`/execution/${run.id}`}>{run.test_case_name ?? run.test_case_id}</Link>
+              <span className="mono"> {run.id}</span>
               <StatusBadge status={run.status} />
             </li>
           ))}

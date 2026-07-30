@@ -120,8 +120,10 @@ export function HistoryPage() {
           <tbody>
             {items.map((run) => (
               <tr key={run.id}>
-                <td className="mono">{run.id}</td>
-                <td className="mono">{run.test_case_id}</td>
+                <td className="mono run-id-cell" title={run.id}>
+                  {run.id}
+                </td>
+                <td title={run.test_case_id}>{run.test_case_name ?? run.test_case_id}</td>
                 <td>
                   <StatusBadge status={run.status} />
                 </td>

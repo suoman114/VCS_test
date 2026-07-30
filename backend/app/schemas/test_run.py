@@ -23,6 +23,10 @@ class TestRunRead(BaseModel):
 
     id: str
     test_case_id: str
+    # TestRun ORM에는 없는 파생 필드 — 엔드포인트가 TestCase와 조인해서 채운다
+    # (2026-07-30 UI 개선 요청: 대시보드/이력/실행 화면에 UUID만 보이던 문제).
+    # TestCase가 삭제됐거나(현재 스키마상 불가하지만 방어적으로) 조인에 실패하면 None.
+    test_case_name: str | None = None
     status: TestRunStatusLiteral
     started_at: datetime | None
     ended_at: datetime | None

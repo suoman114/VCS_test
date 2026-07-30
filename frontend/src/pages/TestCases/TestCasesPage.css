@@ -52,6 +52,12 @@
 .actions {
   display: flex;
   gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.actions button {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .actions button.danger {

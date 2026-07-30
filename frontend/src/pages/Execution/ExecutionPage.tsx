@@ -202,7 +202,7 @@ export function ExecutionPage() {
   return (
     <div className="execution-page">
       <div className="page-header">
-        <h2>시험 실행 — {runId}</h2>
+        <h2>시험 실행 — {run?.test_case_name ?? runId}</h2>
         <StatusBadge status={displayStatus} />
         {displayStatus && CANCELLABLE_STATUSES.has(displayStatus) && (
           <button type="button" className="cancel-run-button" onClick={handleCancel} disabled={cancelling}>
@@ -216,7 +216,10 @@ export function ExecutionPage() {
 
       <div className="run-meta">
         <div>
-          <strong>Test Case</strong>: {run?.test_case_id ?? "-"}
+          <strong>Test Case</strong>: {run?.test_case_name ?? run?.test_case_id ?? "-"}
+        </div>
+        <div>
+          <strong>Run ID</strong>: <span className="mono">{runId}</span>
         </div>
         <div>
           <strong>대상 호스트</strong>: {run?.target_host ?? "-"}

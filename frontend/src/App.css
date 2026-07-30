@@ -11,16 +11,24 @@
   padding: 12px 24px;
   background: #111827;
   color: #fff;
+  /* 좁은 화면에서는 제목과 내비게이션이 겹치지 않게 줄바꿈을 허용한다
+     (2026-07-30 UI 개선 요청) — 아래 .app-nav 자체는 줄바꿈하지 않고
+     가로 스크롤로 처리해서, 메뉴 글자가 세로로 한 글자씩 쪼개지는
+     문제(모바일 폭에서 "대시보드"가 "대\n시\n보\n드"로 보이던 버그)를 막는다. */
+  flex-wrap: wrap;
 }
 
 .app-title {
   font-weight: 700;
   font-size: 1.1rem;
+  white-space: nowrap;
 }
 
 .app-nav {
   display: flex;
-  gap: 16px;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .nav-link {
@@ -28,6 +36,8 @@
   text-decoration: none;
   padding: 4px 8px;
   border-radius: 4px;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .nav-link-active {

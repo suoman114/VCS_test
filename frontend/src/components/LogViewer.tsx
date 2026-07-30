@@ -201,11 +201,37 @@ export function LogViewer({ runId }: { runId: string | null }) {
   const channelError = activeTab ? sourceErrors[activeTab] ?? null : null;
 
   useEffect(() => {
-    // 탭/실행이 바뀌면 과거 로그 섹션을 초기화한다.
+    // 탭/실행이 바뀌면 과거 로그 섹션을 초기화하고, 첫 페이지를 바로
+    // 불러온다(2026-07-30 UI 개선 요청) — 예전엔 "더 보기"를 눌러야만
+    // 과거 로그가 보였는데, 이미 끝난 시험 결과를 보러 들어오면 실시간
+    // 로그 패널은 비어있고(WS로 더 들어올 데이터가 없음) 과거 로그도 안
+    // 보여서 화면이 통째로 빈 것처럼 보였다.
     setHistory([]);
     setHistoryOffset(0);
     setHistoryTotal(null);
     setHistoryError(null);
+    if (!runId || !activeTab) return;
+
+    let cancelled = false;
+    setHistoryLoading(true);
+    testRunsApi
+      .getEvents(runId, { limit: HISTORY_PAGE_SIZE, offset: 0 })
+      .then((res) => {
+        if (cancelled) return;
+        const filtered = res.items.filter((ev) => ev.source === activeTab);
+        setHistory(filtered);
+        setHistoryOffset(res.items.length);
+        setHistoryTotal(res.total);
+      })
+      .catch((err) => {
+        if (!cancelled) setHistoryError(err instanceof Error ? err.message : "과거 로그 조회 실패");
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [runId, activeTab]);
 
   useEffect(() => {

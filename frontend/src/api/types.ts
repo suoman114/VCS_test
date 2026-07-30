@@ -78,6 +78,10 @@ export type TestRunStatus =
 export interface TestRun {
   id: string;
   test_case_id: string;
+  // TestCase와 조인해서 채워주는 파생 필드(2026-07-30 UI 개선 요청) — 대시보드/
+  // 이력/실행 화면에 UUID 대신 사람이 읽을 수 있는 이름을 보여주기 위함.
+  // TestCase가 없어졌거나 조인에 실패하면 null(이 경우 test_case_id로 폴백해야 함).
+  test_case_name: string | null;
   status: TestRunStatus;
   started_at: string | null;
   ended_at: string | null;

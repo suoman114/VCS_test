@@ -51,6 +51,12 @@
   font-size: 0.85rem;
 }
 
+.run-meta .mono {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
 .result-summary-section h3 {
   margin: 0 0 8px;
   font-size: 1.05rem;

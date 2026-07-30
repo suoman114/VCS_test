@@ -78,6 +78,20 @@ def _get_test_run_or_404(db: Session, run_id: str) -> TestRun:
     return test_run
 
 
+def _test_case_name_map(db: Session, test_case_ids: set[str]) -> dict[str, str]:
+    """대시보드/이력/실행 화면에 UUID만 보이던 문제(2026-07-30 UI 개선 요청) —
+    TestRun 응답에 test_case_name을 함께 내려주기 위한 일괄 조회. 목록
+    엔드포인트에서 N+1 쿼리를 피하려고 test_case_id 집합을 한 번에 IN 조회한다."""
+    if not test_case_ids:
+        return {}
+    rows = db.execute(select(TestCase.id, TestCase.name).where(TestCase.id.in_(test_case_ids))).all()
+    return dict(rows)
+
+
+def _to_test_run_read(run: TestRun, test_case_name: str | None) -> TestRunRead:
+    return TestRunRead.model_validate(run).model_copy(update={"test_case_name": test_case_name})
+
+
 def _load_events(db: Session, test_run: TestRun) -> list[CallEvent]:
     """이 run의 CallEvent를 반환한다 — DB에 있으면 DB에서, 없으면(실행 중이라
     아직 `persist_results`가 한 번도 안 돈 경우) 현재까지 수집된 원본 로그
@@ -119,7 +133,7 @@ def _load_events(db: Session, test_run: TestRun) -> list[CallEvent]:
     response_model=TestRunRead,
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def trigger_test_run(test_case_id: str, db: Session = Depends(get_db)) -> TestRun:
+async def trigger_test_run(test_case_id: str, db: Session = Depends(get_db)) -> TestRunRead:
     """Test Case를 실행한다.
 
     TestRun을 `pending` 상태로 즉시 생성해 반환하고, 실제 실행은
@@ -166,7 +180,7 @@ async def trigger_test_run(test_case_id: str, db: Session = Depends(get_db)) -> 
     executor = executor_registry.create(protocol, test_type, run_id=test_run.id)
     job_runner.submit(test_run.id, lambda: executor.run(test_case))
 
-    return test_run
+    return _to_test_run_read(test_run, test_case.name)
 
 
 @router.post(
@@ -174,7 +188,7 @@ async def trigger_test_run(test_case_id: str, db: Session = Depends(get_db)) -> 
     response_model=TestRunRead,
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def cancel_test_run(run_id: str, db: Session = Depends(get_db)) -> TestRun:
+async def cancel_test_run(run_id: str, db: Session = Depends(get_db)) -> TestRunRead:
     """실행 중인 Test Run을 종료한다 — 특히 McPTT 성능 시험처럼 `-m`(총 호 수)
     없이 무기한 실행되는 시험은 이 엔드포인트가 유일한 정상 종료 경로다
     (2026-07-30 요청, `McpttPerformanceExecutor`).
@@ -199,7 +213,8 @@ async def cancel_test_run(run_id: str, db: Session = Depends(get_db)) -> TestRun
             status_code=status.HTTP_409_CONFLICT,
             detail=f"TestRun {run_id!r}에 대한 실행 중인 job을 찾지 못했다(이미 종료됐을 수 있음)",
         )
-    return test_run
+    test_case = db.get(TestCase, test_run.test_case_id)
+    return _to_test_run_read(test_run, test_case.name if test_case else None)
 
 
 @router.get("/test-runs", response_model=TestRunListResponse)
@@ -223,7 +238,10 @@ def list_test_runs(
     items = (
         db.execute(stmt.order_by(TestRun.created_at.desc()).offset(offset).limit(limit)).scalars().all()
     )
-    return TestRunListResponse(items=list(items), total=total)
+    name_map = _test_case_name_map(db, {run.test_case_id for run in items})
+    return TestRunListResponse(
+        items=[_to_test_run_read(run, name_map.get(run.test_case_id)) for run in items], total=total
+    )
 
 
 @router.get("/test-runs/stats", response_model=TestRunStatsResponse)
@@ -268,8 +286,10 @@ def get_test_run_stats(db: Session = Depends(get_db)) -> TestRunStatsResponse:
 
 
 @router.get("/test-runs/{run_id}", response_model=TestRunRead)
-def get_test_run(run_id: str, db: Session = Depends(get_db)) -> TestRun:
-    return _get_test_run_or_404(db, run_id)
+def get_test_run(run_id: str, db: Session = Depends(get_db)) -> TestRunRead:
+    test_run = _get_test_run_or_404(db, run_id)
+    test_case = db.get(TestCase, test_run.test_case_id)
+    return _to_test_run_read(test_run, test_case.name if test_case else None)
 
 
 @router.get("/test-runs/{run_id}/call-flow", response_model=CallFlowRead)
