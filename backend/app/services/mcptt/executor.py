@@ -31,11 +31,13 @@
                                             등록 폼은 `GET /api/vcs/mcptt-scenario-files`로
                                             조회한 목록 중 하나를 select box로 고른다.
                                             안 채우면 `TestCase.config_ref`로 폴백한다.
-    target_host | target_ip (str, 필수) : VCS(vcmc) 대상 IP
-    target_port (int, 기본 5060)        : VCS SIP 포트
-    local_ip (str, 선택)                 : 시뮬레이터 바인딩 로컬 IP (-i)
-    local_port (int, 선택)               : 시뮬레이터 로컬 포트 (-p)
-    control_port (int, 선택)             : 시뮬레이터 컨트롤 포트 (-cp)
+    target_host | target_ip (str, 선택) : VCS(vcmc) 대상 IP. ssh 모드에서는 안 채우면
+                                            대시보드 "설정"에 저장된 VCS 접속 IP를 그대로
+                                            쓴다(2026-07-30) — local 모드는 여전히 필수.
+    target_port (int, 기본 Settings.mcptt_sim_target_port=5060)     : VCS SIP 포트
+    local_ip (str, 기본 Settings.mcptt_sim_local_ip)                : 시뮬레이터 바인딩 로컬 IP (-i)
+    local_port (int, 기본 Settings.mcptt_sim_local_port=5080)       : 시뮬레이터 로컬 포트 (-p)
+    control_port (int, 기본 Settings.mcptt_sim_control_port=6061)   : 시뮬레이터 컨트롤 포트 (-cp)
     calls_count | max_calls (int, 기본 1): 총 호 발생 수 (-m)
     extra_sipp_args (list[str], 선택)    : 추가 인자 그대로 append
     vcmc_log_path / vcmm_log_path        : 기본값 Settings.vcs_vcmc_log_path / vcs_vcmm_log_path
@@ -311,7 +313,22 @@ class McpttBasicCallExecutor(TestExecutor):
                 jar_name = params.get("mcptt_sim_jar_name", self._settings.mcptt_sim_jar_name)
                 remote_scenario_path = PurePosixPath(sim_dir) / scenario_file
                 jar_path = PurePosixPath(sim_dir) / jar_name
-                argv = build_mcptt_sim_args(remote_scenario_path, params, jar_path=str(jar_path))
+                # target_host는 대시보드 "설정"에 저장된 VCS 접속 IP(위에서 이미
+                # 구한 target.host)를 그대로 쓰고, 나머지 실행 파라미터는 Settings
+                # 고정값을 기본으로 깐다 — protocol_params에 명시적으로 넣으면
+                # (기존 target_ip 키 포함) 그 값이 항상 우선한다(2026-07-30 요청:
+                # 매번 JSON에 직접 채우지 않아도 되게). setdefault를 써서, 이미
+                # target_ip만 넣은 기존 Test Case도 그대로 존중한다 — 무조건
+                # target_host를 덮어쓰면 target_ip가 있어도 항상 VCS 설정값이
+                # 이겨버린다(build_mcptt_sim_args의 `target_host or target_ip`
+                # 우선순위 때문).
+                sim_params: dict[str, Any] = dict(params)
+                sim_params.setdefault("target_host", sim_params.get("target_ip") or target.host)
+                sim_params.setdefault("target_port", self._settings.mcptt_sim_target_port)
+                sim_params.setdefault("local_ip", self._settings.mcptt_sim_local_ip)
+                sim_params.setdefault("local_port", self._settings.mcptt_sim_local_port)
+                sim_params.setdefault("control_port", self._settings.mcptt_sim_control_port)
+                argv = build_mcptt_sim_args(remote_scenario_path, sim_params, jar_path=str(jar_path))
                 sipp_result = await self._run_sipp_remote(argv=argv, timeout_sec=timeout_sec)
             elif exec_mode == "local":
                 scenario_local_path = self._resolve_repo_path(test_case.config_ref)

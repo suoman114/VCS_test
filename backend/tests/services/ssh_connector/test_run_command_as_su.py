@@ -93,6 +93,41 @@ async def test_run_command_as_su_success(monkeypatch: pytest.MonkeyPatch) -> Non
     result = await connector.run_command_as_su("echo hello world", "root-pw")
 
     assert result.exit_status == 0
+
+
+@pytest.mark.asyncio
+async def test_run_command_as_su_ignores_echoed_command_text_before_real_output(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """실 서버 재현 버그(2026-07-30): `su - root`가 새 로그인 쉘을 띄우면서 그
+    쉘의 시작 스크립트(`.bashrc` 등)가 로컬 에코를 다시 켜는 환경이 있었다.
+    그러면 `stty -echo`가 이미 무력화된 상태라, 우리가 stdin에 쓴 명령 문자열
+    자체("...echo __SU_CHECK__:$?" 같은 *글자 그대로*)가 먼저 그대로
+    되읽힌다 — `$?`가 실제 평가되기 전이라 마커 뒤에 숫자가 없다. 이 echo된
+    입력 한 조각만 먼저 도착하고, 진짜 실행 결과(숫자가 붙은 마커)는 그다음
+    청크에야 온다 — 실제로 이 순서로 재현해서 회귀를 잡는다. (버그 당시엔
+    `__SU_CHECK__:` 부분 문자열 매칭이라 echo된 줄만 보고 "명령이 끝났다"고
+    착각해 `su - root 인증 실패로 보임` 오류를 냈다.)
+    """
+    chunks = [
+        "Password: ",
+        # su 성공 직후: 로그인 배너 + 프롬프트 + "우리가 입력한 그대로"의 에코
+        # (実 서버 캡처와 동일한 모양, $?가 아직 평가되지 않은 문자 그대로).
+        "\r\nLast login: Thu Jul 30 09:39:22 KST 2026 on pts/1\r\n"
+        "host [root{997} ~ ] whoami; echo __SU_CHECK__:$?\r\n",
+        # 그다음 청크에야 실제 실행 결과(숫자 붙은 마커)가 도착한다.
+        "root\r\n__SU_CHECK__:0\r\nhost [root{997} ~ ] ",
+        "echo __CMD_START__; echo hello world; echo __CMD_END__:$?\r\n",
+        "__CMD_START__\r\nhello world\r\n__CMD_END__:0\r\n",
+    ]
+    fake_conn = _FakeConnection(chunks)
+    _patch_connect(monkeypatch, fake_conn)
+
+    connector = SSHConnector(SSHTarget(host="fake-host"))
+    result = await connector.run_command_as_su("echo hello world", "root-pw")
+
+    assert result.exit_status == 0
+    assert result.stdout == "hello world"
     assert result.stdout == "hello world"
 
     process = fake_conn.created_processes[0]

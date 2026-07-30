@@ -308,3 +308,72 @@ async def test_mcptt_executor_remote_sipp_falls_back_to_config_ref_for_scenario_
 
     assert result_run.status == TestRunStatus.DONE
     assert "-sf /root/mcptt_sim/mcptt_basic_call.xml" in fake_sipp_connector.commands[0]
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_remote_sipp_fills_target_host_and_ports_from_settings(
+    isolated_db, tmp_path: Path
+) -> None:
+    """target_host/target_ip를 protocol_params에 안 넣으면 대시보드 "설정"에
+    저장된 VCS 접속 IP를 그대로 쓰고, local_ip/local_port/control_port/
+    target_port는 Settings 고정값으로 채워야 한다(2026-07-30 요청 — 매번
+    JSON에 직접 채우지 않아도 실행되게)."""
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+    # target_ip/target_port/max_calls/call_rate 등 이 테스트가 검증하려는 자동 채움
+    # 대상 키만 걷어낸다. vcs_log_paths/timeout_sec은 그대로 둬야 로컬 샘플 로그로
+    # 빠르게 판정이 끝난다(안 그러면 존재하지 않는 Settings 기본 로그 경로를
+    # timeout_sec 기본값 120초까지 폴링하게 돼 테스트가 극도로 느려진다).
+    test_case.protocol_params = {
+        "sipp_exec_mode": "ssh",
+        "scenario_file": "mcptt_basic_call.xml",
+        "vcs_log_paths": {
+            "vcmc_log": str(_MCPTT_VCMC_LOG),
+            "vcmm_log": str(_MCPTT_VCMM_LOG),
+        },
+        "timeout_sec": 5,
+    }
+
+    fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        settings=Settings(storage_dir=str(tmp_path / "storage")),
+        ssh_target_factory=lambda: SSHTarget(host="192.168.7.64"),
+        sipp_ssh_target_factory=lambda: SSHTarget(host="fake-sipp"),
+        sipp_ssh_connector_factory=lambda target: fake_sipp_connector,
+    )
+
+    result_run = await executor.run(test_case)
+
+    assert result_run.status == TestRunStatus.DONE
+    sipp_cmd = fake_sipp_connector.commands[0]
+    # Settings 기본값(app/core/config.py, 2026-07-29/30 확인): 5060/192.168.7.65/5080/6061
+    assert "-i 192.168.7.65" in sipp_cmd
+    assert "-p 5080" in sipp_cmd
+    assert "-cp 6061" in sipp_cmd
+    assert sipp_cmd.endswith("-m 1 192.168.7.64:5060")  # target_host는 VCS 접속 IP(ssh_target_factory)로 폴백
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_remote_sipp_respects_explicit_target_ip_over_vcs_settings(
+    isolated_db, tmp_path: Path
+) -> None:
+    """기존처럼 protocol_params.target_ip를 명시하면(대시보드 VCS 설정과
+    다른 값이어도) 그 값이 항상 우선해야 한다 — VCS 접속 IP 자동 채움은
+    "안 넣었을 때"의 폴백일 뿐이다."""
+    test_case, run_id = _seed_test_case_and_run(isolated_db)  # target_ip="10.0.0.10" 포함
+    test_case.protocol_params = {**test_case.protocol_params, "sipp_exec_mode": "ssh", "scenario_file": "x.xml"}
+
+    fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        settings=Settings(storage_dir=str(tmp_path / "storage")),
+        ssh_target_factory=lambda: SSHTarget(host="192.168.7.64"),  # VCS 설정 IP는 다른 값
+        sipp_ssh_target_factory=lambda: SSHTarget(host="fake-sipp"),
+        sipp_ssh_connector_factory=lambda target: fake_sipp_connector,
+    )
+
+    await executor.run(test_case)
+
+    assert fake_sipp_connector.commands[0].endswith("-m 10 10.0.0.10:5060")

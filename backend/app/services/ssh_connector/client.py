@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -240,17 +241,27 @@ class SSHConnector:
         구현한다. PTY를 쓰면 stdin에 쓴 데이터가 곧 "터미널에 입력한 것"과
         동일하게 취급되므로 이 방식이 통한다.
 
-        먼저 `stty -echo`로 로컬 에코를 꺼서, 우리가 typing한 명령 자체가
-        출력 스트림에 다시 섞여 들어와 마커 파싱을 헷갈리게 만드는 것을
-        막는다. `su` 성공 여부는 비밀번호 입력 직후 `whoami`를 실행해
-        `su_user`가 나오는지로 확인한다(실패하면 여전히 원래 계정인 채로
-        프롬프트만 다시 나타나는 경우가 많아, exit code만으로는 판단하기
-        어렵다).
+        먼저 `stty -echo`로 로컬 에코를 꺼서 출력 스트림 노이즈를 줄이지만,
+        `su - {su_user}`가 새 로그인 쉘을 띄우면서 그 쉘의 시작 스크립트가
+        (`.bashrc` 등에서 `stty sane`류 호출로) 에코를 다시 켜는 경우가
+        실 서버에서 확인됐다(2026-07-30). 그러면 우리가 방금 stdin에 쓴
+        명령 문자열 자체가 그대로 되읽혀서(예: `echo __CMD_END__:$?`라는
+        *글자 그대로의 문자열*), `$?`가 실제 평가되기도 전에 마커 문자열이
+        먼저 출력 스트림에 나타난다 — 마커를 단순 부분 문자열로 찾으면 이
+        echo된 입력 자체를 "명령이 끝났다"는 신호로 착각해 응답을 너무
+        일찍 끊어버린다. 그래서 마커는 항상 **"마커:숫자"** 형태(`$?`가
+        실제로 셸에 의해 평가된 결과)로만 매칭한다 — 우리가 타이핑한
+        문자열에는 `$?`가 문자 그대로 남아있어 숫자가 뒤따르지 않으므로,
+        이 정규식은 echo된 입력과 절대 매치되지 않는다.
 
-        **주의**: 이 로직은 실제 su 프롬프트를 가진 원격 서버로 검증하지
-        못했다(개발 환경에서는 재현 불가) — 단위 테스트는 가짜 프로세스로
-        상태 머신 자체만 검증한다. 실 서버 최초 사용 시 프롬프트 문구가
-        예상과 다르면(예: "Password:"가 아닌 다른 언어) 실패할 수 있다.
+        `su` 성공 여부는 비밀번호 입력 직후 `whoami`를 실행해 `su_user`가
+        나오는지로 확인한다(실패하면 여전히 원래 계정인 채로 프롬프트만
+        다시 나타나는 경우가 많아, exit code만으로는 판단하기 어렵다).
+
+        **주의**: 이 로직은 실 서버 su 프롬프트로 검증했다(2026-07-30,
+        마커 오탐 버그를 이 방식으로 수정) — 다만 모든 셸/로케일 조합까지
+        전부 확인하지는 못했다. 프롬프트 문구가 예상과 다르면(예:
+        "Password:"가 아닌 다른 언어) 여전히 실패할 수 있다.
         """
         conn = await self.connect()
         process = await conn.create_process(term_type="xterm", term_size=(80, 24), errors="replace")
@@ -259,21 +270,22 @@ class SSHConnector:
 
         buf = ""
 
-        async def read_until(marker: str, read_timeout: float) -> str:
+        async def read_until(pattern: str, read_timeout: float, *, is_regex: bool = False) -> str:
             nonlocal buf
+            matched = (lambda: re.search(pattern, buf)) if is_regex else (lambda: pattern in buf)
             deadline = asyncio.get_event_loop().time() + read_timeout
-            while marker not in buf:
+            while not matched():
                 remaining = deadline - asyncio.get_event_loop().time()
                 if remaining <= 0:
                     raise TimeoutError(
-                        f"su_user={su_user!r} 전환 중 {marker!r} 대기 타임아웃"
+                        f"su_user={su_user!r} 전환 중 {pattern!r} 대기 타임아웃"
                         f" (누적 출력 마지막 500자: {buf[-500:]!r})"
                     )
                 try:
                     chunk = await asyncio.wait_for(process.stdout.read(4096), timeout=remaining)
                 except TimeoutError as exc:
                     raise TimeoutError(
-                        f"su_user={su_user!r} 전환 중 {marker!r} 대기 타임아웃"
+                        f"su_user={su_user!r} 전환 중 {pattern!r} 대기 타임아웃"
                         f" (누적 출력 마지막 500자: {buf[-500:]!r})"
                     ) from exc
                 if not chunk:
@@ -297,8 +309,9 @@ class SSHConnector:
             await process.stdin.drain()
             process.stdin.write("whoami; echo __SU_CHECK__:$?\n")
             await process.stdin.drain()
-            su_check_output = await read_until("__SU_CHECK__:", op_timeout)
-            if "__SU_CHECK__:0" not in su_check_output or su_user not in su_check_output:
+            # "__SU_CHECK__:" 뒤에 숫자가 와야만 진짜 실행 결과다(위 docstring 참고).
+            su_check_output = await read_until(r"__SU_CHECK__:\d", op_timeout, is_regex=True)
+            if not re.search(r"__SU_CHECK__:0\b", su_check_output) or su_user not in su_check_output:
                 raise RuntimeError(
                     f"su - {su_user} 인증 실패로 보임"
                     f" (출력 마지막 300자: {su_check_output[-300:]!r})"
@@ -307,7 +320,7 @@ class SSHConnector:
 
             process.stdin.write(f"echo __CMD_START__; {command}; echo __CMD_END__:$?\n")
             await process.stdin.drain()
-            cmd_output = await read_until("__CMD_END__:", op_timeout)
+            cmd_output = await read_until(r"__CMD_END__:\d", op_timeout, is_regex=True)
 
             start_idx = cmd_output.rfind("__CMD_START__")
             body = cmd_output[start_idx + len("__CMD_START__") :] if start_idx >= 0 else cmd_output

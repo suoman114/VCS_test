@@ -109,6 +109,16 @@ class Settings(BaseSettings):
     # 조회해서 보여준다(VoLTE의 pcap 샘플 select box와 동일한 패턴).
     mcptt_sim_dir: str = "/root/mcptt_sim"
     mcptt_sim_jar_name: str = "utgen-jar-with-dependencies.jar"
+    # 실행 커맨드(-i/-p/-cp/target_port)의 기본값(2026-07-29 확인) — Test Case
+    # 등록 시 매번 protocol_params에 안 넣어도 되도록 고정값으로 둔다. 특정
+    # 시험만 다르게 하고 싶으면 protocol_params.local_ip/local_port/
+    # control_port/target_port로 개별 override 가능(McpttBasicCallExecutor.run
+    # 참고). target_host는 여기 없다 — 대시보드 "설정"에 저장된 VCS 접속 IP를
+    # 실행 시점에 그대로 가져다 쓴다(2026-07-30 확인, 별도 고정값 불필요).
+    mcptt_sim_target_port: int = 5060
+    mcptt_sim_local_ip: str = "192.168.7.65"
+    mcptt_sim_local_port: int = 5080
+    mcptt_sim_control_port: int = 6061
     # SIPp 원격 호스트에 로그를 두는 작업 디렉토리. (2026-07-29 기준: McPTT는
     # mcptt_sim_dir의 시나리오를 그대로 참조해서 실행하므로 더 이상 시나리오
     # 업로드/실행 로그 다운로드에 쓰이지 않는다 — 향후 다른 프로토콜/작업
