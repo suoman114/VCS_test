@@ -1,0 +1,78 @@
+.report-page-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.report-content {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.report-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid #111827;
+  padding-bottom: 8px;
+}
+
+.report-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.report-section h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.report-section-note {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0 0 8px;
+}
+
+.report-meta-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 16px;
+  row-gap: 4px;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.report-meta-grid dt {
+  color: #6b7280;
+}
+
+.report-meta-grid dd {
+  margin: 0;
+}
+
+.report-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+@media print {
+  .report-page-toolbar {
+    display: none;
+  }
+
+  .report-content {
+    max-width: none;
+  }
+
+  /* 섹션이 페이지 경계에서 잘려서 표/차트가 반토막 나지 않게 한다. */
+  .report-avoid-break {
+    break-inside: avoid;
+  }
+}

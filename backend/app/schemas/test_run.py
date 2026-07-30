@@ -112,3 +112,40 @@ class TestRunStatsResponse(BaseModel):
     by_category: dict[str, TestRunStatsBucket]
     recent: TestRunStatsBucket
     recent_days: int
+
+
+class HistogramBin(BaseModel):
+    range_start_ms: float
+    range_end_ms: float
+    count: int
+
+
+class SetupTimeStats(BaseModel):
+    """콜 설정(녹취 개시) 소요시간 분포 — `recording_start_req`~`res` 기준
+    (2026-07-30 사용자 확인, CLAUDE.md §13). SIP INVITE~200 OK가 아니다."""
+
+    count: int
+    min_ms: float
+    avg_ms: float
+    p50_ms: float
+    p95_ms: float
+    max_ms: float
+    histogram: list[HistogramBin]
+
+
+class ConcurrencyPoint(BaseModel):
+    """`offset_sec`은 이 Test Run에서 첫 콜이 시작된 시각(0) 기준 경과 초."""
+
+    offset_sec: int
+    concurrent_calls: int
+
+
+class ReportStatsResponse(BaseModel):
+    """리포트 전용 파생 통계(`GET /test-runs/{id}/report-stats`,
+    `app.services.report_stats`). 계산 비용 때문에 라이브 폴링에는 얹지
+    않는다 — 리포트 화면 진입 시 1회만 호출하는 용도. `setup_time`은 데이터가
+    없으면(REQ/RES 짝을 못 찾으면) `None`이다."""
+
+    setup_time: SetupTimeStats | None
+    concurrency_series: list[ConcurrencyPoint]
+    bucket_seconds: int

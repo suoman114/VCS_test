@@ -150,6 +150,38 @@ export interface CallIdListResponse {
   items: string[];
 }
 
+/**
+ * 리포트용 파생 통계 (CONFIRMED — `app.schemas.test_run.ReportStatsResponse`,
+ * `GET /test-runs/{id}/report-stats`, 2026-07-30 추가). 콜 설정 시간은
+ * SIP INVITE~200 OK가 아니라 recording_start_req~res(녹취 개시) 기준이다.
+ */
+export interface HistogramBin {
+  range_start_ms: number;
+  range_end_ms: number;
+  count: number;
+}
+
+export interface SetupTimeStats {
+  count: number;
+  min_ms: number;
+  avg_ms: number;
+  p50_ms: number;
+  p95_ms: number;
+  max_ms: number;
+  histogram: HistogramBin[];
+}
+
+export interface ConcurrencyPoint {
+  offset_sec: number;
+  concurrent_calls: number;
+}
+
+export interface ReportStatsResponse {
+  setup_time: SetupTimeStats | null;
+  concurrency_series: ConcurrencyPoint[];
+  bucket_seconds: number;
+}
+
 export type CallEventSource =
   | "vctp_log"
   | "vcsm_log"

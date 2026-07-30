@@ -289,6 +289,7 @@ export function ExecutionPage() {
 
       <div className="execution-links">
         <Link to="/history">시험 이력으로 이동</Link>
+        <Link to={`/report/${runId}`}>리포트 보기</Link>
       </div>
     </div>
   );

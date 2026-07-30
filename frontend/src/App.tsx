@@ -4,6 +4,7 @@ import { TestCasesPage } from "./pages/TestCases/TestCasesPage";
 import { ExecutionPage } from "./pages/Execution/ExecutionPage";
 import { CallFlowPage } from "./pages/CallFlow/CallFlowPage";
 import { HistoryPage } from "./pages/History/HistoryPage";
+import { ReportPage } from "./pages/Report/ReportPage";
 import { SettingsPage } from "./pages/Settings/SettingsPage";
 import "./App.css";
 
@@ -41,6 +42,7 @@ export function App() {
           <Route path="/execution" element={<ExecutionPage />} />
           <Route path="/execution/:runId" element={<ExecutionPage />} />
           <Route path="/call-flow/:runId" element={<CallFlowPage />} />
+          <Route path="/report/:runId" element={<ReportPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<div>페이지를 찾을 수 없습니다.</div>} />

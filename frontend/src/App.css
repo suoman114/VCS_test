@@ -61,3 +61,16 @@ button:disabled {
 a {
   color: #2563eb;
 }
+
+/* 리포트 페이지를 인쇄/PDF 저장할 때 상단 내비게이션은 필요 없다(2026-07-30
+   추가) — 다른 페이지를 인쇄할 때도 같은 원칙이 적용되는 게 자연스러워서
+   페이지 범위로 좁히지 않고 전역으로 둔다. */
+@media print {
+  .app-header {
+    display: none;
+  }
+  .app-main {
+    padding: 0;
+    max-width: none;
+  }
+}

@@ -131,6 +131,7 @@ export function HistoryPage() {
                 <td className="actions">
                   <Link to={`/execution/${run.id}`}>로그</Link>
                   <Link to={`/call-flow/${run.id}`}>Call Flow</Link>
+                  <Link to={`/report/${run.id}`}>리포트</Link>
                 </td>
               </tr>
             ))}

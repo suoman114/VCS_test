@@ -17,6 +17,7 @@ import type {
   CallEventListResponse,
   CallFlowResponse,
   CallIdListResponse,
+  ReportStatsResponse,
   TestRun,
   TestRunListParams,
   TestRunListResponse,
@@ -47,6 +48,11 @@ export const testRunsApi = {
   /** 콜별 Call Flow 선택 드롭다운용 call_id 목록. */
   getCallIds: (runId: string): Promise<CallIdListResponse> =>
     apiClient.get<CallIdListResponse>(`/test-runs/${runId}/call-ids`),
+
+  /** 리포트용 파생 통계(콜 설정 시간 분포 + 시간별 동시 통화 수). 계산
+   * 비용 때문에 리포트 화면 진입 시에만 호출해야 한다(라이브 폴링 금지). */
+  getReportStats: (runId: string, bucketSeconds = 5): Promise<ReportStatsResponse> =>
+    apiClient.get<ReportStatsResponse>(`/test-runs/${runId}/report-stats`, { bucket_seconds: bucketSeconds }),
 
   getEvents: (runId: string, params: CallEventListParams = {}): Promise<CallEventListResponse> =>
     apiClient.get<CallEventListResponse>(`/test-runs/${runId}/events`, {

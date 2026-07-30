@@ -32,6 +32,9 @@ from app.schemas.test_run import (
     CallFlowMessageRead,
     CallFlowRead,
     CallIdListResponse,
+    ConcurrencyPoint,
+    ReportStatsResponse,
+    SetupTimeStats,
     TestRunListResponse,
     TestRunRead,
     TestRunStatsBucket,
@@ -40,6 +43,7 @@ from app.schemas.test_run import (
 from app.services.callflow.generator import detect_protocol, generate_call_flow
 from app.services.execution_common import ADAPTERS_BY_LOG_NAME, parse_collected_logs
 from app.services.executor_base import executor_registry
+from app.services.report_stats import compute_call_setup_time_stats, compute_concurrency_time_series
 from app.ws.manager import manager
 
 router = APIRouter(tags=["test-runs"])
@@ -337,6 +341,28 @@ def list_test_run_call_ids(run_id: str, db: Session = Depends(get_db)) -> CallId
         if e.call_id:
             seen[e.call_id] = None
     return CallIdListResponse(items=list(seen.keys()))
+
+
+@router.get("/test-runs/{run_id}/report-stats", response_model=ReportStatsResponse)
+def get_test_run_report_stats(
+    run_id: str,
+    bucket_seconds: int = Query(default=5, ge=1, le=300),
+    db: Session = Depends(get_db),
+) -> ReportStatsResponse:
+    """리포트용 파생 통계 — 콜 설정 시간 분포 / 시간별 동시 통화 수(2026-07-30
+    요청, CLAUDE.md §13 TBD 해소). 계산 비용 때문에 라이브 폴링에는 얹지
+    않는다(`app.services.report_stats` 모듈 docstring 참고) — 리포트 화면
+    진입 시에만 호출한다.
+    """
+    test_run = _get_test_run_or_404(db, run_id)
+    events = _load_events(db, test_run)
+    setup = compute_call_setup_time_stats(events)
+    concurrency = compute_concurrency_time_series(events, bucket_seconds=bucket_seconds)
+    return ReportStatsResponse(
+        setup_time=SetupTimeStats(**setup) if setup else None,
+        concurrency_series=[ConcurrencyPoint(**point) for point in concurrency],
+        bucket_seconds=bucket_seconds,
+    )
 
 
 @router.get("/test-runs/{run_id}/events", response_model=CallEventListResponse)
