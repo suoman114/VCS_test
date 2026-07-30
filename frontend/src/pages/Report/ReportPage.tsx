@@ -9,6 +9,13 @@
  * 있다 — 데이터가 없으면(`setup_time`이 null, `concurrency_series`가 빈
  * 배열) 그 섹션 자체를 렌더링하지 않는다(기본 호처리 시험 리포트에는
  * 안 보이는 게 정상).
+ *
+ * Call Flow는 필터 없는 전체 다이어그램 대신 첫 번째 call_id 하나만
+ * 대표로 보여준다(2026-07-30 요청) — 성능 시험은 같은 시나리오를 반복
+ * 실행하는 것이라 콜마다 흐름이 사실상 동일하고, 모든 콜을 한 다이어그램에
+ * 합치면(ExecutionPage에 call_id 필터를 추가했던 바로 그 이유) 리포트에서도
+ * 똑같이 못 읽는 그림이 된다. call_id가 하나도 없으면(레거시 데이터 등)
+ * 전체 다이어그램으로 폴백한다.
  */
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -26,6 +33,8 @@ export function ReportPage() {
   const [run, setRun] = useState<TestRun | null>(null);
   const [testCase, setTestCase] = useState<TestCaseRead | null>(null);
   const [callFlow, setCallFlow] = useState<CallFlowResponse | null>(null);
+  const [callFlowCallId, setCallFlowCallId] = useState<string | null>(null);
+  const [totalCallCount, setTotalCallCount] = useState(0);
   const [reportStats, setReportStats] = useState<ReportStatsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,14 +52,25 @@ export function ReportPage() {
         setRun(runData);
 
         // report-stats는 리포트 화면 진입 시에만 호출한다 — 라이브 폴링 금지(계산 비용 때문).
-        const [testCaseData, reportStatsData, callFlowData] = await Promise.all([
+        const [testCaseData, reportStatsData, callIdsData] = await Promise.all([
           testCasesApi.get(runData.test_case_id).catch(() => null),
           testRunsApi.getReportStats(runId).catch(() => null),
-          testRunsApi.getCallFlow(runId).catch(() => null),
+          testRunsApi.getCallIds(runId).catch(() => null),
         ]);
         if (cancelled) return;
         setTestCase(testCaseData);
         setReportStats(reportStatsData);
+
+        const callIds = callIdsData?.items ?? [];
+        setTotalCallCount(callIds.length);
+        // 대표로 첫 콜 하나만 보여준다(모듈 docstring 참고) — call_id가 없으면
+        // (레거시 데이터 등) 필터 없는 전체 다이어그램으로 폴백한다.
+        const representativeCallId = callIds[0] ?? null;
+        setCallFlowCallId(representativeCallId);
+        const callFlowData = await testRunsApi
+          .getCallFlow(runId, representativeCallId ?? undefined)
+          .catch(() => null);
+        if (cancelled) return;
         setCallFlow(callFlowData);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : "리포트 데이터를 불러오지 못했습니다");
@@ -138,6 +158,13 @@ export function ReportPage() {
 
           <section className="report-section report-avoid-break">
             <h2>Call Flow</h2>
+            {callFlowCallId && totalCallCount > 1 && (
+              <p className="report-section-note">
+                대표 콜 1건({callFlowCallId})의 흐름입니다. 총 {totalCallCount}개 콜이 동일한 시나리오를
+                반복합니다 — 콜별로 따로 보려면{" "}
+                <Link to={`/execution/${runId}`}>실행 화면</Link>의 "콜 선택" 드롭다운을 사용하세요.
+              </p>
+            )}
             {callFlow ? (
               <MermaidDiagram source={callFlow.mermaid_source} />
             ) : (
