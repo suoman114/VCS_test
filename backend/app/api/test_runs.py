@@ -31,12 +31,13 @@ from app.schemas.test_run import (
     CallEventRead,
     CallFlowMessageRead,
     CallFlowRead,
+    CallIdListResponse,
     TestRunListResponse,
     TestRunRead,
     TestRunStatsBucket,
     TestRunStatsResponse,
 )
-from app.services.callflow.generator import generate_call_flow
+from app.services.callflow.generator import detect_protocol, generate_call_flow
 from app.services.execution_common import ADAPTERS_BY_LOG_NAME, parse_collected_logs
 from app.services.executor_base import executor_registry
 from app.ws.manager import manager
@@ -268,7 +269,9 @@ def get_test_run(run_id: str, db: Session = Depends(get_db)) -> TestRun:
 
 
 @router.get("/test-runs/{run_id}/call-flow", response_model=CallFlowRead)
-def get_test_run_call_flow(run_id: str, db: Session = Depends(get_db)) -> CallFlowRead:
+def get_test_run_call_flow(
+    run_id: str, call_id: str | None = Query(default=None), db: Session = Depends(get_db)
+) -> CallFlowRead:
     """저장된 Mermaid 텍스트 + 메시지별 CallEvent 참조(클릭-투-로그용)를 반환한다.
 
     `mermaid_source`는 DB에 저장된 값을 그대로 쓰지만(최종 확정 시 명시적
@@ -276,6 +279,15 @@ def get_test_run_call_flow(run_id: str, db: Session = Depends(get_db)) -> CallFl
     구한 이벤트에서 다시 계산한다(저장 비용이 낮은 파생 데이터라 DB 스키마를
     늘리지 않았다). 실행 중에는 `_load_events`가 원본 로그를 즉석 파싱해서
     채워주므로, 실행 중에도 클릭-투-로그가 동작한다.
+
+    `call_id` 쿼리 파라미터(2026-07-30 추가, McPTT 성능 시험 요청)를 주면
+    그 콜의 이벤트만으로 Mermaid를 즉석에서 다시 생성한다 — 성능 시험처럼
+    한 Test Run에 수십~수백 콜이 섞여 있으면 전체를 한 다이어그램에
+    합쳐봤자 어느 화살표가 어느 콜인지 구별이 안 돼서 사실상 못 읽는다.
+    `protocol`은 (필터링된 콜에는 SIP 이벤트가 없을 수도 있으므로) 항상
+    전체 이벤트 기준으로 판별해 명시적으로 넘긴다 — 그렇지 않으면
+    `detect_protocol`이 필터링된 부분집합만 보고 엉뚱한 프로토콜로
+    새 라벨(VCTP/VCSM 등)을 붙일 수 있다.
     """
     test_run = _get_test_run_or_404(db, run_id)
     diagram = db.execute(
@@ -287,18 +299,44 @@ def get_test_run_call_flow(run_id: str, db: Session = Depends(get_db)) -> CallFl
             detail="Call flow not generated yet (run may still be in progress)",
         )
 
-    events = _load_events(db, test_run)
-    _, message_index = generate_call_flow(list(events))
+    events = list(_load_events(db, test_run))
+
+    if call_id is not None:
+        protocol = detect_protocol(events)
+        filtered = [e for e in events if e.call_id == call_id]
+        if not filtered:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=f"call_id={call_id!r}에 해당하는 이벤트가 없다"
+            )
+        mermaid_source, message_index = generate_call_flow(filtered, protocol=protocol)
+    else:
+        mermaid_source = diagram.mermaid_source
+        _, message_index = generate_call_flow(events)
 
     return CallFlowRead(
         run_id=diagram.run_id,
-        mermaid_source=diagram.mermaid_source,
+        mermaid_source=mermaid_source,
         generated_at=diagram.generated_at,
         messages=[
             CallFlowMessageRead(index=m.index, seq_no=m.seq_no, source=m.source, call_id=m.call_id)
             for m in message_index
         ],
     )
+
+
+@router.get("/test-runs/{run_id}/call-ids", response_model=CallIdListResponse)
+def list_test_run_call_ids(run_id: str, db: Session = Depends(get_db)) -> CallIdListResponse:
+    """이 Test Run에 등장한 call_id 목록(McPTT 성능 시험의 콜별 Call Flow
+    선택 드롭다운용, 2026-07-30 추가). 처음 등장한 순서(seq_no 기준)를
+    유지한다 — 시험 진행 순서와 일치해서 알파벳 정렬보다 직관적이다.
+    """
+    test_run = _get_test_run_or_404(db, run_id)
+    events = sorted(_load_events(db, test_run), key=lambda e: e.seq_no)
+    seen: dict[str, None] = {}
+    for e in events:
+        if e.call_id:
+            seen[e.call_id] = None
+    return CallIdListResponse(items=list(seen.keys()))
 
 
 @router.get("/test-runs/{run_id}/events", response_model=CallEventListResponse)

@@ -79,6 +79,15 @@ class CallFlowRead(BaseModel):
     messages: list[CallFlowMessageRead] = []
 
 
+class CallIdListResponse(BaseModel):
+    """McPTT 성능 시험처럼 한 Test Run에 콜이 여러 건 섞여 있을 때, Call Flow를
+    콜 단위로 구별해서 보기 위한 call_id 목록(`GET /test-runs/{id}/call-ids`).
+    처음 등장한 순서(seq_no 기준)를 그대로 유지한다 — 알파벳 정렬보다 시험
+    진행 순서와 일치해서 더 직관적이다."""
+
+    items: list[str]
+
+
 class TestRunStatsBucket(BaseModel):
     """상태 개수 -> Pass율 요약. `pass_rate`는 종료된 실행(done/failed/error)
     기준이다 — 대기/실행/분석 중인 run은 아직 결과가 없으므로 분모에서 뺀다.

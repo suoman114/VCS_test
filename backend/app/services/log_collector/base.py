@@ -33,12 +33,21 @@ class LogSourceError(RuntimeError):
 class RetryPolicy:
     """연결 끊김/일시적 읽기 실패 시 재연결 재시도 정책 (지수 백오프).
 
-    연속 `max_retries`회 실패하면 `LogSourceError`를 발생시켜 상위가 해당
-    소스를 포기하도록 한다. 최소 1줄이라도 성공적으로 수신하면 연속 실패
-    카운터는 0으로 리셋된다 (일시적 네트워크 문제와 완전한 장애를 구분).
+    `max_retries`가 정수면 연속 그만큼 실패했을 때 `LogSourceError`를
+    발생시켜 상위가 해당 소스를 포기하도록 한다. 최소 1줄이라도 성공적으로
+    수신하면 연속 실패 카운터는 0으로 리셋된다(일시적 네트워크 문제와 완전한
+    장애를 구분).
+
+    **기본값은 `None`(무제한 재시도)이다**(2026-07-30 변경) — 예전 기본값
+    5회는 McPTT 성능 시험처럼 시험 하나가 수십 분~그 이상 이어지는 경우,
+    그 사이 VCS SSH 연결이 몇 번만 끊겨도(네트워크 순단 등) 로그 스트리밍이
+    시험 종료 전에 영구히 멈춰버리는 문제가 실제로 보고됐다(재시도 자체는
+    최대 30초 간격으로 계속 시도하므로, 무제한으로 둬도 VCS에 부담을 주지
+    않는다 — `stop_event`가 set되면 즉시 멈춘다). 유한 재시도가 정말
+    필요한 경우(테스트 등)를 위해 옵션 자체는 남겨둔다.
     """
 
-    max_retries: int = 5
+    max_retries: int | None = None
     initial_backoff: float = 1.0
     max_backoff: float = 30.0
     backoff_multiplier: float = 2.0

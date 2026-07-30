@@ -30,13 +30,16 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 _VOLTE_VCSM_LOG = _REPO_ROOT / "docs" / "log_samples" / "volte" / "vcsm.log"
 
 
-def _make_event(run_id: str, seq_no: int, parsed_type: str, raw_line: str = "") -> CallEvent:
+def _make_event(
+    run_id: str, seq_no: int, parsed_type: str, raw_line: str = "", *, call_id: str | None = None
+) -> CallEvent:
     return CallEvent(
         run_id=run_id,
         ts=datetime.now(timezone.utc),
         source=CallEventSource.VCSM_LOG,
         raw_line=raw_line,
         parsed_type=parsed_type,
+        call_id=call_id,
         seq_no=seq_no,
     )
 
@@ -296,3 +299,97 @@ async def test_events_and_call_flow_fall_back_to_live_parse_while_run_is_still_r
     messages = call_flow_resp.json()["messages"]
     assert len(messages) > 0
     assert messages[0]["source"] == "vcsm_log"
+
+
+@pytest.mark.asyncio
+async def test_call_ids_endpoint_lists_distinct_call_ids_in_first_seen_order(
+    client: httpx.AsyncClient, isolated_db
+) -> None:
+    """2026-07-30 요청: McPTT 성능 시험은 한 Test Run에 콜이 여러 건 섞이므로,
+    콜별로 Call Flow를 골라볼 수 있는 드롭다운용 call_id 목록이 필요하다."""
+    run_id = "run-call-ids"
+    db = isolated_db()
+    try:
+        test_case = TestCase(
+            id="tc-call-ids",
+            name="call-ids-fixture",
+            category=TestCaseCategory.MCPTT,
+            test_type=TestCaseType.PERFORMANCE,
+            config_ref="mcptt_basic_call.xml",
+            protocol_params={},
+            pass_criteria={},
+        )
+        db.add(test_case)
+        db.add(TestRun(id=run_id, test_case_id=test_case.id, status=TestRunStatus.RUNNING))
+        # call-B가 call-A보다 먼저 등장(seq_no 기준)하도록 일부러 섞어서 커밋한다.
+        db.add(_make_event(run_id, 2, "SIP_INVITE", call_id="call-A"))
+        db.add(_make_event(run_id, 1, "SIP_INVITE", call_id="call-B"))
+        db.add(_make_event(run_id, 3, "SIP_BYE", call_id="call-A"))  # call-A 중복 등장은 한 번만 나와야 함
+        db.add(_make_event(run_id, 4, "RECORDING_START_REQ", call_id=None))  # call_id 없는 이벤트는 제외
+        db.commit()
+    finally:
+        db.close()
+
+    resp = await client.get(f"/api/test-runs/{run_id}/call-ids")
+    assert resp.status_code == 200
+    assert resp.json()["items"] == ["call-B", "call-A"]  # seq_no 1이 call-B라 먼저 나온다
+
+
+@pytest.mark.asyncio
+async def test_call_flow_filtered_by_call_id_only_includes_that_calls_messages(
+    client: httpx.AsyncClient, isolated_db
+) -> None:
+    run_id = "run-call-flow-filter"
+    db = isolated_db()
+    try:
+        test_case = TestCase(
+            id="tc-call-flow-filter",
+            name="call-flow-filter-fixture",
+            category=TestCaseCategory.MCPTT,
+            test_type=TestCaseType.PERFORMANCE,
+            config_ref="mcptt_basic_call.xml",
+            protocol_params={},
+            pass_criteria={},
+        )
+        db.add(test_case)
+        db.add(TestRun(id=run_id, test_case_id=test_case.id, status=TestRunStatus.RUNNING))
+        db.add(CallFlowDiagram(run_id=run_id, mermaid_source="sequenceDiagram\n"))
+        db.add(_make_event(run_id, 1, "SIP_INVITE", call_id="call-A"))
+        db.add(_make_event(run_id, 2, "SIP_200OK", raw_line='"reasonCode": 200', call_id="call-A"))
+        db.add(_make_event(run_id, 3, "SIP_INVITE", call_id="call-B"))
+        db.commit()
+    finally:
+        db.close()
+
+    resp = await client.get(f"/api/test-runs/{run_id}/call-flow", params={"call_id": "call-A"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["messages"]) == 2
+    assert all(m["call_id"] == "call-A" for m in body["messages"])
+    assert "SIP_INVITE" in body["mermaid_source"]
+
+
+@pytest.mark.asyncio
+async def test_call_flow_filtered_by_unknown_call_id_404s(client: httpx.AsyncClient, isolated_db) -> None:
+    run_id = "run-call-flow-unknown"
+    db = isolated_db()
+    try:
+        test_case = TestCase(
+            id="tc-call-flow-unknown",
+            name="call-flow-unknown-fixture",
+            category=TestCaseCategory.VOLTE,
+            test_type=TestCaseType.BASIC_CALL,
+            config_ref="imsVideo30sec.pcap",
+            protocol_params={},
+            pass_criteria={},
+        )
+        db.add(test_case)
+        db.add(TestRun(id=run_id, test_case_id=test_case.id, status=TestRunStatus.DONE))
+        db.add(CallFlowDiagram(run_id=run_id, mermaid_source="sequenceDiagram\n"))
+        db.add(_make_event(run_id, 1, "SIP_INVITE", call_id="call-A"))
+        db.commit()
+    finally:
+        db.close()
+
+    resp = await client.get(f"/api/test-runs/{run_id}/call-flow", params={"call_id": "does-not-exist"})
+    assert resp.status_code == 404

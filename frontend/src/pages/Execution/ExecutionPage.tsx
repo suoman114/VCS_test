@@ -39,6 +39,34 @@ export function ExecutionPage() {
 
   const [callFlow, setCallFlow] = useState<CallFlowResponse | null>(null);
   const callFlowPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // McPTT 성능 시험처럼 한 Test Run에 콜이 여러 건 섞이는 경우 Call Flow를
+  // call_id 단위로 골라볼 수 있게 한다(2026-07-30 추가). null이면 "전체".
+  const [callIds, setCallIds] = useState<string[]>([]);
+  const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
+
+  const fetchCallIds = useCallback(async () => {
+    if (!runId) return;
+    try {
+      const data = await testRunsApi.getCallIds(runId);
+      setCallIds(data.items);
+    } catch {
+      // 아직 이벤트가 없을 수 있음 — 조용히 무시(드롭다운은 "전체"만 노출).
+    }
+  }, [runId]);
+
+  // 주 경로는 WebSocket "call_flow" push(handleWsMessage)다. 이 REST 호출은
+  // 최초 로드(WS 연결 완료 전에 이미 일부 진행된 run에 들어온 경우)와
+  // fallback, 그리고 call_id 필터를 바꿨을 때 그 콜만 다시 가져오는 데 쓰인다.
+  // 아직 생성 전이면 404가 정상이라 화면 상단 에러로는 띄우지 않는다.
+  const fetchCallFlow = useCallback(async () => {
+    if (!runId) return;
+    try {
+      const data = await testRunsApi.getCallFlow(runId, selectedCallId ?? undefined);
+      setCallFlow(data);
+    } catch {
+      // 아직 생성되지 않았을 수 있음(진행 중) — 조용히 무시하고 다음 폴링을 기다린다.
+    }
+  }, [runId, selectedCallId]);
 
   const handleWsMessage = useCallback(
     (msg: WsMessage) => {
@@ -49,15 +77,24 @@ export function ExecutionPage() {
       } else if (msg.type === "status") {
         setLiveStatus(msg.status);
       } else if (msg.type === "call_flow") {
-        setCallFlow({
-          run_id: msg.run_id,
-          mermaid_source: msg.mermaid_source,
-          generated_at: msg.generated_at,
-          messages: msg.messages,
-        });
+        // WS push는 항상 필터 없는 전체 Call Flow다(execution_common
+        // .persist_call_flow는 call_id 필터를 모른다). "전체" 보기 중이면
+        // 그대로 반영하고, 특정 콜로 필터링 중이면 그 콜만 REST로 다시
+        // 가져온다 — 성능 시험은 콜이 계속 늘어나므로 목록도 같이 새로고침.
+        if (selectedCallId === null) {
+          setCallFlow({
+            run_id: msg.run_id,
+            mermaid_source: msg.mermaid_source,
+            generated_at: msg.generated_at,
+            messages: msg.messages,
+          });
+        } else {
+          fetchCallFlow();
+        }
+        fetchCallIds();
       }
     },
-    [appendLine, setSourceError, setLiveStatus],
+    [appendLine, setSourceError, setLiveStatus, selectedCallId, fetchCallFlow, fetchCallIds],
   );
 
   // Call Flow에서 메시지(INVITE/100/180 등)를 클릭하면 로그 뷰어가 해당
@@ -121,29 +158,26 @@ export function ExecutionPage() {
     }
   }, [runId, fetchRun]);
 
-  // 주 경로는 WebSocket "call_flow" push(handleWsMessage)다. 이 REST 폴링은
-  // 최초 로드(WS 연결 완료 전에 이미 일부 진행된 run에 들어온 경우)와
-  // fallback용이다. 아직 생성 전이면 404가 정상이라 화면 상단 에러로는
-  // 띄우지 않고 "아직 생성되지 않음"으로만 표시한다.
-  const fetchCallFlow = useCallback(async () => {
-    if (!runId) return;
-    try {
-      const data = await testRunsApi.getCallFlow(runId);
-      setCallFlow(data);
-    } catch {
-      // 아직 생성되지 않았을 수 있음(진행 중) — 조용히 무시하고 다음 폴링을 기다린다.
-    }
+  // runId가 바뀌면(다른 Test Run으로 이동) Call Flow 상태를 전부 초기화한다
+  // (call_id 필터는 이전 run에서 고른 값이 남아있으면 안 되므로 같이 리셋).
+  useEffect(() => {
+    setCallFlow(null);
+    setCallIds([]);
+    setSelectedCallId(null);
   }, [runId]);
 
   useEffect(() => {
     if (!runId) return;
-    setCallFlow(null);
     fetchCallFlow();
-    callFlowPollRef.current = setInterval(fetchCallFlow, CALL_FLOW_POLL_INTERVAL_MS);
+    fetchCallIds();
+    callFlowPollRef.current = setInterval(() => {
+      fetchCallFlow();
+      fetchCallIds();
+    }, CALL_FLOW_POLL_INTERVAL_MS);
     return () => {
       if (callFlowPollRef.current) clearInterval(callFlowPollRef.current);
     };
-  }, [runId, fetchCallFlow]);
+  }, [runId, fetchCallFlow, fetchCallIds]);
 
   useEffect(() => {
     if (run && TERMINAL_STATUSES.has(run.status) && callFlowPollRef.current) {
@@ -214,6 +248,24 @@ export function ExecutionPage() {
 
         <div className="call-flow-section">
           <h3>Call Flow</h3>
+          {callIds.length > 0 && (
+            <div className="call-flow-filter">
+              <label>
+                콜 선택:{" "}
+                <select
+                  value={selectedCallId ?? ""}
+                  onChange={(e) => setSelectedCallId(e.target.value === "" ? null : e.target.value)}
+                >
+                  <option value="">전체 ({callIds.length}건)</option>
+                  {callIds.map((callId) => (
+                    <option key={callId} value={callId}>
+                      {callId}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
           <div className="split-column-meta">
             {callFlow
               ? `생성 시각: ${new Date(callFlow.generated_at).toLocaleString()} · 메시지를 클릭하면 왼쪽 로그에서 해당 줄로 이동합니다.`

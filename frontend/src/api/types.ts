@@ -144,6 +144,12 @@ export interface CallFlowResponse {
   messages: CallFlowMessage[];
 }
 
+/** 콜별 Call Flow 선택 드롭다운용 call_id 목록 (CONFIRMED —
+ * `app.schemas.test_run.CallIdListResponse`). 처음 등장한 순서를 유지한다. */
+export interface CallIdListResponse {
+  items: string[];
+}
+
 export type CallEventSource =
   | "vctp_log"
   | "vcsm_log"

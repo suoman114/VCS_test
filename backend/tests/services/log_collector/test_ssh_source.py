@@ -86,6 +86,30 @@ async def test_exceeds_max_retries_raises(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 @pytest.mark.asyncio
+async def test_default_retry_policy_never_gives_up(monkeypatch: pytest.MonkeyPatch) -> None:
+    """2026-07-30 실 사용 리포트: McPTT 성능 시험처럼 시험 하나가 길게 이어지면
+    그 사이 VCS SSH 연결이 몇 번만 끊겨도(예전 기본값 5회) 로그 스트리밍이
+    시험 종료 전에 영구히 멈춰버렸다. 기본 `RetryPolicy()`(max_retries=None)는
+    실패가 예전 기본값(5회)보다 많이 반복돼도 `LogSourceError`를 던지지
+    않고 계속 재시도해야 한다."""
+    # 예전 기본값(5)보다 많은 연속 실패 뒤에야 성공하는 시나리오.
+    behaviors = ["always_fail"] * 8 + ["lines_then_stop"]
+    monkeypatch.setattr(ssh_source_module, "SSHConnector", _make_fake_connector_factory(behaviors))
+
+    source = SshTailSource(
+        "vcsm_log",
+        "/var/log/vcs/vcsm.log",
+        retry_policy=RetryPolicy(initial_backoff=0.001, max_backoff=0.002),  # max_retries 생략 -> 기본값(무제한)
+    )
+    stop_event = asyncio.Event()
+
+    lines = [line async for line in source.stream(stop_event)]
+
+    assert lines == ["line-3"]
+    assert behaviors == []  # 8번의 실패를 전부 재시도로 넘기고 9번째 시나리오까지 도달함
+
+
+@pytest.mark.asyncio
 async def test_stop_event_during_backoff_ends_without_reconnect(monkeypatch: pytest.MonkeyPatch) -> None:
     behaviors = ["lines_then_drop"]
     monkeypatch.setattr(ssh_source_module, "SSHConnector", _make_fake_connector_factory(behaviors))

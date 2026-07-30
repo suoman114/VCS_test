@@ -79,20 +79,21 @@ class SshTailSource(LogSource):
                 return
 
             attempt += 1
-            if attempt > self._retry_policy.max_retries:
+            max_retries = self._retry_policy.max_retries
+            if max_retries is not None and attempt > max_retries:
                 raise LogSourceError(
                     f"SshTailSource({self.name}): {self._remote_path}에 대한 tail 재연결이 "
-                    f"{self._retry_policy.max_retries}회 연속 실패해 포기한다"
+                    f"{max_retries}회 연속 실패해 포기한다"
                 )
 
             backoff = self._retry_policy.backoff_seconds(attempt)
             logger.info(
-                "SshTailSource(%s): reconnecting to %s in %.1fs (attempt %d/%d)",
+                "SshTailSource(%s): reconnecting to %s in %.1fs (attempt %d/%s)",
                 self.name,
                 self._remote_path,
                 backoff,
                 attempt,
-                self._retry_policy.max_retries,
+                max_retries if max_retries is not None else "무제한",
             )
             try:
                 await asyncio.wait_for(stop_event.wait(), timeout=backoff)

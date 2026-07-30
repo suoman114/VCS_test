@@ -16,6 +16,7 @@ import type {
   CallEventListParams,
   CallEventListResponse,
   CallFlowResponse,
+  CallIdListResponse,
   TestRun,
   TestRunListParams,
   TestRunListResponse,
@@ -37,8 +38,15 @@ export const testRunsApi = {
       offset: params.offset,
     }),
 
-  getCallFlow: (runId: string): Promise<CallFlowResponse> =>
-    apiClient.get<CallFlowResponse>(`/test-runs/${runId}/call-flow`),
+  /** `callId`를 주면 그 콜의 이벤트만으로 다시 생성한 Call Flow를 받는다
+   * (McPTT 성능 시험처럼 한 Test Run에 콜이 여러 건 섞여 있을 때 콜 단위로
+   * 구별해서 보기 위함, 2026-07-30 추가). */
+  getCallFlow: (runId: string, callId?: string): Promise<CallFlowResponse> =>
+    apiClient.get<CallFlowResponse>(`/test-runs/${runId}/call-flow`, callId ? { call_id: callId } : undefined),
+
+  /** 콜별 Call Flow 선택 드롭다운용 call_id 목록. */
+  getCallIds: (runId: string): Promise<CallIdListResponse> =>
+    apiClient.get<CallIdListResponse>(`/test-runs/${runId}/call-ids`),
 
   getEvents: (runId: string, params: CallEventListParams = {}): Promise<CallEventListResponse> =>
     apiClient.get<CallEventListResponse>(`/test-runs/${runId}/events`, {
