@@ -353,6 +353,7 @@ class McpttBasicCallExecutor(TestExecutor):
                 run_id=run_id,
                 pass_criteria=pass_criteria,
                 timeout_sec=timeout_sec,
+                protocol="mcptt",
             )
 
             await session.stop()

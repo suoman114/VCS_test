@@ -115,6 +115,49 @@ async def test_persist_call_flow_upserts_and_broadcasts(
 
 
 @pytest.mark.asyncio
+async def test_persist_call_flow_uses_explicit_protocol_instead_of_guessing(
+    isolated_db, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """2026-07-30 실 서버 리포트: McPTT 시험 실행 중 Call Flow 참가자 레인이
+    처음엔 VCTP/VCSM/VCMM(VoLTE)로 보였다가 몇 초 뒤 SIPp/UE/VCMC로
+    바뀌었다 — McPTT는 SIP 시그널링 소스가 vcmc_log 하나뿐이라, 그 로그의
+    첫 이벤트가 파싱되기 전(vcmm_log의 RECORDING_* 이벤트만 있는 상태)에는
+    `detect_protocol`이 기본값(volte)으로 잘못 추측했기 때문이다. 호출자가
+    `protocol`을 명시하면 이벤트 구성과 무관하게 그 값을 그대로 써야 한다."""
+    broadcasts: list[dict[str, object]] = []
+
+    async def _fake_broadcast(run_id: str, message: dict[str, object]) -> None:
+        broadcasts.append(message)
+
+    monkeypatch.setattr(execution_common_module.manager, "broadcast_to_run", _fake_broadcast)
+
+    run_id = "run-mcptt-early"
+    # vcmc_log 이벤트가 아직 하나도 없는 상태(McPTT 시험 초반, vcmm_log의
+    # RECORDING_START_REQ만 도착한 시점)를 흉내낸다.
+    vcmm_only_events = [
+        CallEvent(
+            run_id=run_id,
+            ts=datetime.now(timezone.utc),
+            source=CallEventSource.VCMM_LOG,
+            raw_line="message send ok.",
+            parsed_type="RECORDING_START_REQ",
+            seq_no=1,
+        )
+    ]
+
+    await persist_call_flow(run_id, vcmm_only_events, protocol="mcptt")
+
+    db = isolated_db()
+    try:
+        row = db.execute(select(CallFlowDiagram).where(CallFlowDiagram.run_id == run_id)).scalar_one()
+    finally:
+        db.close()
+
+    assert "participant SIPp_UE as SIPp/UE" in row.mermaid_source
+    assert "participant VCTP as VCTP" not in row.mermaid_source
+
+
+@pytest.mark.asyncio
 async def test_wait_for_completion_persists_call_flow_before_pass_criteria_met(
     isolated_db, tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

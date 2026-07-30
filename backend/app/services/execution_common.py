@@ -124,6 +124,7 @@ async def wait_for_completion(
     pass_criteria: dict[str, Any] | None,
     timeout_sec: float,
     poll_interval_sec: float = 2.0,
+    protocol: CallFlowProtocol | None = None,
 ) -> CompletionResult:
     """수집된 로그를 주기적으로 재파싱해 Pass 조건 충족 또는 타임아웃까지 대기한다.
 
@@ -132,6 +133,14 @@ async def wait_for_completion(
     즉시 종료하고, 아니면 `timeout_sec`까지 폴링한 뒤 그 시점까지 수집된
     이벤트로 최종 판정한다(타임아웃 시 `timed_out=True`와 함께 그 시점의
     Pass/Fail 결과를 그대로 반환 — 대부분 Fail이겠지만 강제하지 않는다).
+
+    `protocol`은 호출자(volte/mcptt executor)가 이미 알고 있는 값을 그대로
+    넘겨야 한다(2026-07-30 실 서버 리포트 수정) — 비워두면 폴링 중간마다
+    `persist_call_flow`가 그 시점까지 모인 이벤트만으로 프로토콜을 추측하는데,
+    McPTT는 SIP 시그널링 소스가 vcmc_log 하나뿐이라 그 로그의 첫 이벤트가
+    파싱되기 전까지는 이벤트가 vcmm_log(RECORDING_*)뿐이라 추측이 기본값인
+    volte로 잘못 나온다 — Call Flow 참가자 레인이 처음엔 VCTP/VCSM/VCMM로
+    보였다가 몇 초 뒤 SIPp/UE/VCMC로 바뀌는 증상으로 관찰됨.
     """
     deadline = time.monotonic() + timeout_sec
     events: list[CallEvent] = []
@@ -152,7 +161,7 @@ async def wait_for_completion(
         # 기다리지 않고, 폴링마다 그때까지 모인 이벤트로 Call Flow를 미리
         # 갱신해서 WS로 push한다 — 실행이 끝나야만 다이어그램이 나타나던
         # 문제(대시보드에서 "실시간"으로 안 느껴진다는 피드백)를 해결한다.
-        await persist_call_flow(run_id, events)
+        await persist_call_flow(run_id, events, protocol=protocol)
         result = evaluate_pass_fail(events, pass_criteria)
         if result.passed:
             return CompletionResult(events=events, pass_fail=result, timed_out=False)
@@ -202,29 +211,36 @@ async def _broadcast_call_flow(
 
 
 def _persist_call_flow_sync(
-    run_id: str, events: list[CallEvent]
+    run_id: str, events: list[CallEvent], protocol: CallFlowProtocol | None
 ) -> tuple[str, list[CallFlowMessageRef]]:
     db = SessionLocal()
     try:
-        mermaid_source, message_index = _upsert_call_flow(db, run_id, events, protocol=None)
+        mermaid_source, message_index = _upsert_call_flow(db, run_id, events, protocol)
         db.commit()
         return mermaid_source, message_index
     finally:
         db.close()
 
 
-async def persist_call_flow(run_id: str, events: list[CallEvent]) -> None:
+async def persist_call_flow(
+    run_id: str, events: list[CallEvent], protocol: CallFlowProtocol | None = None
+) -> None:
     """실행 도중 그때까지 수집된 이벤트만으로 Call Flow를 미리 갱신하고 WS로 push한다.
 
-    `events`가 비어있으면(아직 아무 로그도 안 들어온 초반) 건너뛴다 —
-    프로토콜 자동판별(`generate_call_flow`의 `protocol=None`)이 기본값(volte)으로
-    잘못 표시되는 걸 막고, 의미 없는 DB 쓰기/브로드캐스트도 줄인다. `CallEvent`
-    자체는 여기서 저장하지 않는다(최종 확정은 `persist_results`가 한 번만
-    수행 — 매 폴링마다 재파싱한 이벤트를 그때마다 insert하면 중복이 생긴다).
+    `events`가 비어있으면(아직 아무 로그도 안 들어온 초반) 건너뛴다 — 의미
+    없는 DB 쓰기/브로드캐스트를 줄인다. `protocol`을 호출자(`wait_for_completion`)가
+    넘겨주지 않으면(`None`) `generate_call_flow`가 그 시점까지 모인 이벤트만으로
+    프로토콜을 추측하는데, 로그 소스가 아직 일부만 도착한 상태에서는 틀리게
+    추측할 수 있다(2026-07-30, McPTT가 초반에 VoLTE로 잘못 표시되던 문제 —
+    `wait_for_completion`의 `protocol` 인자 문서 참고). `CallEvent` 자체는
+    여기서 저장하지 않는다(최종 확정은 `persist_results`가 한 번만 수행 —
+    매 폴링마다 재파싱한 이벤트를 그때마다 insert하면 중복이 생긴다).
     """
     if not events:
         return
-    mermaid_source, message_index = await asyncio.to_thread(_persist_call_flow_sync, run_id, events)
+    mermaid_source, message_index = await asyncio.to_thread(
+        _persist_call_flow_sync, run_id, events, protocol
+    )
     await _broadcast_call_flow(run_id, mermaid_source, message_index)
 
 
