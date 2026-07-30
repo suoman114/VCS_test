@@ -1,6 +1,9 @@
 """`generate_mermaid()`/`generate_call_flow()` 단위 테스트 (실제 VoLTE/McPTT 성공 샘플 기반)."""
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
+from app.models.call_event import CallEvent, CallEventSource
 from app.services.callflow import detect_protocol, generate_mermaid
 from app.services.callflow.generator import generate_call_flow
 from app.services.log_parser import (
@@ -102,3 +105,36 @@ def test_include_vctp_relay_opt_in() -> None:
     events = _volte_events()
     mermaid = generate_mermaid(events, include_vctp_relay=True)
     assert "vctp relay" in mermaid
+
+
+def test_mcptt_vcmc_event_still_renders_when_is_sender_attribute_missing() -> None:
+    """2026-07-30 실 서버 리포트: vcmc.log에 INVITE가 들어오는데 Call Flow에
+    안 보이는 문제. `_edge_for_vcmc`가 `isSender` 속성을 raw_line에서 못
+    찾으면(원인 불문 — 로그 포맷 변형, 파싱 경계 등) 예전엔 해당 메시지를
+    통째로 버렸다 — 요청(INVITE/BYE, reason_code 없음)과 응답(200 OK 등,
+    reason_code 있음) 둘 다 최소한 화면에는 보여야 한다(방향은 근사치)."""
+    invite = CallEvent(
+        run_id="run-1",
+        ts=datetime(2026, 7, 30, 1, 0, 0, tzinfo=timezone.utc),
+        source=CallEventSource.VCMC_LOG,
+        parsed_type="SIP_INVITE",
+        raw_line="<message\ncallId=\"abc\"\nfirstLine=\"INVITE sip:foo SIP/2.0\"\n>\n<![CDATA[...]]>\n</message>",
+        call_id="abc",
+        reason_code=None,
+        seq_no=0,
+    )
+    ok_200 = CallEvent(
+        run_id="run-1",
+        ts=datetime(2026, 7, 30, 1, 0, 1, tzinfo=timezone.utc),
+        source=CallEventSource.VCMC_LOG,
+        parsed_type="SIP_200",
+        raw_line="<message\ncallId=\"abc\"\nfirstLine=\"SIP/2.0 200 OK\"\n>\n<![CDATA[...]]>\n</message>",
+        call_id="abc",
+        reason_code=200,
+        seq_no=1,
+    )
+
+    mermaid = generate_mermaid([invite, ok_200], protocol="mcptt")
+
+    assert "SIPp_UE->>VCMC: SIP_INVITE" in mermaid
+    assert "VCMC-->>SIPp_UE: SIP_200" in mermaid
