@@ -38,3 +38,81 @@
   font-size: 0.8rem;
   color: #6b7280;
 }
+
+.stats-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 160px;
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.stat-value-good {
+  color: #16a34a;
+}
+
+.stat-value-warn {
+  color: #d97706;
+}
+
+.stat-value-muted {
+  color: #9ca3af;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.stat-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.stat-chip {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.stat-chip-done {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.stat-chip-failed {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.stat-chip-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.stat-chip-progress {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.stats-note {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}

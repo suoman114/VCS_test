@@ -5,6 +5,9 @@
 """
 from __future__ import annotations
 
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -29,6 +32,8 @@ from app.schemas.test_run import (
     CallFlowRead,
     TestRunListResponse,
     TestRunRead,
+    TestRunStatsBucket,
+    TestRunStatsResponse,
 )
 from app.services.callflow.generator import generate_call_flow
 from app.services.execution_common import ADAPTERS_BY_LOG_NAME, parse_collected_logs
@@ -36,6 +41,28 @@ from app.services.executor_base import executor_registry
 from app.ws.manager import manager
 
 router = APIRouter(tags=["test-runs"])
+
+STATS_RECENT_DAYS = 7
+_IN_PROGRESS_STATUSES = (TestRunStatus.PENDING, TestRunStatus.RUNNING, TestRunStatus.PARSING)
+
+
+def _stats_bucket_from_counts(counts: dict[TestRunStatus, int]) -> TestRunStatsBucket:
+    """상태별 개수 -> `TestRunStatsBucket`. `pass_rate`는 종료된 실행
+    (done/failed/error) 기준으로만 계산한다 — 대기/실행 중인 run을 분모에
+    넣으면 시험이 몰리는 시점에 실제와 무관하게 Pass율이 출렁인다."""
+    passed = counts.get(TestRunStatus.DONE, 0)
+    failed = counts.get(TestRunStatus.FAILED, 0)
+    error = counts.get(TestRunStatus.ERROR, 0)
+    in_progress = sum(counts.get(s, 0) for s in _IN_PROGRESS_STATUSES)
+    finished = passed + failed + error
+    return TestRunStatsBucket(
+        total=finished + in_progress,
+        passed=passed,
+        failed=failed,
+        error=error,
+        in_progress=in_progress,
+        pass_rate=(passed / finished) if finished else None,
+    )
 
 
 def _get_test_run_or_404(db: Session, run_id: str) -> TestRun:
@@ -158,6 +185,47 @@ def list_test_runs(
         db.execute(stmt.order_by(TestRun.created_at.desc()).offset(offset).limit(limit)).scalars().all()
     )
     return TestRunListResponse(items=list(items), total=total)
+
+
+@router.get("/test-runs/stats", response_model=TestRunStatsResponse)
+def get_test_run_stats(db: Session = Depends(get_db)) -> TestRunStatsResponse:
+    """대시보드 통계 카드용 집계 — 전체/프로토콜(VoLTE·McPTT)별/최근 N일 Pass율.
+
+    **라우트 등록 순서 주의**: `/test-runs/{run_id}`보다 반드시 먼저 등록해야
+    한다 — 그렇지 않으면 `GET /test-runs/stats`가 `run_id="stats"`로 해석돼
+    `get_test_run`(404)로 새어나간다(FastAPI/Starlette는 라우트를 등록 순서로
+    매칭).
+
+    Test Run 개수가 대시보드에서 매번 원본을 다시 훑어야 할 만큼 큰
+    데이터셋이 아니라서, DB에 GROUP BY로 집계 카운트만 요청하고 Python에서
+    버킷으로 재조합한다 — 원본 로그/CallEvent는 전혀 읽지 않는다
+    (token-guardian-agent 원칙).
+    """
+    rows = db.execute(
+        select(TestCase.category, TestRun.status, func.count())
+        .select_from(TestRun)
+        .join(TestCase, TestRun.test_case_id == TestCase.id)
+        .group_by(TestCase.category, TestRun.status)
+    ).all()
+
+    overall_counts: dict[TestRunStatus, int] = defaultdict(int)
+    by_category_counts: dict[str, dict[TestRunStatus, int]] = defaultdict(lambda: defaultdict(int))
+    for category, run_status, count in rows:
+        overall_counts[run_status] += count
+        by_category_counts[category.value][run_status] += count
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=STATS_RECENT_DAYS)
+    recent_rows = db.execute(
+        select(TestRun.status, func.count()).where(TestRun.created_at >= cutoff).group_by(TestRun.status)
+    ).all()
+    recent_counts: dict[TestRunStatus, int] = dict(recent_rows)
+
+    return TestRunStatsResponse(
+        overall=_stats_bucket_from_counts(overall_counts),
+        by_category={cat: _stats_bucket_from_counts(counts) for cat, counts in by_category_counts.items()},
+        recent=_stats_bucket_from_counts(recent_counts),
+        recent_days=STATS_RECENT_DAYS,
+    )
 
 
 @router.get("/test-runs/{run_id}", response_model=TestRunRead)

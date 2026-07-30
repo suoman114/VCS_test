@@ -104,6 +104,27 @@ export interface TestRunListParams {
 }
 
 /**
+ * 대시보드 통계 카드용 집계 (CONFIRMED — `app.schemas.test_run.TestRunStatsBucket`).
+ * `pass_rate`는 종료된 실행(done/failed/error) 기준이라 대기/실행 중인 run은
+ * 분모에서 빠진다 — 종료된 실행이 하나도 없으면 `null`("-"로 표시).
+ */
+export interface TestRunStatsBucket {
+  total: number;
+  passed: number;
+  failed: number;
+  error: number;
+  in_progress: number;
+  pass_rate: number | null;
+}
+
+export interface TestRunStatsResponse {
+  overall: TestRunStatsBucket;
+  by_category: Partial<Record<TestCaseCategory, TestRunStatsBucket>>;
+  recent: TestRunStatsBucket;
+  recent_days: number;
+}
+
+/**
  * Call Flow의 메시지(화살표) 하나 -> 원본 CallEvent 참조 (CONFIRMED —
  * `app.schemas.test_run.CallFlowMessageRead`). `index`는 렌더된 Mermaid
  * `.messageText` 엘리먼트 순서와 1:1 대응해서, 클릭 시 어떤 CallEvent(로그

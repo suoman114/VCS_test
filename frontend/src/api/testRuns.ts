@@ -19,6 +19,7 @@ import type {
   TestRun,
   TestRunListParams,
   TestRunListResponse,
+  TestRunStatsResponse,
 } from "./types";
 
 export const testRunsApi = {
@@ -44,4 +45,7 @@ export const testRunsApi = {
       limit: params.limit,
       offset: params.offset,
     }),
+
+  /** 대시보드 통계 카드용 집계 (`GET /api/test-runs/stats`). */
+  getStats: (): Promise<TestRunStatsResponse> => apiClient.get<TestRunStatsResponse>("/test-runs/stats"),
 };

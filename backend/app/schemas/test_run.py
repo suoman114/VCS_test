@@ -77,3 +77,29 @@ class CallFlowRead(BaseModel):
     mermaid_source: str
     generated_at: datetime
     messages: list[CallFlowMessageRead] = []
+
+
+class TestRunStatsBucket(BaseModel):
+    """상태 개수 -> Pass율 요약. `pass_rate`는 종료된 실행(done/failed/error)
+    기준이다 — 대기/실행/분석 중인 run은 아직 결과가 없으므로 분모에서 뺀다.
+    종료된 실행이 하나도 없으면 `None`(계산 불가, "-"로 표시하라는 신호)."""
+
+    total: int
+    passed: int
+    failed: int
+    error: int
+    in_progress: int
+    pass_rate: float | None
+
+
+class TestRunStatsResponse(BaseModel):
+    """대시보드 통계 카드용 집계 (`GET /api/test-runs/stats`).
+
+    `by_category`는 실제로 실행 기록이 있는 카테고리만 키로 담는다(예:
+    McPTT를 한 번도 안 돌렸으면 "mcptt" 키 자체가 없음).
+    """
+
+    overall: TestRunStatsBucket
+    by_category: dict[str, TestRunStatsBucket]
+    recent: TestRunStatsBucket
+    recent_days: int

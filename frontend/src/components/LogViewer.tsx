@@ -31,6 +31,7 @@
  *   멈춰버렸다), 그 상태를 지금 방식(파생 상태만 사용, 별도 "pending" 없음)
  *   으로 없앴다.
  */
+import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useLogStore } from "../store/logStore";
 import { testRunsApi } from "../api/testRuns";
@@ -76,6 +77,58 @@ function formatTs(ts: string): string {
   return `${datePart} ${time}`;
 }
 
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function countOccurrences(text: string, query: string): number {
+  if (!query) return 0;
+  const lower = text.toLowerCase();
+  const q = query.toLowerCase();
+  let count = 0;
+  let idx = 0;
+  while ((idx = lower.indexOf(q, idx)) !== -1) {
+    count += 1;
+    idx += q.length;
+  }
+  return count;
+}
+
+/** 검색어와 일치하는 부분을 `<mark>`로 감싼다. 빈 검색어면 원본 텍스트를 그대로 반환한다.
+ * 대소문자를 구분하지 않는다(로그 내용이 클래스명/메서드명 등 대소문자가 섞여 있어서). */
+function highlightText(text: string, query: string): ReactNode {
+  if (!query.trim()) return text;
+  // 캡처 그룹이 하나뿐이라 split 결과는 항상 [비일치, 일치, 비일치, 일치, ...]로
+  // 교대한다 — 홀수 인덱스가 곧 매치된 부분이다(내용 비교 대신 위치로 판단해서
+  // 매치 텍스트에 특수한 대소문자/공백이 섞여도 흔들리지 않는다).
+  const parts = text.split(new RegExp(`(${escapeRegExp(query)})`, "gi"));
+  if (parts.length === 1) return text;
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <mark key={i} className="log-search-match">
+        {part}
+      </mark>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  );
+}
+
+// 과거 로그(파싱된 CallEvent)의 raw_line은 SIP 메시지 원문/JSON 블록처럼 아주
+// 긴 멀티라인 블록일 수 있다(예: INVITE의 SDP+MCPTT XML 본문은 80줄 넘게도
+// 감). 매번 전체를 펼쳐두면 이벤트 몇 개만으로도 스크롤이 끝없이 길어지므로,
+// 이 줄 수를 넘는 블록은 기본 접어두고 첫 줄만 미리보기로 보여준다.
+const COLLAPSE_LINE_THRESHOLD = 4;
+
+/** 접힌 블록은 첫 줄만 화면에 실제로 존재한다 — 검색 매치 개수(텍스트 기준)와
+ * "이전/다음" 이동(DOM 기준)이 서로 어긋나지 않도록, 카운트도 항상 이 함수가
+ * 반환하는 "실제로 보이는 텍스트"만 대상으로 센다. */
+function visibleHistoryText(rawLine: string, expanded: boolean): string {
+  if (expanded) return rawLine;
+  const lines = rawLine.split("\n");
+  return lines.length > COLLAPSE_LINE_THRESHOLD ? lines[0] : rawLine;
+}
+
 const HISTORY_PAGE_SIZE = 100;
 // 클릭-투-로그로 과거 로그를 찾을 때 쓰는 한 번의 대량 조회 크기. CLAUDE.md
 // 기준 Test Run당 이벤트 수는 수십~수백 건 규모라 1000이면 충분히 큰
@@ -99,8 +152,12 @@ export function LogViewer({ runId }: { runId: string | null }) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [highlightSeq, setHighlightSeq] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [matchCursor, setMatchCursor] = useState(0);
+  const [expandedHistoryIds, setExpandedHistoryIds] = useState<Set<string | number>>(new Set());
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 이미 종료된 run(시험 이력에서 들어온 경우)은 라이브 WS 데이터가 더 이상
@@ -156,6 +213,43 @@ export function LogViewer({ runId }: { runId: string | null }) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [liveLines, autoScroll]);
+
+  // 검색어/탭이 바뀌면 "N건 중 M번째" 커서를 처음으로 되돌린다.
+  useEffect(() => {
+    setMatchCursor(0);
+  }, [searchQuery, activeTab]);
+
+  // 매치 개수는 DOM을 렌더 중에 다시 읽지 않고(커밋 타이밍과 어긋나 한 박자
+  // 밀리는 값이 보일 수 있다) 원본 텍스트에서 직접 센다 — "이전/다음" 버튼
+  // 이동만 실제 DOM(.log-search-match)을 클릭 시점에 조회한다.
+  const searchMatchCount = searchQuery.trim()
+    ? liveLines.reduce((sum, l) => sum + countOccurrences(l.line, searchQuery), 0) +
+      history.reduce((sum, ev) => {
+        const isLong = ev.raw_line.split("\n").length > COLLAPSE_LINE_THRESHOLD;
+        const expanded = !isLong || expandedHistoryIds.has(ev.id) || ev.seq_no === highlightSeq;
+        return sum + countOccurrences(visibleHistoryText(ev.raw_line, expanded), searchQuery);
+      }, 0)
+    : 0;
+
+  function goToMatch(delta: number) {
+    const matches = rootRef.current?.querySelectorAll<HTMLElement>(".log-search-match");
+    if (!matches || matches.length === 0) return;
+    const next = ((matchCursor + delta) % matches.length + matches.length) % matches.length;
+    setMatchCursor(next);
+    matches[next].scrollIntoView({ block: "center", behavior: "smooth" });
+  }
+
+  function toggleHistoryExpanded(id: string | number) {
+    setExpandedHistoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
 
   // Call Flow에서 메시지 클릭 -> 해당 source 탭으로 전환하고 하이라이트 대상을 정한다.
   useEffect(() => {
@@ -223,7 +317,7 @@ export function LogViewer({ runId }: { runId: string | null }) {
   }
 
   return (
-    <div className="log-viewer">
+    <div className="log-viewer" ref={rootRef}>
       <div className="log-viewer-tabs">
         {sources.length === 0 && <span className="log-tabs-empty">로그 소스 대기 중...</span>}
         {sources.map((source) => (
@@ -241,6 +335,39 @@ export function LogViewer({ runId }: { runId: string | null }) {
         </label>
       </div>
 
+      <div className="log-search-row">
+        <input
+          type="text"
+          className="log-search-input"
+          placeholder="로그 검색 (예: INVITE, ERROR)"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        {searchQuery.trim() && (
+          <div className="log-search-nav">
+            <span className="log-search-count">
+              {searchMatchCount > 0 ? `${matchCursor + 1}/${searchMatchCount}` : "0건"}
+            </span>
+            <button
+              type="button"
+              onClick={() => goToMatch(-1)}
+              disabled={searchMatchCount === 0}
+              aria-label="이전 일치"
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              onClick={() => goToMatch(1)}
+              disabled={searchMatchCount === 0}
+              aria-label="다음 일치"
+            >
+              ▶
+            </button>
+          </div>
+        )}
+      </div>
+
       {channelError && <div className="log-channel-error">채널 오류: {channelError}</div>}
 
       <div className="log-viewer-body" ref={scrollRef}>
@@ -251,7 +378,7 @@ export function LogViewer({ runId }: { runId: string | null }) {
             <span className="log-ts">{formatTs(l.ts)}</span>
             <span className="log-seq">#{l.seq}</span>
             <span className="log-source">[{l.source}]</span>
-            <span className="log-text">{l.line}</span>
+            <span className="log-text">{highlightText(l.line, searchQuery)}</span>
           </div>
         ))}
       </div>
@@ -270,22 +397,36 @@ export function LogViewer({ runId }: { runId: string | null }) {
           </div>
         )}
         <div className="log-history-body">
-          {history.map((ev) => (
-            <div
-              key={ev.id}
-              ref={
-                ev.seq_no === highlightSeq
-                  ? (el) => el?.scrollIntoView({ block: "center", behavior: "smooth" })
-                  : undefined
-              }
-              className={ev.seq_no === highlightSeq ? "log-line log-line-highlight" : "log-line"}
-            >
-              <span className="log-ts">{formatTs(ev.ts)}</span>
-              <span className="log-seq">#{ev.seq_no}</span>
-              <span className="log-source">[{ev.source}]</span>
-              <span className="log-text">{ev.raw_line}</span>
-            </div>
-          ))}
+          {history.map((ev) => {
+            const lineCount = ev.raw_line.split("\n").length;
+            const isLong = lineCount > COLLAPSE_LINE_THRESHOLD;
+            const isJumpTarget = ev.seq_no === highlightSeq;
+            const expanded = !isLong || expandedHistoryIds.has(ev.id) || isJumpTarget;
+            const displayText = visibleHistoryText(ev.raw_line, expanded);
+            return (
+              <div
+                key={ev.id}
+                ref={isJumpTarget ? (el) => el?.scrollIntoView({ block: "center", behavior: "smooth" }) : undefined}
+                className={isJumpTarget ? "log-line log-line-highlight" : "log-line"}
+              >
+                <span className="log-ts">{formatTs(ev.ts)}</span>
+                <span className="log-seq">#{ev.seq_no}</span>
+                <span className="log-source">[{ev.source}]</span>
+                <span className="log-text">
+                  {highlightText(displayText, searchQuery)}
+                  {isLong && (
+                    <button
+                      type="button"
+                      className="log-collapse-toggle"
+                      onClick={() => toggleHistoryExpanded(ev.id)}
+                    >
+                      {expanded ? " ▲ 접기" : ` ▼ ${lineCount}줄 펼치기`}
+                    </button>
+                  )}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

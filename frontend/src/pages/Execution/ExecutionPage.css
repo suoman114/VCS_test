@@ -31,11 +31,9 @@
   font-size: 0.85rem;
 }
 
-.result-summary pre {
-  background: #f3f4f6;
-  padding: 8px;
-  border-radius: 6px;
-  overflow-x: auto;
+.result-summary-section h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
 }
 
 .execution-split {
