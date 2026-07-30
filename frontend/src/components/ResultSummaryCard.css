@@ -19,6 +19,26 @@
   border: 1px solid #fca5a5;
 }
 
+.result-card-performance {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result-perf-rates {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+  color: #1f2937;
+}
+
+.result-pill-info {
+  background: #2563eb;
+}
+
 .result-card-header {
   display: flex;
   align-items: center;

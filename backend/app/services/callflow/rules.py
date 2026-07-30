@@ -51,7 +51,7 @@ class PassFailResult:
     details: dict[str, Any] = field(default_factory=dict)
 
 
-def _extract_vcmm_header(event: CallEvent) -> dict[str, Any] | None:
+def extract_vcmm_header(event: CallEvent) -> dict[str, Any] | None:
     """vcmm.log 이벤트의 raw_line(원본 JSON 블록)에서 header dict를 재추출한다.
 
     CallEvent 스키마에는 `reason`(문자열) 컬럼이 없어(§6, reason_code만
@@ -78,7 +78,7 @@ def _check_recording_success(events: Sequence[CallEvent]) -> tuple[bool, str]:
         return False, "recording_stop_res 이벤트를 찾지 못함 (vcmm.log 미확인 또는 호 미종료)"
 
     for event in stop_res_events:
-        header = _extract_vcmm_header(event)
+        header = extract_vcmm_header(event)
         reason_code = header.get("reasonCode") if header else event.reason_code
         reason = header.get("reason") if header else None
         if reason_code == 2000 and reason == "Success":

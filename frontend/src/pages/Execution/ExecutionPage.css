@@ -21,6 +21,26 @@
   gap: 12px;
 }
 
+.cancel-run-button {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.cancel-run-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cancel-run-button:not(:disabled):hover {
+  background: #b91c1c;
+}
+
 .run-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

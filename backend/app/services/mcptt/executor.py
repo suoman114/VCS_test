@@ -209,20 +209,40 @@ def build_mcptt_sim_args(
     params: dict[str, Any],
     *,
     jar_path: str,
+    call_rate: int | None = None,
+    rate_period_ms: int | None = None,
 ) -> list[str]:
     """`TestCase.protocol_params` -> McPTT 시뮬레이터(Java 도구) 커맨드라인.
 
     SIPp 전용 호스트에 이미 올라가 있는 자체 제작 Java 도구
     (`utgen-jar-with-dependencies.jar`)를 실행한다 — 실제 SIPp 바이너리가
-    아니다(2026-07-29 확인). 예:
+    아니다(2026-07-29 확인). 기본 호처리(basic_call) 예:
         java -jar utgen-jar-with-dependencies.jar -sf scenario.xml
              -i 192.168.7.65 -p 5080 -cp 6061 -m 1 10.0.0.1:5060
+
+    `call_rate`가 주어지면(키워드 전용 인자 — 2026-07-30, 성능 시험 추가)
+    총 호 수(`-m`) 대신 호 발생률(`-r`/`-rp`)로 전환한다 — `-r`(call_rate)회를
+    `-rp`(rate_period_ms, 기본 1000)마다 반복해서 지속적으로 호를 발생시킨다
+    (예: call_rate=1, rate_period_ms=1000 -> 초당 1콜). `-m`처럼 자연 종료
+    조건이 없어 성능 시험은 사용자가 명시적으로 종료해야 한다
+    (`McpttPerformanceExecutor`, CLAUDE.md §7 "시험 유형" 축 확장).
+        java -jar utgen-jar-with-dependencies.jar -sf scenario.xml
+             -i 192.168.7.65 -p 5080 -cp 6061 -r 1 -rp 1000 10.0.0.1:5060
+
+    **왜 `params` 딕셔너리가 아니라 별도 키워드 인자로 받는가**: 기존
+    `sipp_exec_mode="local"`(real SIPp) 경로의 `build_sipp_args()`가 이미
+    `protocol_params["call_rate"]`를 real-SIPp `-r` 플래그(초당 호 수) 의미로
+    쓰고 있다 — 같은 이름을 여기서도 `params`에서 읽으면, 순전히 레거시
+    `call_rate` 필드를 갖고 있을 뿐인 기존 basic_call Test Case가 의도치
+    않게 `-m` 대신 `-r`/`-rp` 모드로 새버린다(실제로 이 버그를 테스트에서
+    잡았다). 그래서 rate 모드는 항상 `McpttPerformanceExecutor`가 명시적으로
+    호출부에서 넘겨줄 때만 켜진다 — `params` 딕셔너리 내용과는 완전히
+    무관하다.
     """
     target_host = params.get("target_host") or params.get("target_ip")
     if not target_host:
         raise ValueError("protocol_params에 target_host(또는 target_ip)가 필요하다")
     target_port = params.get("target_port", 5060)
-    calls_count = params.get("calls_count") or params.get("max_calls", 1)
 
     argv: list[str] = ["java", "-jar", jar_path, "-sf", str(scenario_path)]
 
@@ -236,7 +256,13 @@ def build_mcptt_sim_args(
     if control_port:
         argv += ["-cp", str(control_port)]
 
-    argv += ["-m", str(calls_count), f"{target_host}:{target_port}"]
+    if call_rate is not None:
+        argv += ["-r", str(call_rate), "-rp", str(rate_period_ms if rate_period_ms is not None else 1000)]
+    else:
+        calls_count = params.get("calls_count") or params.get("max_calls", 1)
+        argv += ["-m", str(calls_count)]
+
+    argv += [f"{target_host}:{target_port}"]
 
     extra_args = params.get("extra_sipp_args") or []
     argv += [str(a) for a in extra_args]

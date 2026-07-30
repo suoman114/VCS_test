@@ -24,6 +24,7 @@ from app.models.test_run import TestRun, TestRunStatus
 # 실행되어 레지스트리에 등록된다 (app.main이 아직 이 모듈들을 import하지 않으므로
 # 여기서 side-effect import를 명시적으로 한다).
 import app.services.mcptt.executor  # noqa: F401
+import app.services.mcptt.performance_executor  # noqa: F401
 import app.services.volte.executor  # noqa: F401
 from app.schemas.test_run import (
     CallEventListResponse,
@@ -160,6 +161,39 @@ async def trigger_test_run(test_case_id: str, db: Session = Depends(get_db)) -> 
     executor = executor_registry.create(protocol, test_type, run_id=test_run.id)
     job_runner.submit(test_run.id, lambda: executor.run(test_case))
 
+    return test_run
+
+
+@router.post(
+    "/test-runs/{run_id}/cancel",
+    response_model=TestRunRead,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def cancel_test_run(run_id: str, db: Session = Depends(get_db)) -> TestRun:
+    """실행 중인 Test Run을 종료한다 — 특히 McPTT 성능 시험처럼 `-m`(총 호 수)
+    없이 무기한 실행되는 시험은 이 엔드포인트가 유일한 정상 종료 경로다
+    (2026-07-30 요청, `McpttPerformanceExecutor`).
+
+    `job_runner.cancel()`이 해당 run_id의 asyncio.Task를 취소한다 — 실행기가
+    그 취소를 잡아 원격 프로세스를 실제로 종료하고 지금까지 수집된 로그로
+    최종 결과를 정리하는 건 각 Executor의 책임이다(`McpttPerformanceExecutor.
+    run()`은 취소를 흡수해 DONE으로 정상 마무리한다 — 사용자가 종료한 건
+    실패가 아니다). 상태 갱신은 비동기로 이루어지므로, 이 응답의 `status`는
+    아직 "running"일 수 있다 — 202 Accepted가 그 뜻이고, 클라이언트는
+    `GET /test-runs/{run_id}`를 다시 폴링해서 최종 상태를 확인해야 한다.
+    """
+    test_run = _get_test_run_or_404(db, run_id)
+    if test_run.status not in (TestRunStatus.PENDING, TestRunStatus.RUNNING, TestRunStatus.PARSING):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"TestRun {run_id!r}은 이미 종료된 상태({test_run.status.value})라 취소할 수 없다",
+        )
+    cancelled = await job_runner.cancel(run_id)
+    if not cancelled:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"TestRun {run_id!r}에 대한 실행 중인 job을 찾지 못했다(이미 종료됐을 수 있음)",
+        )
     return test_run
 
 

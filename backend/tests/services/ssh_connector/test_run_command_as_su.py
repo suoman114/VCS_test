@@ -72,6 +72,54 @@ class _FakeConnection:
         return None
 
 
+class _HangingAfterLoginStdout:
+    """로그인 청크를 다 보낸 뒤에는 EOF 없이 영원히 응답이 없는 stdout —
+    McPTT 성능 시험처럼 `-m` 없이 `-r`/`-rp`로 무기한 실행되는 명령이 아직
+    끝나지 않은 상황을 흉내낸다."""
+
+    def __init__(self, login_chunks: list[str]) -> None:
+        self._chunks = list(login_chunks)
+
+    async def read(self, n: int = -1) -> str:
+        if self._chunks:
+            return self._chunks.pop(0)
+        await asyncio.sleep(3600)
+        return ""  # pragma: no cover - 도달하지 않음
+
+
+class _HangingAfterLoginProcess:
+    def __init__(self, login_chunks: list[str]) -> None:
+        self.stdin = _FakeStdin()
+        self.stdout = _HangingAfterLoginStdout(login_chunks)
+        self.terminated = False
+
+    def terminate(self) -> None:
+        self.terminated = True
+
+    async def wait_closed(self) -> None:
+        return None
+
+
+class _HangingAfterLoginConnection:
+    def __init__(self, login_chunks: list[str]) -> None:
+        self._login_chunks = login_chunks
+        self.created_processes: list[_HangingAfterLoginProcess] = []
+
+    async def create_process(self, **kwargs: object) -> _HangingAfterLoginProcess:
+        process = _HangingAfterLoginProcess(self._login_chunks)
+        self.created_processes.append(process)
+        return process
+
+    def is_closed(self) -> bool:
+        return False
+
+    def close(self) -> None:
+        return None
+
+    async def wait_closed(self) -> None:
+        return None
+
+
 def _patch_connect(monkeypatch: pytest.MonkeyPatch, fake_conn: _FakeConnection) -> None:
     async def _fake_connect(**kwargs: object) -> _FakeConnection:
         return fake_conn
@@ -253,3 +301,37 @@ async def test_run_command_as_su_times_out_when_prompt_never_arrives(
 
     with pytest.raises(TimeoutError, match="대기 타임아웃"):
         await connector.run_command_as_su("echo hi", "root-pw")
+
+
+@pytest.mark.asyncio
+async def test_run_command_as_su_timeout_none_does_not_cap_at_connect_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """2026-07-30 발견: `timeout=None`(무기한 대기 의도 — McPTT 성능 시험처럼
+    `-m` 없이 `-r`/`-rp`로 계속 도는 명령용)을 넘겨도, 명령 완료 대기
+    (`__CMD_END__` 마커)가 로그인 프롬프트용 `op_timeout`(비어있으면
+    connect_timeout)으로 조용히 캡핑되던 버그를 잡는다. 여기서는
+    connect_timeout을 아주 짧게(0.1초) 줘서, 그 시간이 한참 지나도록
+    `run_command_as_su(..., timeout=None)`가 여전히 끝나지 않고 대기 중인지
+    확인한다(끝났다면 버그가 재발한 것) — 그 뒤 태스크를 취소해서 정리한다.
+    """
+    login_chunks = ["Password: ", "root\n__SU_CHECK__:0\n"]
+    fake_conn = _HangingAfterLoginConnection(login_chunks)
+
+    async def _fake_connect(**kwargs: object) -> _HangingAfterLoginConnection:
+        return fake_conn
+
+    monkeypatch.setattr(ssh_client_module.asyncssh, "connect", _fake_connect)
+
+    connector = SSHConnector(SSHTarget(host="fake-host"), connect_timeout=0.1)
+    task = asyncio.create_task(
+        connector.run_command_as_su("java -jar sim.jar -r 1 -rp 1000 10.0.0.1:5060", "root-pw", timeout=None)
+    )
+
+    await asyncio.sleep(0.3)  # connect_timeout(0.1초)보다 한참 지났는데도
+    assert not task.done()  # 여전히 명령 완료를 기다리고 있어야 한다(버그였다면 여기서 이미 TimeoutError로 끝났을 것)
+
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await asyncio.wait_for(task, timeout=2)
+    assert fake_conn.created_processes[0].terminated is True

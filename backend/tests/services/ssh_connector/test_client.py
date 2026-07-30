@@ -37,10 +37,11 @@ class _FakeRunResult:
 
 
 class _FakeProcess:
-    def __init__(self, *, wait_closed_hangs: bool = False) -> None:
+    def __init__(self, *, wait_closed_hangs: bool = False, wait_hangs: bool = False) -> None:
         self.stdout = _EmptyAsyncIterable()
         self.terminated = False
         self._wait_closed_hangs = wait_closed_hangs
+        self._wait_hangs = wait_hangs
 
     def terminate(self) -> None:
         self.terminated = True
@@ -48,6 +49,11 @@ class _FakeProcess:
     async def wait_closed(self) -> None:
         if self._wait_closed_hangs:
             await asyncio.sleep(3600)
+
+    async def wait(self, check: bool = False, timeout: float | None = None) -> _FakeRunResult:
+        if self._wait_hangs:
+            await asyncio.sleep(3600)
+        return _FakeRunResult()
 
 
 class _EmptyAsyncIterable:
@@ -59,11 +65,19 @@ class _EmptyAsyncIterable:
 
 
 class _FakeConnection:
-    def __init__(self, *, process_wait_closed_hangs: bool = False, conn_wait_closed_hangs: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        process_wait_closed_hangs: bool = False,
+        conn_wait_closed_hangs: bool = False,
+        process_wait_hangs: bool = False,
+    ) -> None:
         self.run_calls: list[dict[str, object]] = []
         self.create_process_calls: list[dict[str, object]] = []
+        self.created_processes: list[_FakeProcess] = []
         self._process_wait_closed_hangs = process_wait_closed_hangs
         self._conn_wait_closed_hangs = conn_wait_closed_hangs
+        self._process_wait_hangs = process_wait_hangs
 
     async def run(
         self,
@@ -103,7 +117,11 @@ class _FakeConnection:
                 "term_size": term_size,
             }
         )
-        return _FakeProcess(wait_closed_hangs=self._process_wait_closed_hangs)
+        process = _FakeProcess(
+            wait_closed_hangs=self._process_wait_closed_hangs, wait_hangs=self._process_wait_hangs
+        )
+        self.created_processes.append(process)
+        return process
 
     def is_closed(self) -> bool:
         return False
@@ -243,3 +261,53 @@ async def test_close_does_not_hang_when_conn_wait_closed_never_returns(
     await connector.connect()
 
     await asyncio.wait_for(connector.close(), timeout=2)
+
+
+@pytest.mark.asyncio
+async def test_run_command_cancellable_returns_result_and_terminates_process(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """정상 종료 시에도 `finally`에서 항상 `process.terminate()`를 부른다
+    (이미 끝난 프로세스에 대한 terminate는 안전한 no-op으로 취급 —
+    tail_file()과 동일한 정리 패턴)."""
+    fake_conn = _FakeConnection()
+
+    async def _fake_connect(**kwargs: object) -> _FakeConnection:
+        return fake_conn
+
+    monkeypatch.setattr(ssh_client_module.asyncssh, "connect", _fake_connect)
+
+    connector = SSHConnector(SSHTarget(host="fake-host"))
+    result = await connector.run_command_cancellable("java -jar sim.jar -r 1 -rp 1000 10.0.0.1:5060")
+
+    assert result.exit_status == 0
+    assert result.stdout == "ok"
+    assert fake_conn.created_processes[0].terminated is True
+
+
+@pytest.mark.asyncio
+async def test_run_command_cancellable_terminates_remote_process_on_task_cancel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """McPTT 성능 시험처럼 `-m` 없이 무기한 호를 발생시키는 원격 명령은,
+    사용자가 "종료" 버튼을 눌러 이 코루틴을 감싼 asyncio Task가 취소되면
+    반드시 원격 프로세스도 실제로 죽어야 한다(안 그러면 VCS에 계속 호가
+    몰린다) — `conn.run()`(process 핸들을 안 주는 얇은 래퍼)이 아니라
+    `create_process()`로 직접 핸들을 쥐고 `finally`에서 `terminate()`를
+    호출하는 이유가 바로 이것이다."""
+    fake_conn = _FakeConnection(process_wait_hangs=True)  # process.wait()이 영원히 안 끝남 (성능 시험처럼 무기한 실행 흉내)
+
+    async def _fake_connect(**kwargs: object) -> _FakeConnection:
+        return fake_conn
+
+    monkeypatch.setattr(ssh_client_module.asyncssh, "connect", _fake_connect)
+
+    connector = SSHConnector(SSHTarget(host="fake-host"))
+    task = asyncio.create_task(connector.run_command_cancellable("java -jar sim.jar -r 1 -rp 1000 10.0.0.1:5060"))
+    await asyncio.sleep(0.05)  # process.wait()에서 멈춰있는 상태까지 진행시킨다
+
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await asyncio.wait_for(task, timeout=2)
+
+    assert fake_conn.created_processes[0].terminated is True

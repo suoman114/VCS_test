@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ApiError } from "../../api/client";
 import { testRunsApi } from "../../api/testRuns";
 import { useTestRunSocket } from "../../api/useTestRunSocket";
 import type { CallFlowMessage, CallFlowResponse, TestRun, WsMessage } from "../../api/types";
@@ -16,11 +17,17 @@ const POLL_INTERVAL_MS = 3000;
 // 과거 run 진입 등) 및 메시지 유실 대비 fallback일 뿐이라 간격을 넉넉히 둔다.
 const CALL_FLOW_POLL_INTERVAL_MS = 15000;
 const TERMINAL_STATUSES = new Set(["done", "failed", "error"]);
+// McPTT 성능 시험처럼 -m(총 호 수) 없이 무기한 실행되는 시험은 이 상태들에서
+// "종료" 버튼이 유일한 정상 종료 경로다(2026-07-30) — 기본 호처리 시험도
+// 중간에 멈추고 싶을 수 있어 프로토콜/유형 구분 없이 진행 중이면 항상 보여준다.
+const CANCELLABLE_STATUSES = new Set(["pending", "running", "parsing"]);
 
 export function ExecutionPage() {
   const { runId = null } = useParams<{ runId: string }>();
   const [run, setRun] = useState<TestRun | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const setActiveRunId = useLogStore((s) => s.setActiveRunId);
@@ -94,6 +101,26 @@ export function ExecutionPage() {
     };
   }, [runId, fetchRun]);
 
+  const handleCancel = useCallback(async () => {
+    if (!runId) return;
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      await testRunsApi.cancel(runId);
+      // 상태 갱신은 백엔드에서 비동기로 이루어진다(202) — 폴링 주기를 기다리지
+      // 않고 바로 한 번 더 조회해서 화면 반영을 앞당긴다. 폴링이 이미 멈춰
+      // 있었다면(예전 상태가 이미 terminal이었던 특이 케이스) 다시 켠다.
+      await fetchRun();
+      if (!pollRef.current) {
+        pollRef.current = setInterval(fetchRun, POLL_INTERVAL_MS);
+      }
+    } catch (err) {
+      setCancelError(err instanceof ApiError ? err.message : "종료 요청 실패");
+    } finally {
+      setCancelling(false);
+    }
+  }, [runId, fetchRun]);
+
   // 주 경로는 WebSocket "call_flow" push(handleWsMessage)다. 이 REST 폴링은
   // 최초 로드(WS 연결 완료 전에 이미 일부 진행된 run에 들어온 경우)와
   // fallback용이다. 아직 생성 전이면 404가 정상이라 화면 상단 에러로는
@@ -143,9 +170,15 @@ export function ExecutionPage() {
       <div className="page-header">
         <h2>시험 실행 — {runId}</h2>
         <StatusBadge status={displayStatus} />
+        {displayStatus && CANCELLABLE_STATUSES.has(displayStatus) && (
+          <button type="button" className="cancel-run-button" onClick={handleCancel} disabled={cancelling}>
+            {cancelling ? "종료 요청 중..." : "시험 종료"}
+          </button>
+        )}
       </div>
 
       {error && <div className="page-error">{error}</div>}
+      {cancelError && <div className="page-error">{cancelError}</div>}
 
       <div className="run-meta">
         <div>

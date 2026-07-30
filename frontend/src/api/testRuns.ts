@@ -48,4 +48,10 @@ export const testRunsApi = {
 
   /** 대시보드 통계 카드용 집계 (`GET /api/test-runs/stats`). */
   getStats: (): Promise<TestRunStatsResponse> => apiClient.get<TestRunStatsResponse>("/test-runs/stats"),
+
+  /** 실행 중인 Test Run 종료(McPTT 성능 시험처럼 무기한 실행되는 시험의
+   * 유일한 정상 종료 경로, `POST /api/test-runs/{id}/cancel`). 응답의
+   * status는 아직 갱신 전일 수 있다(202) — 호출부가 계속 폴링해서 최종
+   * 상태(보통 done)를 확인해야 한다. */
+  cancel: (runId: string): Promise<TestRun> => apiClient.post<TestRun>(`/test-runs/${runId}/cancel`),
 };

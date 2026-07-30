@@ -221,6 +221,52 @@ class SSHConnector:
             stderr=str(result.stderr) if result.stderr is not None else "",
         )
 
+    async def run_command_cancellable(
+        self,
+        command: str,
+        *,
+        timeout: float | None = None,
+    ) -> CommandResult:
+        """`run_command()`와 결과 타입은 같지만, 이 코루틴이 asyncio 취소를
+        받으면 원격 프로세스를 실제로 종료(TERM)시킨다는 점이 다르다.
+
+        `run_command()`는 내부적으로 asyncssh의 `conn.run()`을 쓰는데, 이는
+        `create_process()` + `process.wait()`를 감싼 얇은 래퍼일 뿐이라
+        (asyncssh 소스 확인) 우리가 `process` 핸들 자체를 쥐고 있지 않다 —
+        `conn.run()`을 기다리는 도중 태스크가 취소되면 로컬 코루틴은
+        멈추지만, 원격 프로세스에는 아무 신호도 안 가서 서버에서 계속
+        돈다(호출부가 SSH 커넥션을 닫아야 그나마 정리되는데, 그마저도
+        원격 셸/프로세스가 채널 종료를 어떻게 처리하느냐에 달려 있어
+        보장이 안 된다).
+
+        McPTT 성능 시험(`McpttPerformanceExecutor`)처럼 `-m`(총 호 수) 없이
+        `-r`/`-rp`로 무기한 호를 발생시키는 명령은 사용자가 "종료" 버튼을
+        누르면 반드시 원격 프로세스 자체가 멈춰야 한다(그렇지 않으면 VCS에
+        계속 호가 몰림) — 그래서 이 메서드는 `create_process()`로 직접
+        프로세스 핸들을 쥐고, `finally`에서 항상 `process.terminate()`를
+        호출한다(`tail_file()`/`run_command_as_su()`와 동일한 패턴 — 정상
+        종료든 취소든 상관없이 안전하게 정리된다).
+        """
+        conn = await self.connect()
+        process = await conn.create_process(command, term_type="xterm", term_size=(80, 24), errors="replace")
+        try:
+            result = await process.wait(timeout=timeout)
+            return CommandResult(
+                command=command,
+                exit_status=result.exit_status,
+                stdout=str(result.stdout) if result.stdout is not None else "",
+                stderr=str(result.stderr) if result.stderr is not None else "",
+            )
+        finally:
+            process.terminate()
+            try:
+                await asyncio.wait_for(process.wait_closed(), timeout=self._close_timeout)
+            except TimeoutError:
+                logger.warning(
+                    "run_command_cancellable: process did not confirm close within %.1fs — abandoning wait",
+                    self._close_timeout,
+                )
+
     async def run_command_as_su(
         self,
         command: str,
@@ -265,18 +311,27 @@ class SSHConnector:
         """
         conn = await self.connect()
         process = await conn.create_process(term_type="xterm", term_size=(80, 24), errors="replace")
+        # 로그인 프롬프트류(su 비밀번호 프롬프트, whoami 확인)는 몇 초 안에 응답이
+        # 와야 정상이므로, timeout이 안 주어졌으면 connect_timeout으로 유한하게
+        # 묶는다 — 여기서 무기한 대기를 허용하면 프롬프트 문구가 예상과 달라
+        # 매칭에 실패하는 경우(§ docstring "주의" 참고) 영원히 멈춘다.
         op_timeout = timeout if timeout is not None else self._connect_timeout
         assert process.stdin is not None and process.stdout is not None
 
         buf = ""
 
-        async def read_until(pattern: str, read_timeout: float, *, is_regex: bool = False) -> str:
+        async def read_until(pattern: str, read_timeout: float | None, *, is_regex: bool = False) -> str:
+            """`read_timeout=None`이면 무기한 대기한다 — McPTT 성능 시험처럼
+            `-m`(총 호 수) 없이 `-r`/`-rp`로 무기한 실행되는 명령의 완료
+            대기(`__CMD_END__` 마커)에 쓴다(2026-07-30). 로그인 프롬프트류
+            대기는 항상 `op_timeout`(유한)을 쓰고, 이 무기한 모드는 마지막
+            "명령 실행 완료 대기" 한 곳에서만 쓴다."""
             nonlocal buf
             matched = (lambda: re.search(pattern, buf)) if is_regex else (lambda: pattern in buf)
-            deadline = asyncio.get_event_loop().time() + read_timeout
+            deadline = None if read_timeout is None else asyncio.get_event_loop().time() + read_timeout
             while not matched():
-                remaining = deadline - asyncio.get_event_loop().time()
-                if remaining <= 0:
+                remaining = None if deadline is None else deadline - asyncio.get_event_loop().time()
+                if remaining is not None and remaining <= 0:
                     raise TimeoutError(
                         f"su_user={su_user!r} 전환 중 {pattern!r} 대기 타임아웃"
                         f" (누적 출력 마지막 500자: {buf[-500:]!r})"
@@ -320,7 +375,10 @@ class SSHConnector:
 
             process.stdin.write(f"echo __CMD_START__; {command}; echo __CMD_END__:$?\n")
             await process.stdin.drain()
-            cmd_output = await read_until(r"__CMD_END__:\d", op_timeout, is_regex=True)
+            # 여기만 op_timeout이 아니라 원래 timeout(None 허용)을 그대로 쓴다 —
+            # 로그인 절차는 이미 끝났으니, 명령 자체의 실행 시간에는 호출부가
+            # 원하는 대로(무기한 포함) 기다려야 한다.
+            cmd_output = await read_until(r"__CMD_END__:\d", timeout, is_regex=True)
 
             start_idx = cmd_output.rfind("__CMD_START__")
             body = cmd_output[start_idx + len("__CMD_START__") :] if start_idx >= 0 else cmd_output

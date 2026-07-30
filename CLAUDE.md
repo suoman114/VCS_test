@@ -171,6 +171,17 @@ Phase 1에서부터 아래 원칙을 지켜서, 나중에 성능/Abnormal 시험
 - `services/volte`, `services/mcptt` 는 "프로토콜"이고, "시험 유형(기본호처리/성능/abnormal)"은 별도 축이다. 예: 성능 시험도 VoLTE/McPTT 양쪽에 적용될 수 있으므로, 실행기는 `(protocol, test_type)` 조합으로 조회한다.
 - 대시보드/DB 스키마도 `test_type` 필드로 필터링만 하면 새 유형이 그대로 노출되도록 설계한다.
 
+### 7.1 McPTT 성능(performance) 시험 (2026-07-30 추가, §7 원칙의 첫 실제 적용 사례)
+
+기본 호처리(`basic_call`, `McpttBasicCallExecutor`)와 프로토콜(McPTT)은 같지만, 총 호 수(`-m`)만큼 돌고 자연 종료되는 게 아니라 호 발생률(`-r`/`-rp`)로 **무기한** 호를 발생시키다가 **사용자가 명시적으로 종료**해야 끝난다는 점이 근본적으로 다르다. 기존 `basic_call` 코드는 전혀 건드리지 않고 `(protocol="mcptt", test_type="performance")`로 별도 등록된 `McpttPerformanceExecutor`(`backend/app/services/mcptt/performance_executor.py`)로 추가했다.
+
+- **실행 커맨드**: `build_mcptt_sim_args()`(`app/services/mcptt/executor.py`, basic_call과 공유)가 `call_rate`/`rate_period_ms` **키워드 인자**를 받으면 `-m` 대신 `-r <call_rate> -rp <rate_period_ms>`를 쓴다(`rate_period_ms`마다 `call_rate`회 호 발생, 기본 1000ms → call_rate=1이면 초당 1콜). **딕셔너리 키가 아니라 명시적 키워드 인자로만 분기한다** — 기존 `sipp_exec_mode="local"`(real SIPp) 경로의 `build_sipp_args()`가 `protocol_params["call_rate"]`를 이미 다른 의미(real-SIPp `-r` 플래그)로 쓰고 있어서, 만약 `build_mcptt_sim_args`가 `params` 딕셔너리에서 같은 키를 몰래 읽었다면 레거시 `call_rate` 필드만 갖고 있던 기존 basic_call Test Case가 의도치 않게 rate 모드로 새는 버그가 실제로 났다(테스트로 잡음, `test_legacy_call_rate_protocol_param_does_not_leak_into_rate_mode`).
+- **"종료" 버튼**: `POST /api/test-runs/{run_id}/cancel`(`app/api/test_runs.py`)이 `job_runner.cancel()`(기존 `asyncio.Task.cancel()` 래퍼, 이미 있었음)을 호출한다. **McPTT 성능 시험에서 사용자가 종료하는 것은 실패가 아니라 정상 흐름**이므로, `McpttPerformanceExecutor.run()`은 `asyncio.CancelledError`를 내부에서 흡수하고(재-raise 안 함) `result_summary.stopped_by_user=true`와 함께 `DONE`으로 정상 마무리한다 — `job_runner._run_wrapper`의 기본 취소 처리(ERROR로 전이)를 타지 않는다.
+- **원격 프로세스가 실제로 죽어야 한다**: `SSHConnector.run_command()`(`conn.run()`의 얇은 래퍼, process 핸들 없음)로 취소를 받으면 로컬 코루틴만 멈추고 원격 java 프로세스는 계속 돌 수 있다 — VCS에 계속 호가 몰리는 심각한 문제. `create_process()`로 직접 핸들을 쥐고 `finally`에서 항상 `process.terminate()`를 부르는 `SSHConnector.run_command_cancellable()`(신규, su 미사용 경로)과, 이미 같은 패턴이던 `run_command_as_su()`(su 사용 경로 — 단, `timeout=None`이 로그인 프롬프트용 `connect_timeout`으로 조용히 캡핑돼 성능 시험처럼 무기한 대기가 15초 만에 끊기던 버그를 이번에 같이 고쳤다, `read_until`의 명령-완료 대기 구간만 `timeout`을 그대로 씀)를 쓴다.
+- **로그 수집/Call Flow**: VCS측 로그(vcmc.log, vcmm.log) tail은 basic_call과 동일하지만, "실행 -> 완료 대기"가 순차적인 basic_call과 달리 성능 시험은 시뮬레이터 실행과 **동시에** 로그 재파싱/Call Flow 갱신 폴링 태스크(`_poll_call_flow`)를 돌린다(시뮬레이터 자체가 시험 기간 내내 도는 게 정상이라서).
+- **성능 통계(1차, TBD 있음)**: `app/services/mcptt/performance_stats.py`의 `compute_mcptt_performance_stats()`가 vcmm.log의 `recording_start_res`/`recording_stop_res`(reasonCode==2000이 성공 기준, basic_call의 Pass 판정과 동일 로직 재사용 — `app.services.callflow.rules.extract_vcmm_header`를 공개 함수로 바꿔 공유)로 콜 단위 총/성공/실패/진행중 개수와 목표 대비 실제 달성 호 발생률을 집계해 `result_summary`에 담는다. **TBD**: 콜 설정 시간 분포, 시간별 동시 통화 수 그래프 같은 시계열 분석은 별도 집계/저장이 필요할 수 있어 이번 1차 범위에서 제외했다 — 사용자 확인 후 2차로 진행할지 결정.
+- **프론트**: `ExecutionPage.tsx`에 진행 중(pending/running/parsing) 상태면 항상 "시험 종료" 버튼이 뜬다(프로토콜/유형 무관 — 기본 호처리도 중간에 멈추고 싶을 수 있어서). `ResultSummaryCard.tsx`가 성능 시험 요약(`passed` 키가 없는 게 특징 — Pass/Fail이 아니라 "얼마나 처리했는지"가 결과)을 별도 카드로 렌더링한다.
+
 ---
 
 ## 8. 대시보드 기능 명세 (Phase 1)
