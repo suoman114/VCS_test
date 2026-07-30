@@ -121,10 +121,18 @@
 .form-row {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .form-row label {
-  flex: 1;
+  flex: 1 1 140px;
+  /* flex 아이템은 기본적으로 min-width:auto라 내용(input의 기본 너비,
+     placeholder 등)이 flex:1의 균등 분배보다 우선해 넘칠 수 있다 — 성능
+     시험 폼처럼 label이 3개로 늘어나면 모달 폭(560px)을 넘어 오른쪽이
+     잘려 보이는 문제가 있었다(2026-07-30). min-width:0으로 내용이 항상
+     칸 너비에 맞춰 줄어들게 하고, flex-wrap도 열어 더 좁은 화면에서는
+     자연스럽게 다음 줄로 넘어가게 한다. */
+  min-width: 0;
 }
 
 .form-error {
