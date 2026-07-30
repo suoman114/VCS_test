@@ -150,6 +150,14 @@ async def test_trigger_run_ssh_failure_transitions_to_error(
     assert final_status == "error"
     assert "DetachedInstanceError" not in caplog.text
 
+    # 2026-07-30: 실 사용 중 발견된 문제 — 실행기 예외 메시지가 backend.log에만
+    # 남고 대시보드 어디에도 안 보여서, 설정 실수(예: protocol_params 필수값
+    # 누락) 하나 확인하려고 서버 SSH 접속이 필요했다. result_summary에 담겨야
+    # `GET /api/test-runs/{id}`만으로 원인을 알 수 있다.
+    run_resp = await client.get(f"/api/test-runs/{run_id}")
+    summary = json.loads(run_resp.json()["result_summary"])
+    assert "VCS_SSH_HOST" in summary["error"]
+
 
 @pytest.mark.asyncio
 async def test_trigger_run_missing_test_case_404(client: httpx.AsyncClient) -> None:

@@ -21,6 +21,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
@@ -64,11 +65,17 @@ class JobRunner:
             await job_factory()
         except asyncio.CancelledError:
             logger.info("Job %s was cancelled", run_id)
-            await self.set_status(run_id, TestRunStatus.ERROR, result_summary="cancelled")
+            await self.set_status(run_id, TestRunStatus.ERROR, result_summary=json.dumps({"error": "cancelled"}))
             raise
-        except Exception:  # noqa: BLE001 - 실행기 예외를 ERROR 상태로 수렴시킴
+        except Exception as exc:  # noqa: BLE001 - 실행기 예외를 ERROR 상태로 수렴시킴
             logger.exception("Job %s raised an unhandled exception", run_id)
-            await self.set_status(run_id, TestRunStatus.ERROR)
+            # 실행기가 던진 예외 메시지(예: protocol_params 필수값 누락, SSH 연결
+            # 실패 등)를 result_summary에 남긴다 — 그동안 backend.log에만 남고
+            # 대시보드 어디에도 안 보여서, 시험 케이스 설정 실수 하나 확인하려고
+            # 서버에 SSH로 접속해 로그를 뒤져야 했다(2026-07-30 실 사용 중 확인).
+            await self.set_status(
+                run_id, TestRunStatus.ERROR, result_summary=json.dumps({"error": f"{type(exc).__name__}: {exc}"})
+            )
 
     def get_task(self, run_id: str) -> asyncio.Task[None] | None:
         return self._tasks.get(run_id)

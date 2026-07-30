@@ -83,7 +83,12 @@ export interface TestRun {
   ended_at: string | null;
   target_host: string | null;
   raw_log_path: string | null;
-  result_summary: Record<string, unknown> | null;
+  // 백엔드는 JSON을 담은 "문자열"로 내려준다(app/schemas/test_run.py:
+  // result_summary: str | None, DB에도 Text 컬럼에 json.dumps() 결과를 그대로
+  // 저장) — 파싱된 객체가 아니다. 예전엔 이 타입이 Record<string, unknown>으로
+  // 잘못 선언돼 있어서, 화면에서 JSON.stringify(문자열)을 한 번 더 해버려
+  // 이스케이프된 문자열이 그대로 보이는 버그가 있었다(2026-07-30 확인).
+  result_summary: string | null;
 }
 
 export interface TestRunListResponse {

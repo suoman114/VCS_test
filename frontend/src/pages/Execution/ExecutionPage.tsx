@@ -9,6 +9,17 @@ import { LogViewer } from "../../components/LogViewer";
 import { MermaidDiagram } from "../../components/MermaidDiagram";
 import "./ExecutionPage.css";
 
+/** `result_summary`는 JSON을 담은 문자열이다(api/types.ts 참고) — 그대로
+ * JSON.stringify하면 이스케이프된 문자열이 보이므로 먼저 파싱한다. 파싱
+ * 실패해도(형식이 안 맞는 예외적인 경우) 원본 문자열은 그대로 보여준다. */
+function formatResultSummary(raw: string): string {
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2);
+  } catch {
+    return raw;
+  }
+}
+
 const POLL_INTERVAL_MS = 3000;
 // Call Flow는 이제 WebSocket "call_flow" 메시지로 실시간 push된다(execution_common
 // .persist_call_flow/persist_results). 아래 폴링은 최초 진입 시(WS 연결 전
@@ -167,7 +178,7 @@ export function ExecutionPage() {
       {run?.result_summary && (
         <details className="result-summary">
           <summary>결과 요약</summary>
-          <pre>{JSON.stringify(run.result_summary, null, 2)}</pre>
+          <pre>{formatResultSummary(run.result_summary)}</pre>
         </details>
       )}
 
