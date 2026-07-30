@@ -261,7 +261,7 @@ export function SettingsPage() {
             </div>
           )}
 
-          <label className="form-field-narrow">
+          <label className="form-field-exec-mode">
             실행 위치
             <select value={sippExecMode} onChange={(e) => setSippExecMode(e.target.value as SippExecMode)}>
               <option value="local">local (자동화 서버에서 직접 실행)</option>

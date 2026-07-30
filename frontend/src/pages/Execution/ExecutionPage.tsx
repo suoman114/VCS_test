@@ -125,7 +125,14 @@ export function ExecutionPage() {
         pollRef.current = null;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Test Run 조회 실패");
+      // 404는 백엔드가 "TestRun not found"라는 영문 메시지를 그대로 내려줘서
+      // 화면 전체가 한글인데 이 문구만 영문으로 보이던 문제(2026-07-30 발견)
+      // — 존재하지 않는 run을 명시적으로 구분해 한글 메시지로 보여준다.
+      if (err instanceof ApiError && err.status === 404) {
+        setError(`Test Run을 찾을 수 없습니다 (ID: ${runId}).`);
+      } else {
+        setError(err instanceof Error ? err.message : "Test Run 조회 실패");
+      }
     }
   }, [runId]);
 
@@ -193,6 +200,25 @@ export function ExecutionPage() {
         <h2>시험 실행</h2>
         <p>시험 케이스 관리 화면에서 케이스를 실행하면 이 화면으로 이동합니다.</p>
         <Link to="/test-cases">시험 케이스 관리로 이동</Link>
+      </div>
+    );
+  }
+
+  // run을 한 번도 못 불러왔으면(존재하지 않는 run_id 등) 로그/Call Flow처럼
+  // 빈 UI를 그대로 렌더링하지 않는다 — 예전엔 "TestRun not found" 에러
+  // 배너 아래로 빈 로그 패널/Call Flow 영역이 정상 화면처럼 계속 보여서
+  // 혼란스러웠다(2026-07-30 발견). 이미 한 번 로드된 뒤 폴링이 일시적으로
+  // 실패한 경우는 run이 이미 채워져 있으므로 이 분기를 타지 않는다.
+  if (!run && error) {
+    return (
+      <div className="execution-page">
+        <div className="page-header">
+          <h2>시험 실행</h2>
+        </div>
+        <div className="page-error">{error}</div>
+        <div className="execution-links">
+          <Link to="/history">시험 이력으로 이동</Link>
+        </div>
       </div>
     );
   }

@@ -95,6 +95,14 @@
   max-width: 140px;
 }
 
+/* "실행 위치" select는 옵션 텍스트가 길어서(예: "local (자동화 서버에서
+   직접 실행)") .form-field-narrow(140px)에 넣으면 잘려 보였다(2026-07-30
+   발견) — 셀렉트 박스 자체는 짧아도 되지만 펼쳤을 때/선택된 값 표시 폭은
+   넉넉히 잡는다. */
+.form-field-exec-mode {
+  max-width: 320px;
+}
+
 .form-checkbox-hint {
   display: flex;
   align-items: center;
