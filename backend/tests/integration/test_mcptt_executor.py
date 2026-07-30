@@ -187,17 +187,29 @@ class _FakeSippSshConnector:
 
 
 @pytest.mark.asyncio
-async def test_mcptt_executor_remote_sipp_exec_mode_uploads_and_runs_remotely(
+async def test_mcptt_executor_remote_sipp_exec_mode_runs_java_simulator(
     isolated_db, tmp_path: Path
 ) -> None:
-    """`sipp_exec_mode=ssh`일 때 시나리오 업로드 -> 원격 실행 -> 로그 다운로드가 일어나는지.
+    """`sipp_exec_mode=ssh`일 때 실제 SIPp가 아니라 SIPp 전용 호스트의
+    `mcptt_sim_dir`에 이미 있는 Java 시뮬레이터를 실행하는지(2026-07-29 확인).
+
+    시나리오 XML은 이미 원격에 있으므로 업로드하지 않고, 이 도구는 SIPp
+    트레이스 파일을 만들지 않으므로 다운로드도 하지 않는다 — 로그는
+    vcmc.log/vcmm.log만 쓴다.
 
     실제 SIPp 전용 호스트 SSH 연결은 하지 않는다 — `sipp_ssh_connector_factory`
     주입 지점에 가짜 커넥터를 넣는다(VCS측 `ssh_target_factory`/`SshTailSource`는
     다른 테스트와 동일하게 로컬 샘플 로그로 대체된 상태).
     """
     test_case, run_id = _seed_test_case_and_run(isolated_db)
-    test_case.protocol_params = {**test_case.protocol_params, "sipp_exec_mode": "ssh"}
+    test_case.protocol_params = {
+        **test_case.protocol_params,
+        "sipp_exec_mode": "ssh",
+        "scenario_file": "mcptt_basic_call.xml",
+        "local_ip": "192.168.7.65",
+        "local_port": 5080,
+        "control_port": 6061,
+    }
 
     fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
 
@@ -216,27 +228,20 @@ async def test_mcptt_executor_remote_sipp_exec_mode_uploads_and_runs_remotely(
     assert summary["sipp_exit_status"] == 0
     assert summary["passed"] is True
 
-    # 1. 원격 작업 디렉토리 생성
-    assert any(cmd.startswith("mkdir -p") for cmd in fake_sipp_connector.commands)
+    # 업로드/다운로드가 전혀 없어야 한다(시나리오는 이미 원격에 있고, 트레이스 로그도 안 만듦).
+    assert fake_sipp_connector.uploaded == []
+    assert fake_sipp_connector.downloaded == []
 
-    # 2. 시나리오가 로컬 저장소 경로 -> 원격 경로로 업로드됐는지
-    assert len(fake_sipp_connector.uploaded) == 1
-    local_scenario, remote_scenario = fake_sipp_connector.uploaded[0]
-    assert local_scenario == str(_REPO_ROOT / "scenarios" / "sipp" / "mcptt_basic_call.xml")
-    assert remote_scenario.endswith("/mcptt_basic_call.xml")
-    assert test_case.id in remote_scenario
-    assert run_id in remote_scenario
-
-    # 3. sipp 커맨드가 원격 경로 기준으로 구성되어 실행됐는지 (기본 sipp_bin은
-    # Settings.sipp_bin_path, 2026-07-29 확인: /root/SIPP/sipp)
-    sipp_cmd = fake_sipp_connector.commands[-1]
-    assert sipp_cmd.startswith("/root/SIPP/sipp ")
-    assert remote_scenario in sipp_cmd or shlex.quote(remote_scenario) in sipp_cmd
-
-    # 4. SIPp 자체 로그 3종이 로컬로 다운로드됐는지 (원본 로그 보존)
-    assert len(fake_sipp_connector.downloaded) == 3
-    downloaded_names = {remote.rsplit("/", 1)[-1] for remote, _ in fake_sipp_connector.downloaded}
-    assert downloaded_names == {"sipp_messages.log", "sipp_screen.log", "sipp_stats.csv"}
+    # java 시뮬레이터 커맨드가 mcptt_sim_dir 기준 경로 + 주어진 파라미터로 구성됐는지
+    # (기본 mcptt_sim_dir: /root/mcptt_sim, jar명: utgen-jar-with-dependencies.jar, 2026-07-29 확인)
+    assert len(fake_sipp_connector.commands) == 1
+    sipp_cmd = fake_sipp_connector.commands[0]
+    assert sipp_cmd.startswith("java -jar /root/mcptt_sim/utgen-jar-with-dependencies.jar ")
+    assert "-sf /root/mcptt_sim/mcptt_basic_call.xml" in sipp_cmd
+    assert "-i 192.168.7.65" in sipp_cmd
+    assert "-p 5080" in sipp_cmd
+    assert "-cp 6061" in sipp_cmd
+    assert sipp_cmd.endswith("-m 10 10.0.0.10:5060")
 
     assert fake_sipp_connector.closed is True
 
@@ -246,11 +251,14 @@ async def test_mcptt_executor_remote_sipp_uses_su_root_when_password_configured(
     isolated_db, tmp_path: Path
 ) -> None:
     """`sipp_ssh_root_password`가 설정돼 있으면(root 직접 SSH 로그인이 막힌
-    환경, 2026-07-29) 원격 작업 디렉토리 생성과 sipp 실행을
-    `run_command_as_su()`로 root 권한으로 돌려야 한다 — 일반 `run_command()`가
-    아니라."""
+    환경, 2026-07-29) 시뮬레이터 실행을 `run_command_as_su()`로 root 권한으로
+    돌려야 한다 — 일반 `run_command()`가 아니라."""
     test_case, run_id = _seed_test_case_and_run(isolated_db)
-    test_case.protocol_params = {**test_case.protocol_params, "sipp_exec_mode": "ssh"}
+    test_case.protocol_params = {
+        **test_case.protocol_params,
+        "sipp_exec_mode": "ssh",
+        "scenario_file": "mcptt_basic_call.xml",
+    }
 
     fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
 
@@ -266,12 +274,37 @@ async def test_mcptt_executor_remote_sipp_uses_su_root_when_password_configured(
 
     assert result_run.status == TestRunStatus.DONE
 
-    # mkdir+chmod, sipp 실행, 실행 후 chmod -R a+r 까지 총 3번이 su로 실행돼야 한다.
-    assert len(fake_sipp_connector.su_commands) == 3
-    assert all(pw == "r00t-pw" and su_user == "root" for _cmd, pw, su_user in fake_sipp_connector.su_commands)
-    assert fake_sipp_connector.su_commands[0][0].startswith("mkdir -p")
-    assert fake_sipp_connector.su_commands[1][0].startswith("/root/SIPP/sipp ")
-    assert fake_sipp_connector.su_commands[2][0].startswith("chmod -R a+r")
+    assert len(fake_sipp_connector.su_commands) == 1
+    su_cmd, su_password, su_user = fake_sipp_connector.su_commands[0]
+    assert su_password == "r00t-pw"
+    assert su_user == "root"
+    assert su_cmd.startswith("java -jar /root/mcptt_sim/utgen-jar-with-dependencies.jar ")
 
-    # 일반 run_command()로는 아무것도 안 돌아야 한다(전부 su 경유).
+    # 일반 run_command()로는 아무것도 안 돌아야 한다(su 경유).
     assert fake_sipp_connector.commands == []
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_remote_sipp_falls_back_to_config_ref_for_scenario_file(
+    isolated_db, tmp_path: Path
+) -> None:
+    """`protocol_params.scenario_file`이 없으면 `TestCase.config_ref`를
+    파일명으로 그대로 쓴다(둘 다 없을 때만 에러)."""
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+    test_case.config_ref = "mcptt_basic_call.xml"
+    test_case.protocol_params = {**test_case.protocol_params, "sipp_exec_mode": "ssh"}
+
+    fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        settings=Settings(storage_dir=str(tmp_path / "storage")),
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        sipp_ssh_target_factory=lambda: SSHTarget(host="fake-sipp"),
+        sipp_ssh_connector_factory=lambda target: fake_sipp_connector,
+    )
+
+    result_run = await executor.run(test_case)
+
+    assert result_run.status == TestRunStatus.DONE
+    assert "-sf /root/mcptt_sim/mcptt_basic_call.xml" in fake_sipp_connector.commands[0]

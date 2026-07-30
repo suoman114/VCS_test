@@ -101,11 +101,18 @@ class Settings(BaseSettings):
     # 대시보드) SIPp 실행 관련 원격 명령을 `SSHConnector.run_command_as_su()`로
     # 돌린다 — 비어있으면 기존처럼 sipp_ssh_username 권한으로 직접 실행한다.
     sipp_ssh_root_password: str | None = None
-    # SIPp 실행 파일의 원격 경로(2026-07-29 확인: /root/SIPP/sipp). 비어있으면
-    # PATH에 있는 `sipp`를 그대로 쓴다. Test Case별 protocol_params.sipp_bin이
-    # 있으면 그게 우선한다.
-    sipp_bin_path: str = "/root/SIPP/sipp"
-    # SIPp 원격 호스트에 시나리오/로그를 두는 작업 디렉토리 (실행마다 test_case_id/run_id 하위에 생성).
+    # McPTT 호처리 시험은 실제 SIPp 바이너리가 아니라 SIPp 전용 호스트에 이미
+    # 올라가 있는 자체 제작 Java 도구(`utgen-jar-with-dependencies.jar`)로
+    # 실행한다(2026-07-29 확인). 이 디렉토리 안에 그 jar와 사용 가능한 시나리오
+    # XML들이 함께 있다 — Test Case 등록 폼의 select box는
+    # `GET /api/vcs/mcptt-scenario-files`로 이 디렉토리의 *.xml 목록을 SSH로
+    # 조회해서 보여준다(VoLTE의 pcap 샘플 select box와 동일한 패턴).
+    mcptt_sim_dir: str = "/root/mcptt_sim"
+    mcptt_sim_jar_name: str = "utgen-jar-with-dependencies.jar"
+    # SIPp 원격 호스트에 로그를 두는 작업 디렉토리. (2026-07-29 기준: McPTT는
+    # mcptt_sim_dir의 시나리오를 그대로 참조해서 실행하므로 더 이상 시나리오
+    # 업로드/실행 로그 다운로드에 쓰이지 않는다 — 향후 다른 프로토콜/작업
+    # 디렉토리가 필요한 경우를 위해 설정 자체는 남겨둔다.)
     sipp_remote_work_dir: str = "/tmp/vcs_test_sipp"
 
     @property

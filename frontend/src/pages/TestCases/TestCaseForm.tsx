@@ -44,6 +44,12 @@ export function TestCaseForm({ initial, onCancel, onSubmit }: TestCaseFormProps)
   const [volteSampleFilesError, setVolteSampleFilesError] = useState<string | null>(null);
   const [volteSampleFilesLoading, setVolteSampleFilesLoading] = useState(false);
 
+  // McPTT 전용: SIPp 전용 호스트의 mcptt_sim_dir 시나리오 XML 목록 (select box용,
+  // 2026-07-29 — VoLTE의 pcap 샘플 select box와 동일한 패턴).
+  const [mcpttScenarioFiles, setMcpttScenarioFiles] = useState<string[] | null>(null);
+  const [mcpttScenarioFilesError, setMcpttScenarioFilesError] = useState<string | null>(null);
+  const [mcpttScenarioFilesLoading, setMcpttScenarioFilesLoading] = useState(false);
+
   useEffect(() => {
     if (category !== "volte") return;
     let cancelled = false;
@@ -64,6 +70,32 @@ export function TestCaseForm({ initial, onCancel, onSubmit }: TestCaseFormProps)
       })
       .finally(() => {
         if (!cancelled) setVolteSampleFilesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [category]);
+
+  useEffect(() => {
+    if (category !== "mcptt") return;
+    let cancelled = false;
+    setMcpttScenarioFilesLoading(true);
+    setMcpttScenarioFilesError(null);
+    vcsApi
+      .mcpttScenarioFiles()
+      .then((res) => {
+        if (!cancelled) setMcpttScenarioFiles(res.items);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setMcpttScenarioFiles(null);
+          setMcpttScenarioFilesError(
+            err instanceof ApiError ? err.message : "SIPp 서버에서 시나리오 파일 목록을 가져오지 못했습니다",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setMcpttScenarioFilesLoading(false);
       });
     return () => {
       cancelled = true;
@@ -98,6 +130,11 @@ export function TestCaseForm({ initial, onCancel, onSubmit }: TestCaseFormProps)
     // (config_ref와 항상 동일한 값을 쓰게 해서 둘이 어긋나는 걸 방지).
     if (category === "volte" && configRef) {
       protocolParams = { ...protocolParams, sample_file: configRef };
+    }
+    // McPTT도 동일한 패턴 — select box에서 고른 시나리오 파일명을
+    // protocol_params.scenario_file에 반영한다(2026-07-29).
+    if (category === "mcptt" && configRef) {
+      protocolParams = { ...protocolParams, scenario_file: configRef };
     }
 
     setSubmitting(true);
@@ -212,8 +249,35 @@ export function TestCaseForm({ initial, onCancel, onSubmit }: TestCaseFormProps)
         </label>
       ) : (
         <label>
-          config_ref * (McPTT: SIPp 시나리오 XML 경로, 저장소 기준 상대경로)
-          <input value={configRef} onChange={(e) => setConfigRef(e.target.value)} required />
+          시나리오 XML 파일 * (SIPp 서버의 /root/mcptt_sim 목록)
+          {mcpttScenarioFilesLoading && <div className="form-hint">목록 불러오는 중...</div>}
+          {mcpttScenarioFilesError && (
+            <div className="form-hint form-hint-error">
+              {mcpttScenarioFilesError} — SIPp 서버 연결을 확인하거나 파일명을 직접 입력하세요.
+            </div>
+          )}
+          {mcpttScenarioFiles ? (
+            <select value={configRef} onChange={(e) => setConfigRef(e.target.value)} required>
+              <option value="" disabled>
+                파일 선택...
+              </option>
+              {mcpttScenarioFiles.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+              {configRef && !mcpttScenarioFiles.includes(configRef) && (
+                <option value={configRef}>{configRef} (현재 값, 목록에 없음)</option>
+              )}
+            </select>
+          ) : (
+            <input
+              value={configRef}
+              onChange={(e) => setConfigRef(e.target.value)}
+              placeholder="예: mcptt_basic_call.xml"
+              required
+            />
+          )}
         </label>
       )}
 

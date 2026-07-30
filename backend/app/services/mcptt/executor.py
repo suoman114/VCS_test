@@ -1,62 +1,61 @@
 """McPTT 기본 호처리 시험 실행기 (CLAUDE.md §3.2).
 
 절차:
-    1. `TestCase.config_ref`(SIPp 시나리오 XML, 저장소 루트 기준 상대 경로)와
-       `protocol_params`로 SIPp 커맨드라인을 구성한다
-       (`scenarios/sipp/README.md`의 파라미터 매핑표 기준).
+    1. `protocol_params.scenario_file`(SIPp 전용 호스트의 `Settings.mcptt_sim_dir`
+       안에 이미 있는 시나리오 XML 파일명 — VoLTE의 pcap 샘플 선택과 동일한
+       패턴, `GET /api/vcs/mcptt-scenario-files`로 select box 제공)과
+       `protocol_params`로 실행 커맨드라인을 구성한다.
     2. VCS측 로그(`vcmc.log`, `vcmm.log`) `CollectorSession` tail 수집을 먼저
-       시작한 뒤, SIPp 프로세스를 실행한다(동시 수집, CLAUDE.md §3.2 2~3단계).
-    3. SIPp 실행이 끝나면(또는 동시에) `pass_criteria` 충족/타임아웃까지
-       수집된 로그를 재파싱하며 대기한다.
+       시작한 뒤, 시뮬레이터를 실행한다(동시 수집, CLAUDE.md §3.2 2~3단계).
+    3. 실행이 끝나면(또는 동시에) `pass_criteria` 충족/타임아웃까지 수집된
+       로그를 재파싱하며 대기한다.
     4. 수집 종료 -> CallEvent 저장 -> Call Flow 생성 -> 최종 상태 반영.
 
-SIPp 실행 위치(`sipp_exec_mode`, `Settings.sipp_exec_mode` 또는
+실행 위치(`sipp_exec_mode`, `Settings.sipp_exec_mode` 또는
 `protocol_params["sipp_exec_mode"]`로 결정, 기본값 `local`):
-    - `local`: 자동화 서버에서 `asyncio.create_subprocess_exec`로 바로 실행.
+    - `local`: 자동화 서버에서 실제 SIPp 바이너리를 `asyncio.create_subprocess_exec`로
+      직접 실행한다(개발/테스트용 경로 — 실 배포에서는 쓰이지 않는다,
+      `build_sipp_args`).
     - `ssh`: 별도 SIPp 전용 호스트에 SSH로 접속해 실행한다(2026-07-29 확인:
-      실제 배포에서는 SIPp가 VCS와 다른 서버에 있음). 시나리오 XML을
-      `Settings.sipp_remote_work_dir/{test_case_id}/{run_id}/`로 업로드하고
-      그 원격 경로 기준으로 커맨드라인을 구성해 실행한 뒤, SIPp 자체 로그
-      (message/screen/stat)를 로컬 `storage/logs/...`로 다운로드해 원본을
-      보존한다 (`_run_sipp_remote`).
+      실 배포는 항상 이 모드). **실제 SIPp가 아니라, 그 호스트에 이미 올라가
+      있는 자체 제작 Java 도구(`Settings.mcptt_sim_dir`/`mcptt_sim_jar_name`,
+      기본 `/root/mcptt_sim/utgen-jar-with-dependencies.jar`)를 실행한다**
+      (2026-07-29 확인, `build_mcptt_sim_args`). 시나리오 XML도 그 디렉토리에
+      이미 있으므로 업로드가 필요 없고, 이 도구는 SIPp 트레이스 파일을
+      만들지 않으므로 다운로드할 로그도 없다 — `vcmc.log`/`vcmm.log`만이
+      이 시험의 로그 소스다(`_run_sipp_remote`).
 
-`TestCase.protocol_params` 키(요구 사항, 완료 보고 참고 — `scenarios/sipp/README.md`
-제안표와 실제 `testcases/mcptt/mcptt_basic_call_001.yaml` 예시 사이의 이름 불일치를
-양쪽 다 허용하도록 fallback을 둔다):
+`TestCase.protocol_params` 키:
+    scenario_file (str, 필수)            : `Settings.mcptt_sim_dir` 안의 시나리오
+                                            XML 파일명(전체 경로 아님). Test Case
+                                            등록 폼은 `GET /api/vcs/mcptt-scenario-files`로
+                                            조회한 목록 중 하나를 select box로 고른다.
+                                            안 채우면 `TestCase.config_ref`로 폴백한다.
     target_host | target_ip (str, 필수) : VCS(vcmc) 대상 IP
     target_port (int, 기본 5060)        : VCS SIP 포트
-    local_ip (str, 선택)                 : SIPp 바인딩 로컬 IP (-i)
-    local_port (int, 선택)               : SIPp 로컬 SIP 포트 (-p)
-    transport (str, 기본 "u1")           : SIP 전송 프로토콜
-    callee_id (str, 선택)                : 착신 MCPTT 번호 (-s)
-    caller_id (str, 선택)                : 발신 MCPTT 사용자 ID (-key mcptt_caller_id)
-    group_id (str, 선택)                 : MCPTT 그룹 ID (-key mcptt_group_id)
-    mcptt_domain (str, 선택)             : 발신자 PLMN 도메인 (-key mcptt_domain)
+    local_ip (str, 선택)                 : 시뮬레이터 바인딩 로컬 IP (-i)
+    local_port (int, 선택)               : 시뮬레이터 로컬 포트 (-p)
+    control_port (int, 선택)             : 시뮬레이터 컨트롤 포트 (-cp)
     calls_count | max_calls (int, 기본 1): 총 호 발생 수 (-m)
-    call_rate (float, 기본 1)            : 초당 호 발생율 (-r)
-    extra_sipp_args (list[str], 선택)    : 추가 SIPp 인자 그대로 append
+    extra_sipp_args (list[str], 선택)    : 추가 인자 그대로 append
     vcmc_log_path / vcmm_log_path        : 기본값 Settings.vcs_vcmc_log_path / vcs_vcmm_log_path
         (str, 선택)
     vcs_log_paths (list[str] | dict, 선택): 위 두 기본 경로 외에 추가로 tail할 로그
     sipp_exec_mode ("local"|"ssh", 선택) : 기본값은 Settings.sipp_exec_mode
-    sipp_remote_work_dir (str, 선택)     : ssh 모드일 때 원격 작업 디렉토리
-                                            (기본값 Settings.sipp_remote_work_dir)
+    mcptt_sim_dir / mcptt_sim_jar_name   : 기본값 Settings.mcptt_sim_dir / mcptt_sim_jar_name
+        (str, 선택)
     timeout_sec (float, 기본 120)        : 완료 판정 타임아웃(상한). `recording_stop_res`
                                             성공 이벤트가 확인되면 이 값을 다 기다리지 않고
                                             즉시 종료된다(`wait_for_completion`) — 시나리오마다
                                             실제 호 길이가 다르므로 정확한 값을 몰라도, 가장
                                             오래 걸리는 시나리오보다 넉넉하게만 잡으면 된다.
-    sipp_bin (str, 선택)                 : SIPp 실행 파일 경로/이름. 기본값은
-                                            Settings.sipp_bin_path(2026-07-29 확인: `/root/SIPP/sipp`).
 
 SIPp 전용 호스트가 root 직접 SSH 로그인을 막아놔서(`PermitRootLogin no`)
 `sipp_ssh_username`(예: sysadm)으로 접속한 뒤 `su - root`로 전환해야 하는
 환경 대응(2026-07-29): `Settings.sipp_ssh_root_password`(또는 대시보드
-"설정"의 SIPp root 비밀번호)가 채워져 있으면, 원격 작업 디렉토리 생성과
-SIPp 실행 자체를 `SSHConnector.run_command_as_su()`로 root 권한으로
-돌린다. 시나리오 업로드/로그 다운로드(SFTP)는 sysadm 권한 그대로
-수행하므로, su 단계에서 작업 디렉토리를 `chmod 777`로 열어 sysadm이
-파일을 쓰고 읽을 수 있게 한다.
+"설정"의 SIPp root 비밀번호)가 채워져 있으면, 시뮬레이터 실행 자체를
+`SSHConnector.run_command_as_su()`로 root 권한으로 돌린다 — 비어있으면
+`sipp_ssh_username` 권한으로 직접 실행한다.
 """
 from __future__ import annotations
 
@@ -76,7 +75,7 @@ from app.models.test_run import TestRun, TestRunStatus
 from app.services.execution_common import normalize_log_paths, persist_results, wait_for_completion
 from app.services.executor_base import TestCaseLike, TestExecutor, executor_registry
 from app.services.log_collector import CollectorSession, CollectorSource, SshTailSource
-from app.services.ssh_connector import CommandResult, SSHConnector, SSHTarget
+from app.services.ssh_connector import SSHConnector, SSHTarget
 from app.services.vcs_settings_store import (
     resolve_sipp_exec_mode,
     resolve_sipp_root_password,
@@ -203,6 +202,45 @@ def build_sipp_args(
     return argv
 
 
+def build_mcptt_sim_args(
+    scenario_path: PurePosixPath,
+    params: dict[str, Any],
+    *,
+    jar_path: str,
+) -> list[str]:
+    """`TestCase.protocol_params` -> McPTT 시뮬레이터(Java 도구) 커맨드라인.
+
+    SIPp 전용 호스트에 이미 올라가 있는 자체 제작 Java 도구
+    (`utgen-jar-with-dependencies.jar`)를 실행한다 — 실제 SIPp 바이너리가
+    아니다(2026-07-29 확인). 예:
+        java -jar utgen-jar-with-dependencies.jar -sf scenario.xml
+             -i 192.168.7.65 -p 5080 -cp 6061 -m 1 10.0.0.1:5060
+    """
+    target_host = params.get("target_host") or params.get("target_ip")
+    if not target_host:
+        raise ValueError("protocol_params에 target_host(또는 target_ip)가 필요하다")
+    target_port = params.get("target_port", 5060)
+    calls_count = params.get("calls_count") or params.get("max_calls", 1)
+
+    argv: list[str] = ["java", "-jar", jar_path, "-sf", str(scenario_path)]
+
+    local_ip = params.get("local_ip")
+    if local_ip:
+        argv += ["-i", str(local_ip)]
+    local_port = params.get("local_port")
+    if local_port:
+        argv += ["-p", str(local_port)]
+    control_port = params.get("control_port")
+    if control_port:
+        argv += ["-cp", str(control_port)]
+
+    argv += ["-m", str(calls_count), f"{target_host}:{target_port}"]
+
+    extra_args = params.get("extra_sipp_args") or []
+    argv += [str(a) for a in extra_args]
+    return argv
+
+
 @executor_registry.register(protocol="mcptt", test_type="basic_call")
 class McpttBasicCallExecutor(TestExecutor):
     """CLAUDE.md §3.2 McPTT 기본 호처리 시험 실행기."""
@@ -259,25 +297,24 @@ class McpttBasicCallExecutor(TestExecutor):
             )
             await session.start()
 
-            scenario_local_path = self._resolve_repo_path(test_case.config_ref)
             timeout_sec = float(params.get("timeout_sec", 120) or 120)
             exec_mode = params.get("sipp_exec_mode", resolve_sipp_exec_mode(self._settings))
 
             if exec_mode == "ssh":
-                sipp_bin = params.get("sipp_bin", self._settings.sipp_bin_path)
-                remote_base = params.get("sipp_remote_work_dir", self._settings.sipp_remote_work_dir)
-                remote_run_dir = PurePosixPath(remote_base) / test_case.id / run_id
-                remote_scenario_path = remote_run_dir / scenario_local_path.name
-                argv = build_sipp_args(remote_scenario_path, params, remote_run_dir, sipp_bin=sipp_bin)
-                sipp_result = await self._run_sipp_remote(
-                    argv=argv,
-                    scenario_local_path=scenario_local_path,
-                    remote_scenario_path=remote_scenario_path,
-                    remote_run_dir=remote_run_dir,
-                    local_run_dir=session.run_dir,
-                    timeout_sec=timeout_sec,
-                )
+                scenario_file = params.get("scenario_file") or test_case.config_ref
+                if not scenario_file:
+                    raise ValueError(
+                        "protocol_params.scenario_file(또는 config_ref)이 필요하다 —"
+                        " GET /api/vcs/mcptt-scenario-files에서 조회한 파일명 중 하나를 지정해야 한다"
+                    )
+                sim_dir = params.get("mcptt_sim_dir", self._settings.mcptt_sim_dir)
+                jar_name = params.get("mcptt_sim_jar_name", self._settings.mcptt_sim_jar_name)
+                remote_scenario_path = PurePosixPath(sim_dir) / scenario_file
+                jar_path = PurePosixPath(sim_dir) / jar_name
+                argv = build_mcptt_sim_args(remote_scenario_path, params, jar_path=str(jar_path))
+                sipp_result = await self._run_sipp_remote(argv=argv, timeout_sec=timeout_sec)
             elif exec_mode == "local":
+                scenario_local_path = self._resolve_repo_path(test_case.config_ref)
                 sipp_bin = params.get("sipp_bin", "sipp")
                 argv = build_sipp_args(scenario_local_path, params, session.run_dir, sipp_bin=sipp_bin)
                 sipp_result = await self._sipp_runner(argv, self._settings.repo_root_path, timeout_sec)
@@ -326,75 +363,33 @@ class McpttBasicCallExecutor(TestExecutor):
 
         return await asyncio.to_thread(self._fetch_run, run_id)
 
-    async def _run_sipp_remote(
-        self,
-        *,
-        argv: list[str],
-        scenario_local_path: Path,
-        remote_scenario_path: PurePosixPath,
-        remote_run_dir: PurePosixPath,
-        local_run_dir: Path,
-        timeout_sec: float,
-    ) -> SippRunResult:
-        """SIPp 전용 원격 호스트에서 시나리오를 실행한다.
+    async def _run_sipp_remote(self, *, argv: list[str], timeout_sec: float) -> SippRunResult:
+        """SIPp 전용 원격 호스트에서 McPTT 시뮬레이터(Java 도구)를 실행한다.
 
-        1. 원격 작업 디렉토리 생성(권한 오픈 포함, root 전환 시)
-        2. 시나리오 XML 업로드(로컬 저장소 -> 원격, 항상 로그인 계정 권한)
-        3. `argv`(이미 원격 경로 기준으로 구성됨)를 SSH 커맨드로 실행
-        4. SIPp 자체 로그(message/screen/stat)를 로컬로 다운로드 (원본 로그 보존 원칙,
-           CLAUDE.md §3.3). 실행이 실패해 파일이 아예 안 만들어졌을 수도 있어
-           다운로드 실패는 개별적으로 warning만 남기고 계속 진행한다.
+        시나리오 XML은 이미 원격 `mcptt_sim_dir`에 있으므로(select box로
+        고르기만 함, 모듈 docstring 참고) 업로드가 필요 없고, 이 도구는 SIPp
+        트레이스 파일을 만들지 않으므로 다운로드할 로그도 없다(2026-07-29
+        확정) — `vcmc.log`/`vcmm.log`만이 이 시험의 로그 소스다. 그래서 원격
+        작업 디렉토리 생성/권한 조정도 필요 없이, 커맨드 하나만 실행한다.
 
         root 직접 SSH 로그인이 막힌 환경(2026-07-29, `resolve_sipp_root_password`)
-        에서는 디렉토리 생성/sipp 실행을 `run_command_as_su()`로 root 권한으로
-        돌린다. SFTP 업로드/다운로드는 root 전환이 안 되는 별도 서브시스템이라
-        항상 로그인 계정(sysadm) 권한 그대로 수행하므로, root로 만든 작업
-        디렉토리를 `chmod 777`로 열어 sysadm이 파일을 넣고 뺄 수 있게 하고,
-        sipp 실행이 끝난 뒤에도 출력 로그를 `chmod -R a+r`로 열어야 다운로드가
-        권한 오류 없이 된다.
+        에서는 이 명령 자체를 `run_command_as_su()`로 root 권한으로 돌린다 —
+        비어있으면 로그인 계정(sysadm) 권한으로 직접 실행한다.
         """
         target = self._sipp_ssh_target_factory()
         connector = self._sipp_ssh_connector_factory(target)
         root_password = resolve_sipp_root_password(self._settings)
-
-        async def _exec(cmd: str, *, timeout: float | None = None) -> CommandResult:
-            if root_password:
-                return await connector.run_command_as_su(cmd, root_password, timeout=timeout)
-            return await connector.run_command(cmd, timeout=timeout)
-
+        command = " ".join(shlex.quote(a) for a in argv)
         try:
-            quoted_dir = shlex.quote(str(remote_run_dir))
-            await _exec(f"mkdir -p {quoted_dir} && chmod 777 {quoted_dir}")
-            await connector.upload_file(scenario_local_path, str(remote_scenario_path))
-
-            command = " ".join(shlex.quote(a) for a in argv)
-            try:
-                result = await _exec(command, timeout=timeout_sec)
-            except TimeoutError:
-                return SippRunResult(
-                    argv=argv, exit_status=None, stdout="", stderr="sipp process timed out (remote)"
-                )
-
             if root_password:
-                await _exec(f"chmod -R a+r {quoted_dir}")
-
-            local_run_dir.mkdir(parents=True, exist_ok=True)
-            for filename in ("sipp_messages.log", "sipp_screen.log", "sipp_stats.csv"):
-                try:
-                    await connector.download_file(str(remote_run_dir / filename), local_run_dir / filename)
-                except Exception as exc:  # noqa: BLE001 - 원격에 파일이 없을 수도 있음(예: 실행 실패)
-                    logger.warning(
-                        "McpttExecutor(%s): failed to download %s from remote sipp host: %s",
-                        self.run_id,
-                        filename,
-                        exc,
-                    )
-
-            return SippRunResult(
-                argv=argv, exit_status=result.exit_status, stdout=result.stdout, stderr=result.stderr
-            )
+                result = await connector.run_command_as_su(command, root_password, timeout=timeout_sec)
+            else:
+                result = await connector.run_command(command, timeout=timeout_sec)
+        except TimeoutError:
+            return SippRunResult(argv=argv, exit_status=None, stdout="", stderr="sipp process timed out (remote)")
         finally:
             await connector.close()
+        return SippRunResult(argv=argv, exit_status=result.exit_status, stdout=result.stdout, stderr=result.stderr)
 
     def _resolve_repo_path(self, config_ref: str) -> Path:
         p = Path(config_ref)

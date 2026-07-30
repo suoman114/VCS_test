@@ -5,6 +5,17 @@ McPTT 호처리 시험용 SIPp XML 시나리오. 담당 에이전트: `sipp-scen
 시나리오 실행(프로세스 트리거)은 `backend-agent`가, 결과 로그 파싱은 `log-parser-callflow-agent`가 담당한다.
 이 디렉토리에는 시나리오 XML과 실행 파라미터 문서만 둔다.
 
+> **2026-07-29 업데이트(실 배포 확인)**: 실 배포에서는 이 저장소의 XML을 SIPp 호스트로
+> 업로드해서 실행하지 않는다 — SIPp 전용 호스트의 `Settings.mcptt_sim_dir`(기본
+> `/root/mcptt_sim`)에 이미 시나리오 XML들이 올라가 있고, Test Case 등록 폼이
+> `GET /api/vcs/mcptt-scenario-files`로 그 목록을 select box로 보여준다(VoLTE의 pcap 샘플
+> 선택과 동일한 패턴). 실행도 실제 `sipp` 바이너리가 아니라 그 호스트에 있는 자체 제작
+> Java 도구(`utgen-jar-with-dependencies.jar`)로 한다 — 아래 "실행 파라미터"/커맨드라인
+> 예시는 **`sipp_exec_mode: local`(개발/테스트 전용 경로, 실 배포엔 안 쓰임)** 기준으로
+> 작성된 것이다. 실 배포(ssh 모드) 파라미터는 `backend/app/services/mcptt/executor.py`의
+> `build_mcptt_sim_args()`/모듈 docstring을 참고한다. 이 문서의 `mcptt_basic_call.xml`
+> 자체(SIP 메시지 흐름/바디)는 여전히 참고 가치가 있어 남겨둔다.
+
 ## 시나리오 파일
 
 ### `mcptt_basic_call.xml`
