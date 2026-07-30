@@ -24,6 +24,34 @@
 
 > 신규 시험 유형은 항상 "시험 유형 플러그인"으로 추가한다 (§7 참고). 기존 VoLTE/McPTT 코드를 건드리지 않고 확장 가능해야 한다.
 
+### 1.1 구현 현황 요약 (2026-07-30 기준)
+
+아래는 지금까지 구현 완료된 기능의 스캔용 목록이다. 각 항목의 배경/설계 이유/버그 수정 히스토리는 §7.1(McPTT 성능 시험)과 §13(TBD 해소 로그, 날짜순 상세 기록)에 있다 — 이 절은 "무엇이 있는지"만 빠르게 훑기 위한 색인이다.
+
+**Backend (FastAPI, `backend/app/`)**
+- **Test Case CRUD**: `GET/POST/PATCH/DELETE /api/test-cases`(+ `/{id}`), 카테고리(VoLTE/McPTT)·시험유형(basic_call/performance) 필터.
+- **VoLTE 기본 호처리 실행기**(`services/volte/executor.py`): vctp 설정(`SAMPLEFILE1`) SSH `sed` 치환 → `stopmc`/`startmc`로 vctp 재기동 → vcsm/vcmm/vctp 로그 tail → `recording_stop_res.reasonCode==2000` 기준 Pass/Fail 판정. 샘플 파일 목록 `GET /api/vcs/volte-sample-files`.
+- **McPTT 기본 호처리 실행기**(`services/mcptt/executor.py`): 원격 SIPp 전용 호스트에서 자체 제작 시뮬레이터(`utgen-jar-with-dependencies.jar`) 실행(`local`/`ssh` 두 모드, su root 지원) → vcmc/vcmm 로그 tail → 동일 기준 판정. 시나리오 파일 목록 `GET /api/vcs/mcptt-scenario-files`.
+- **McPTT 성능 시험 실행기**(`services/mcptt/performance_executor.py`, §7.1): `-r/-rp`(호 발생률) 기반 무기한 실행, `POST /test-runs/{id}/cancel`로 정상 종료, 원격 프로세스 강제 종료 보장(`run_command_cancellable`/`run_command_as_su`), 라이브 통계 집계(`performance_stats.py`).
+- **Test Run 오케스트레이션**(`api/test_runs.py`): 트리거/취소/목록/단건 조회/통계(`/stats`)/이벤트 페이지네이션(`/events`)/Call Flow(`/call-flow`, `call_id` 필터 지원)/call_id 목록(`/call-ids`)/리포트 통계(`/report-stats`), WebSocket(`/ws/test-runs/{id}`)로 로그·상태·Call Flow 실시간 push. 모든 응답에 `test_case_name` 포함(UUID 대신 이름 표시용).
+- **SSH 커넥터**(`services/ssh_connector/`): connect/close 타임아웃, 일반 실행/취소 가능한 실행/su 전환 실행 3종, 무제한 재연결 재시도 로그 tail.
+- **로그 파서 어댑터**(`services/log_parser/`, `services/callflow/`): `VctpLogAdapter`/`VcsmLogAdapter`/`VcmmLogAdapter`/`VcmcLogAdapter`(포맷 A/B 둘 다 지원), Mermaid `sequenceDiagram` 생성(`generate_call_flow`, 프로토콜 자동 감지 + 명시적 override), 클릭-투-로그용 메시지 인덱스.
+- **리포트 통계**(`services/report_stats.py`): 콜 설정 시간 분포(`recording_start_req`~`res` 기준, 히스토그램+p50/p95), 시간별 동시 통화 수(버킷 시계열) — 리포트 화면 진입 시 1회만 계산(라이브 폴링에는 미포함).
+- **VCS/SIPp 접속 설정**(`services/vcs_settings_store.py`, `api/settings.py`): `.env` 기본값 위에 대시보드에서 오버라이드 가능(DB 저장), 연결 테스트 API.
+- **Job Runner**(`job_runner/`): `asyncio.Task` 기반 비동기 실행, 취소, 예외를 `result_summary`에 기록.
+- **DB**: SQLAlchemy + Alembic(`TestCase`/`TestRun`/`CallEvent`/`CallFlowDiagram`/`VcsSettings`), 기본 SQLite.
+
+**Frontend (React + TS + Vite, `frontend/src/`)**
+- **페이지**: 대시보드(연결 상태·Pass율 통계·최근 실행), 시험 케이스 관리(목록/등록/수정/삭제, 성능 시험 전용 입력 필드), 시험 실행(실시간 로그 탭+검색, Call Flow 실시간 갱신 + call_id 필터, 결과 요약 카드, 시험 종료 버튼), 시험 이력(필터/페이지네이션), Call Flow 단독 조회, **리포트**(개요/결과 요약/콜 설정 시간 히스토그램/동시 통화 수 그래프/대표 Call Flow 1건, 브라우저 인쇄로 PDF 저장), 설정(VCS/SIPp 접속 정보 + 연결 테스트).
+- **실시간성**: WebSocket 자동 재연결(지수 백오프), 로그/상태/Call Flow 3종 실시간 push, 완료된 시험은 과거 로그 자동 로드.
+- **공통 컴포넌트**: `LogViewer`(탭·검색·긴 블록 접기), `MermaidDiagram`(클릭-투-로그), `ResultSummaryCard`(성공/실패/성능/인프라오류 4형태 렌더링), `ReportCharts`(SVG 히스토그램/영역그래프, 외부 라이브러리 없음), `StatusBadge`.
+- **UI 품질**: UUID 대신 Test Case 이름 표시, 모바일 내비게이션 가로 스크롤, 존재하지 않는 run/call-flow 접근 시 한글 에러 처리.
+
+**아직 없음 / 알려진 공백** (상세는 §13)
+- 실패/타임아웃 케이스 실 로그 샘플 부재 — Fail 판정 로직이 성공 케이스로만 검증됨(최우선 공백).
+- VoLTE 성능 시험(현재 McPTT만), Abnormal 시험 유형(Phase 3, 미착수).
+- 리포트/실행 결과 알림(Slack/이메일), 시험 이력 추세 비교, 로그/DB 보관·정리 정책.
+
 ---
 
 ## 2. 도메인 용어 정리
