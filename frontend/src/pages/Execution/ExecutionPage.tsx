@@ -45,16 +45,29 @@ export function ExecutionPage() {
   // call_id 단위로 골라볼 수 있게 한다(2026-07-30 추가). null이면 "전체".
   const [callIds, setCallIds] = useState<string[]>([]);
   const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
+  // 콜이 여러 건이면 "전체"를 기본값으로 두지 않는다 — 리포트 화면의
+  // "대표 콜" 방식과 같은 이유(다건이 섞인 다이어그램은 못 읽고, 이벤트가
+  // 많으면 Mermaid 렌더링 자체가 무거워/한도를 넘어 실패할 수 있다,
+  // 2026-07-31 실 서버 리포트: "Maximum text size in diagram" 에러). 한
+  // 번이라도 사용자가 드롭다운을 직접 조작하면(수동으로 "전체"를 고른
+  // 경우 포함) 이후 15초 폴링마다 자동으로 되돌리지 않는다.
+  const [callSelectionInitialized, setCallSelectionInitialized] = useState(false);
 
   const fetchCallIds = useCallback(async () => {
     if (!runId) return;
     try {
       const data = await testRunsApi.getCallIds(runId);
       setCallIds(data.items);
+      if (!callSelectionInitialized) {
+        if (data.items.length > 1) {
+          setSelectedCallId(data.items[0]);
+        }
+        setCallSelectionInitialized(true);
+      }
     } catch {
       // 아직 이벤트가 없을 수 있음 — 조용히 무시(드롭다운은 "전체"만 노출).
     }
-  }, [runId]);
+  }, [runId, callSelectionInitialized]);
 
   // 주 경로는 WebSocket "call_flow" push(handleWsMessage)다. 이 REST 호출은
   // 최초 로드(WS 연결 완료 전에 이미 일부 진행된 run에 들어온 경우)와
@@ -182,6 +195,7 @@ export function ExecutionPage() {
     setCallFlow(null);
     setCallIds([]);
     setSelectedCallId(null);
+    setCallSelectionInitialized(false);
   }, [runId]);
 
   useEffect(() => {
@@ -294,7 +308,10 @@ export function ExecutionPage() {
                 콜 선택:{" "}
                 <select
                   value={selectedCallId ?? ""}
-                  onChange={(e) => setSelectedCallId(e.target.value === "" ? null : e.target.value)}
+                  onChange={(e) => {
+                    setSelectedCallId(e.target.value === "" ? null : e.target.value);
+                    setCallSelectionInitialized(true);
+                  }}
                 >
                   <option value="">전체 ({callIds.length}건)</option>
                   {callIds.map((callId) => (

@@ -35,7 +35,20 @@ let mermaidInitialized = false;
 
 function ensureMermaidInitialized() {
   if (mermaidInitialized) return;
-  mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: "default" });
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: "strict",
+    theme: "default",
+    // 성능 시험은 콜이 수십~수백 건 섞여서 "전체" 보기의 다이어그램 소스가
+    // Mermaid 기본 한도(maxTextSize 50000자, maxEdges 500개)를 쉽게 넘어
+    // "Maximum text size in diagram exceeded" 에러로 렌더링 자체가 실패했다
+    // (2026-07-31 실 서버 리포트). 한도를 넉넉히 올린다 — ExecutionPage가
+    // 콜이 2건 이상이면 기본으로 콜 1건만 선택해서 보여주므로(아래
+    // call-flow-selected 기본값 참고) 이 큰 한도는 사용자가 명시적으로
+    // "전체"를 선택했을 때만 실제로 쓰인다.
+    maxTextSize: 900_000,
+    maxEdges: 2000,
+  });
   mermaidInitialized = true;
 }
 
