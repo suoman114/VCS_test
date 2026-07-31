@@ -9,6 +9,8 @@ import { StatusBadge } from "../../components/StatusBadge";
 import { LogViewer } from "../../components/LogViewer";
 import { MermaidDiagram } from "../../components/MermaidDiagram";
 import { ResultSummaryCard } from "../../components/ResultSummaryCard";
+import { CallEventDetailModal } from "../../components/CallEventDetailModal";
+import { labelOfSource } from "../../utils/logSourceLabels";
 import "./ExecutionPage.css";
 
 const POLL_INTERVAL_MS = 3000;
@@ -99,9 +101,18 @@ export function ExecutionPage() {
 
   // Call Flow에서 메시지(INVITE/100/180 등)를 클릭하면 로그 뷰어가 해당
   // source 탭으로 전환하고 그 줄로 스크롤+하이라이트한다(components/LogViewer.tsx).
+  // 이 동작은 그대로 유지하고, 로그가 길어 스크롤을 찾아 내려야 하는 불편을
+  // 줄이기 위해 "자세히 보기" 버튼 + 팝업을 추가로 제공한다(2026-07-30 요청).
+  // 팝업은 배경을 덮는 모달이라(CallEventDetailModal) 열려있는 동안에는
+  // Call Flow 다이어그램 클릭이 막힌다 — 다른 메시지를 보려면 먼저 팝업을
+  // 닫아야 한다(표준적인 모달 동작, 별도 처리 불필요).
+  const [selectedCallFlowMessage, setSelectedCallFlowMessage] = useState<CallFlowMessage | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+
   const handleCallFlowMessageClick = useCallback(
     (message: CallFlowMessage) => {
       setJumpTarget({ source: message.source, seqNo: message.seq_no });
+      setSelectedCallFlowMessage(message);
     },
     [setJumpTarget],
   );
@@ -300,6 +311,14 @@ export function ExecutionPage() {
               ? `생성 시각: ${new Date(callFlow.generated_at).toLocaleString()} · 메시지를 클릭하면 왼쪽 로그에서 해당 줄로 이동합니다.`
               : " "}
           </div>
+          {selectedCallFlowMessage && (
+            <div className="call-flow-selected-message">
+              선택한 메시지: {labelOfSource(selectedCallFlowMessage.source)} · #{selectedCallFlowMessage.seq_no}
+              <button type="button" onClick={() => setDetailModalOpen(true)}>
+                자세히 보기
+              </button>
+            </div>
+          )}
           {callFlow ? (
             <MermaidDiagram
               source={callFlow.mermaid_source}
@@ -320,6 +339,14 @@ export function ExecutionPage() {
         <Link to="/history">시험 이력으로 이동</Link>
         <Link to={`/report/${runId}`}>리포트 보기</Link>
       </div>
+
+      {detailModalOpen && selectedCallFlowMessage && runId && (
+        <CallEventDetailModal
+          runId={runId}
+          message={selectedCallFlowMessage}
+          onClose={() => setDetailModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

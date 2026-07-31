@@ -114,6 +114,26 @@
   padding: 2px 6px;
 }
 
+/* 메시지를 클릭하면 나타나는 "선택한 메시지: ... [자세히 보기]" 줄(2026-07-30
+   추가) — 로그가 길어 스크롤로 찾기 불편하다는 피드백에 따라, 스크롤 없이
+   바로 팝업으로 원문을 볼 수 있는 진입점이다. */
+.call-flow-selected-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #374151;
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-bottom: 6px;
+}
+
+.call-flow-selected-message button {
+  font-size: 0.78rem;
+  padding: 2px 8px;
+}
+
 .call-flow-section .mermaid-container {
   overflow: auto;
   max-height: 600px;

@@ -36,16 +36,11 @@ import { useEffect, useRef, useState } from "react";
 import { useLogStore } from "../store/logStore";
 import { testRunsApi } from "../api/testRuns";
 import type { CallEvent } from "../api/types";
+import { labelOfSource } from "../utils/logSourceLabels";
+import { formatLogTimestamp } from "../utils/logFormat";
 import "./LogViewer.css";
 
-/** 알려진 소스는 한글 라벨 + 표시 순서를 붙인다. 그 외(향후 추가되는 소스 등)는 이름 그대로, 맨 뒤에. */
-const KNOWN_SOURCE_LABELS: Record<string, string> = {
-  vcsm_log: "VCSM (SIP)",
-  vcmc_log: "VCMC (SIP+MCPTT)",
-  vcmm_log: "VCMM (녹취 제어)",
-  vctp_log: "vctp (패킷 릴레이)",
-  sipp_log: "SIPp",
-};
+/** 탭 표시 순서. 그 외(향후 추가되는 소스 등)는 이 목록 뒤에 알파벳순으로 붙는다. */
 const SOURCE_ORDER = ["vcsm_log", "vcmc_log", "vcmm_log", "vctp_log", "sipp_log"];
 
 function sortSources(sources: string[]): string[] {
@@ -59,23 +54,9 @@ function sortSources(sources: string[]): string[] {
   });
 }
 
-function labelOf(source: string): string {
-  return KNOWN_SOURCE_LABELS[source] ?? source;
-}
+const labelOf = labelOfSource;
 
-/** ISO 타임스탬프(예: "2026-07-29T14:05:17.900000+00:00")를 "YYYY-MM-DD HH:MM:SS.mmm"로
- * 표시한다. `Date` 객체를 거치지 않고 문자열을 직접 잘라서 만든다 — 브라우저
- * 로컬 타임존으로 변환하면(특히 `CallEvent.ts`처럼 타임존 정보 없이 VCS 서버의
- * 로그에 찍힌 시각을 그대로 담은 값은) 실제 로그 파일의 시각과 화면에 보이는
- * 값이 달라져 헷갈릴 수 있다. */
-function formatTs(ts: string): string {
-  const [datePart, rest] = ts.split("T");
-  if (!rest) return ts;
-  const withoutOffset = rest.replace(/(Z|[+-]\d{2}:\d{2})$/, "");
-  const [hms, frac = ""] = withoutOffset.split(".");
-  const time = frac ? `${hms}.${frac.slice(0, 3)}` : hms;
-  return `${datePart} ${time}`;
-}
+const formatTs = formatLogTimestamp;
 
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
