@@ -1,0 +1,134 @@
+[2026-07-28 16:06:17.217][INFO ] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) () () -> recording_start_req message receive ok. [{
+  "header": {
+    "type": "recording_start_req",
+    "callId": "B4BAC090637B72924847837C@10.64.0.54",
+    "transactionId": "093a7cf7-22e2-46aa-9b52-36c664195225",
+    "msgFrom": "VCSM",
+    "trxType": 1,
+    "reasonCode": 0
+  },
+  "body": {
+    "from_no": "450281033330008",
+    "to_no": "01033330001",
+    "outbound": 0,
+    "service_type": "IMS",
+    "record_time": "2026/07/28/16",
+    "caller_save_file_name": "I_B4BAC090637B72924847837C@10.64.0.54_450281033330008_01033330001_20260728160617",
+    "callee_save_file_name": "I_B4BAC090637B72924847837C@10.64.0.54_01033330001_450281033330008_20260728160617",
+    "caller_sdp": "v\u003d0\r\no\u003d450281033330008 580208032 580208032 IN IP4 10.64.0.54\r\ns\u003d-\r\nc\u003dIN IP4 10.64.0.54\r\nt\u003d0 0\r\nm\u003daudio 54808 RTP/AVP 98 99 101 102\r\nb\u003dAS:41\r\nb\u003dRS:0\r\nb\u003dRR:2500\r\na\u003dptime:20\r\na\u003dmaxptime:120\r\na\u003drtpmap:98 AMR-WB/16000/1\r\na\u003dfmtp:98 octet-align\u003d1\r\na\u003drtpmap:99 telephone-event/16000\r\na\u003dfmtp:99 0-15\r\na\u003drtpmap:101 AMR/8000/1\r\na\u003dfmtp:101 octet-align\u003d1\r\na\u003drtpmap:102 telephone-event/8000\r\na\u003dfmtp:102 0-15\r\na\u003dsendrecv\r\na\u003dcandidate:1 1 UDP 2130705407 10.64.0.54 54808 typ host\r\nm\u003dvideo 52496 RTP/AVP 103 34\r\nb\u003dAS:639\r\nb\u003dRS:0\r\nb\u003dRR:2500\r\na\u003drtpmap:103 H264/90000\r\na\u003dfmtp:103 profile-level-id\u003d42C016;packetization-mode\u003d1;sprop-parameter-sets\u003dZ0LAFtoHgUaAbQoTUA\u003d\u003d,aM4G4g\u003d\u003d\r\na\u003dimageattr:103 send [x\u003d480,y\u003d640] recv [x\u003d480,y\u003d640]\r\na\u003drtpmap:34 H263/90000\r\na\u003dfmtp:34 profile\u003d0;level\u003d10\r\na\u003dimageattr:34 send [x\u003d176,y\u003d144] recv [x\u003d176,y\u003d144]\r\na\u003dframerate:15\r\na\u003dsendrecv\r\na\u003dcandidate:1 1 UDP 2130705407 10.64.0.54 52496 typ host\r\n",
+    "callee_sdp": "v\u003d0\r\no\u003d450281033330001 283806850 283806850 IN IP4 10.64.0.56\r\ns\u003d-\r\nc\u003dIN IP4 10.64.0.56\r\nt\u003d0 0\r\nm\u003daudio 57656 RTP/AVP 98 99\r\nc\u003dIN IP4 10.64.0.56\r\nb\u003dAS:41\r\nb\u003dRS:0\r\nb\u003dRR:2500\r\na\u003dptime:20\r\na\u003dmaxptime:120\r\na\u003dsendrecv\r\na\u003drtpmap:98 AMR-WB/16000/1\r\na\u003dfmtp:98 octet-align\u003d1\r\na\u003drtpmap:99 telephone-event/16000\r\na\u003dfmtp:99 0-15\r\na\u003dcandidate:1 1 UDP 2130705407 10.64.0.56 57656 typ host\r\nm\u003dvideo 55232 RTP/AVP 103\r\nc\u003dIN IP4 10.64.0.56\r\nb\u003dAS:639\r\nb\u003dRS:0\r\nb\u003dRR:2500\r\na\u003dsendrecv\r\na\u003drtpmap:103 H264/90000\r\na\u003dfmtp:103 profile-level-id\u003d42C016;packetization-mode\u003d1;sprop-parameter-sets\u003dZ0LAFtoHgUaAbQoTUA\u003d\u003d,aM4G4g\u003d\u003d\r\na\u003dimageattr:103 send [x\u003d480,y\u003d640] recv [x\u003d480,y\u003d640]\r\na\u003dframerate:15\r\na\u003dcandidate:1 1 UDP 2130705407 10.64.0.56 55232 typ host\r\n"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:06:17.218][DEBUG] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) (450281033330008) (01033330001) callInfo is create. - (CallManager.java:161)
+[2026-07-28 16:06:17.218][DEBUG] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) (450281033330008) (01033330001) callConsumer (B4BAC090637B72924847837C@10.64.0.54@INBOUND) is create - (CallManager.java:274)
+[2026-07-28 16:06:17.218][DEBUG] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) (450281033330008) (01033330001) callConsumer (B4BAC090637B72924847837C@10.64.0.54@OUTBOUND) is create - (CallManager.java:274)
+[2026-07-28 16:06:17.224][INFO ] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) () () Record State change is IDLE (fileName: null) - (VcsRecordFile.java:634)
+[2026-07-28 16:06:17.237][INFO ] [Thread-92] () () () create ram file (/home/vcs/ramdisk//IMS/VOICE/2026/07/28/16/I_B4BAC090637B72924847837C@10.64.0.54_01033330001_450281033330008_20260728160617_1.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:06:17.237][DEBUG] [Thread-92] () () () pcap ram file created. name=I_B4BAC090637B72924847837C@10.64.0.54_01033330001_450281033330008_20260728160617_1.pcap - (PcapRecordFile.java:50)
+[2026-07-28 16:06:17.237][DEBUG] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) () () recordFileMap is added. [source=10.64.0.54:54808] - (RecordFileManager.java:414)
+[2026-07-28 16:06:17.237][INFO ] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) () () Record State change is IDLE (fileName: null) - (VcsRecordFile.java:634)
+[2026-07-28 16:06:17.238][INFO ] [Thread-92] () () () create ram file (/home/vcs/ramdisk//IMS/VIDEO/2026/07/28/16/I_B4BAC090637B72924847837C@10.64.0.54_01033330001_450281033330008_20260728160617_1.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:06:17.238][DEBUG] [Thread-92] () () () pcap ram file created. name=I_B4BAC090637B72924847837C@10.64.0.54_01033330001_450281033330008_20260728160617_1.pcap - (PcapRecordFile.java:50)
+[2026-07-28 16:06:17.238][DEBUG] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) () () recordFileMap is added. [source=10.64.0.54:52496] - (RecordFileManager.java:414)
+[2026-07-28 16:06:17.238][INFO ] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) () () Record State change is IDLE (fileName: null) - (VcsRecordFile.java:634)
+[2026-07-28 16:06:17.239][INFO ] [Thread-92] () () () create ram file (/home/vcs/ramdisk//IMS/VOICE/2026/07/28/16/I_B4BAC090637B72924847837C@10.64.0.54_450281033330008_01033330001_20260728160617_1.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:06:17.239][DEBUG] [Thread-92] () () () pcap ram file created. name=I_B4BAC090637B72924847837C@10.64.0.54_450281033330008_01033330001_20260728160617_1.pcap - (PcapRecordFile.java:50)
+[2026-07-28 16:06:17.239][DEBUG] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) () () recordFileMap is added. [source=10.64.0.56:57656] - (RecordFileManager.java:414)
+[2026-07-28 16:06:17.239][INFO ] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) () () Record State change is IDLE (fileName: null) - (VcsRecordFile.java:634)
+[2026-07-28 16:06:17.239][INFO ] [Thread-92] () () () create ram file (/home/vcs/ramdisk//IMS/VIDEO/2026/07/28/16/I_B4BAC090637B72924847837C@10.64.0.54_450281033330008_01033330001_20260728160617_1.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:06:17.239][DEBUG] [Thread-92] () () () pcap ram file created. name=I_B4BAC090637B72924847837C@10.64.0.54_450281033330008_01033330001_20260728160617_1.pcap - (PcapRecordFile.java:50)
+[2026-07-28 16:06:17.239][DEBUG] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) () () recordFileMap is added. [source=10.64.0.56:55232] - (RecordFileManager.java:414)
+[2026-07-28 16:06:17.240][INFO ] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) (450281033330008) (01033330001) recording start success. - (ProcRecordingStartReq.java:179)
+[2026-07-28 16:06:17.240][INFO ] [Thread-92] (B4BAC090637B72924847837C@10.64.0.54) () () -> VCSM recording_start_res message send ok. [{
+  "header": {
+    "type": "recording_start_res",
+    "callId": "B4BAC090637B72924847837C@10.64.0.54",
+    "transactionId": "093a7cf7-22e2-46aa-9b52-36c664195225",
+    "msgFrom": "VCMM_0",
+    "trxType": 1,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "audio_extension": "pcap",
+    "video_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:06:21.087][INFO ] [main] () () () current callSize = 1 (IMS: 1, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:06:21.094][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:06:26.095][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:06:31.088][INFO ] [main] () () () current callSize = 1 (IMS: 1, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:06:31.095][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:06:36.098][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:06:41.089][INFO ] [main] () () () current callSize = 1 (IMS: 1, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:06:41.098][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:06:46.099][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:06:51.090][INFO ] [main] () () () current callSize = 1 (IMS: 1, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:06:51.099][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:06:56.100][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:01.091][INFO ] [main] () () () current callSize = 1 (IMS: 1, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:07:01.100][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:06.101][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:11.092][INFO ] [main] () () () current callSize = 1 (IMS: 1, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:07:11.101][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:16.102][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:21.093][INFO ] [main] () () () current callSize = 1 (IMS: 1, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:07:21.103][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:26.103][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:31.095][INFO ] [main] () () () current callSize = 1 (IMS: 1, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:07:31.104][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:36.104][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:41.095][INFO ] [main] () () () current callSize = 1 (IMS: 1, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:07:41.105][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:46.105][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:51.096][INFO ] [main] () () () current callSize = 1 (IMS: 1, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:07:51.106][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:07:53.401][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () -> recording_stop_req message receive ok. [{
+  "header": {
+    "type": "recording_stop_req",
+    "callId": "B4BAC090637B72924847837C@10.64.0.54",
+    "transactionId": "4fb94163-4fb6-4c45-bb74-3539d42711e0",
+    "msgFrom": "VCSM",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "from_no": "450281033330008",
+    "to_no": "01033330001"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:07:53.402][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () LAST_PACKET_RECEIVED: file=I_B4BAC090637B72924847837C@10.64.0.54_450281033330008_01033330001_20260728160617_1.pcap, lastPacketTime=Tue Jul 28 16:07:53 KST 2026, packets=1524, captureSpan=27439ms, timeSinceLastPacket=161ms - (VcsRecordFile.java:258)
+[2026-07-28 16:07:53.408][DEBUG] [Thread-115] () () () rename ram file to NAS. (name=I_B4BAC090637B72924847837C@10.64.0.54_450281033330008_01033330001_20260728160617_1.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:07:53.408][DEBUG] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () recordFileMap is removed. [source=10.64.0.56:57656] - (RecordFileManager.java:450)
+[2026-07-28 16:07:53.408][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () LAST_PACKET_RECEIVED: file=I_B4BAC090637B72924847837C@10.64.0.54_450281033330008_01033330001_20260728160617_1.pcap, lastPacketTime=Tue Jul 28 16:07:53 KST 2026, packets=3108, captureSpan=26471ms, timeSinceLastPacket=209ms - (VcsRecordFile.java:258)
+[2026-07-28 16:07:53.420][DEBUG] [Thread-115] () () () rename ram file to NAS. (name=I_B4BAC090637B72924847837C@10.64.0.54_450281033330008_01033330001_20260728160617_1.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:07:53.420][DEBUG] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () recordFileMap is removed. [source=10.64.0.56:55232] - (RecordFileManager.java:450)
+[2026-07-28 16:07:53.421][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () recording result: audio=true video=true - (RecordFileManager.java:386)
+[2026-07-28 16:07:53.421][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () LAST_PACKET_RECEIVED: file=I_B4BAC090637B72924847837C@10.64.0.54_01033330001_450281033330008_20260728160617_1.pcap, lastPacketTime=Tue Jul 28 16:07:53 KST 2026, packets=1154, captureSpan=26709ms, timeSinceLastPacket=412ms - (VcsRecordFile.java:258)
+[2026-07-28 16:07:53.423][DEBUG] [Thread-115] () () () rename ram file to NAS. (name=I_B4BAC090637B72924847837C@10.64.0.54_01033330001_450281033330008_20260728160617_1.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:07:53.424][DEBUG] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () recordFileMap is removed. [source=10.64.0.54:54808] - (RecordFileManager.java:450)
+[2026-07-28 16:07:53.424][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () LAST_PACKET_RECEIVED: file=I_B4BAC090637B72924847837C@10.64.0.54_01033330001_450281033330008_20260728160617_1.pcap, lastPacketTime=Tue Jul 28 16:07:52 KST 2026, packets=3054, captureSpan=26789ms, timeSinceLastPacket=941ms - (VcsRecordFile.java:258)
+[2026-07-28 16:07:53.431][DEBUG] [Thread-115] () () () rename ram file to NAS. (name=I_B4BAC090637B72924847837C@10.64.0.54_01033330001_450281033330008_20260728160617_1.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:07:53.432][DEBUG] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () recordFileMap is removed. [source=10.64.0.54:52496] - (RecordFileManager.java:450)
+[2026-07-28 16:07:53.432][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () recording result: audio=true video=true - (RecordFileManager.java:386)
+[2026-07-28 16:07:53.432][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54@INBOUND) () () callConsumer delete - (CallManager.java:303)
+[2026-07-28 16:07:53.432][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54@OUTBOUND) () () callConsumer delete - (CallManager.java:303)
+[2026-07-28 16:07:53.432][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () callInfo delete - (CallManager.java:187)
+[2026-07-28 16:07:53.432][INFO ] [Thread-115] (B4BAC090637B72924847837C@10.64.0.54) () () -> VCSM recording_stop_res message send ok. [{
+  "header": {
+    "type": "recording_stop_res",
+    "callId": "B4BAC090637B72924847837C@10.64.0.54",
+    "transactionId": "4fb94163-4fb6-4c45-bb74-3539d42711e0",
+    "msgFrom": "VCMM_0",
+    "trxType": 1,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "file_index": 1,
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:07:56.107][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:08:01.097][INFO ] [main] () () () current callSize = 0 (IMS: 0, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:08:01.107][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)

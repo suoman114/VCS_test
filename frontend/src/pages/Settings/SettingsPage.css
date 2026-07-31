@@ -1,0 +1,150 @@
+.settings-page {
+  max-width: 640px;
+}
+
+.settings-page .page-error {
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.settings-intro {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.settings-intro code {
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.settings-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-section-header h3 {
+  margin: 0;
+}
+
+.settings-section label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.settings-section input,
+.settings-section select {
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.settings-subsection {
+  border-top: 1px dashed #d1d5db;
+  padding-top: 12px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-subsection-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.settings-subsection .form-hint code {
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.form-row label {
+  flex: 1;
+}
+
+.form-field-narrow {
+  max-width: 140px;
+}
+
+/* "실행 위치" select는 옵션 텍스트가 길어서(예: "local (자동화 서버에서
+   직접 실행)") .form-field-narrow(140px)에 넣으면 잘려 보였다(2026-07-30
+   발견) — 셀렉트 박스 자체는 짧아도 되지만 펼쳤을 때/선택된 값 표시 폭은
+   넉넉히 잡는다. */
+.form-field-exec-mode {
+  max-width: 320px;
+}
+
+.form-checkbox-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.form-checkbox-hint input {
+  padding: 0;
+}
+
+.form-error {
+  color: #b91c1c;
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.test-result {
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.test-result-ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.test-result-error {
+  background: #fee2e2;
+  color: #b91c1c;
+}

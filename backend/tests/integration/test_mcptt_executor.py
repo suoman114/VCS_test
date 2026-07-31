@@ -1,0 +1,379 @@
+"""McpttBasicCallExecutor 통합 테스트 (CLAUDE.md §3.2).
+
+실제 SIPp 바이너리는 절대 실행하지 않는다: 생성자에 이미 열려있는
+`sipp_runner` 주입 지점에 즉시 성공 응답을 반환하는 가짜 러너를 넣는다.
+VCS측 로그(`vcmc.log`, `vcmm.log`) 수집은 volte 테스트와 동일하게
+`SshTailSource`를 로컬 샘플 파일 기반 스텁으로 대체해 실 SSH를 우회한다.
+"""
+from __future__ import annotations
+
+import json
+import shlex
+from collections.abc import AsyncIterator
+from pathlib import Path
+
+import pytest
+
+import app.services.mcptt.executor as mcptt_executor_module
+from app.core.config import Settings
+from app.models.test_case import TestCase, TestCaseCategory, TestCaseType
+from app.models.test_run import TestRun, TestRunStatus
+from app.services.log_collector.base import LogSource
+from app.services.log_collector.local_source import LocalFileSource
+from app.services.mcptt.executor import McpttBasicCallExecutor, SippRunResult
+from app.services.ssh_connector.client import CommandResult, SSHTarget
+
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+_MCPTT_VCMC_LOG = _REPO_ROOT / "docs" / "log_samples" / "mcptt" / "vcmc.log"
+_MCPTT_VCMM_LOG = _REPO_ROOT / "docs" / "log_samples" / "mcptt" / "vcmm.log"
+
+
+class _LocalTailStub(LogSource):
+    """`SshTailSource`를 대체하는 스텁 (test_volte_executor.py와 동일한 패턴)."""
+
+    def __init__(
+        self,
+        name: str,
+        remote_path: str,
+        *,
+        target: SSHTarget | None = None,
+        from_beginning: bool = False,
+        retry_policy: object | None = None,
+    ) -> None:
+        self.name = name
+        self._inner = LocalFileSource(name, remote_path, from_beginning=True, poll_interval=0.02)
+
+    def stream(self, stop_event) -> AsyncIterator[str]:  # type: ignore[override]
+        return self._inner.stream(stop_event)
+
+
+@pytest.fixture(autouse=True)
+def _local_tail(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mcptt_executor_module, "SshTailSource", _LocalTailStub)
+
+
+def _seed_test_case_and_run(isolated_db) -> tuple[TestCase, str]:
+    db = isolated_db()
+    try:
+        test_case = TestCase(
+            name="mcptt-executor-qa-fixture",
+            category=TestCaseCategory.MCPTT,
+            test_type=TestCaseType.BASIC_CALL,
+            config_ref="scenarios/sipp/mcptt_basic_call.xml",
+            protocol_params={
+                "target_ip": "10.0.0.10",
+                "target_port": 5060,
+                "max_calls": 10,
+                "call_rate": 1,
+                "vcs_log_paths": {
+                    "vcmc_log": str(_MCPTT_VCMC_LOG),
+                    "vcmm_log": str(_MCPTT_VCMM_LOG),
+                },
+                "timeout_sec": 5,
+            },
+            pass_criteria={},
+        )
+        db.add(test_case)
+        db.commit()
+        db.refresh(test_case)
+        # 커밋은 세션 내 모든 객체의 속성을 만료(expire)시킨다. test_run 커밋 전에
+        # test_case를 분리해야 executor.run()이 detached 상태에서도 이미 로드된
+        # 속성 값을 그대로 쓸 수 있다 (test_volte_executor.py와 동일한 이유).
+        db.expunge(test_case)
+
+        test_run = TestRun(test_case_id=test_case.id, status=TestRunStatus.PENDING)
+        db.add(test_run)
+        db.commit()
+        run_id = test_run.id
+        db.expunge(test_run)
+        return test_case, run_id
+    finally:
+        db.close()
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_run_passes_with_sample_logs(isolated_db, tmp_path: Path) -> None:
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+
+    called_argv: list[list[str]] = []
+
+    async def _fake_sipp_runner(argv: list[str], cwd: Path, timeout_sec: float) -> SippRunResult:
+        called_argv.append(argv)
+        return SippRunResult(argv=argv, exit_status=0, stdout="sipp ok", stderr="")
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        # storage_dir을 tmp_path로 격리해 repo의 실제 storage/logs/를 오염시키지 않는다.
+        settings=Settings(storage_dir=str(tmp_path / "storage")),
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        sipp_runner=_fake_sipp_runner,
+    )
+
+    result_run = await executor.run(test_case)
+
+    assert result_run.status == TestRunStatus.DONE
+    assert result_run.result_summary is not None
+    summary = json.loads(result_run.result_summary)
+    assert summary["passed"] is True, summary["reasons"]
+    assert summary["event_count"] > 0
+    assert summary["sipp_exit_status"] == 0
+
+    # SIPp가 실제로 (가짜) 실행됐고, 시나리오/파라미터가 CLAUDE.md §3.2 1단계대로 반영됐는지.
+    assert len(called_argv) == 1
+    argv = called_argv[0]
+    assert argv[0] == "sipp"
+    assert argv[1] == "10.0.0.10:5060"
+    assert str(_REPO_ROOT / "scenarios" / "sipp" / "mcptt_basic_call.xml") in argv
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_sipp_failure_still_evaluates_logs(isolated_db, tmp_path: Path) -> None:
+    """SIPp 프로세스가 비정상 종료해도(exit != 0) 로그 기반 판정은 계속 수행된다.
+
+    executor는 sipp 실패를 warning 로그로만 남기고 실행을 중단하지 않는다
+    (app/services/mcptt/executor.py의 `if not sipp_result.ok: logger.warning(...)`).
+    """
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+
+    async def _failing_sipp_runner(argv: list[str], cwd: Path, timeout_sec: float) -> SippRunResult:
+        return SippRunResult(argv=argv, exit_status=1, stdout="", stderr="boom")
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        settings=Settings(storage_dir=str(tmp_path / "storage")),
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        sipp_runner=_failing_sipp_runner,
+    )
+
+    result_run = await executor.run(test_case)
+
+    # VCS측 로그(샘플)는 여전히 성공을 나타내므로 최종 판정은 recording_stop_res 기준을 따른다.
+    assert result_run.status == TestRunStatus.DONE
+    summary = json.loads(result_run.result_summary)
+    assert summary["sipp_exit_status"] == 1
+    assert summary["passed"] is True
+
+
+class _FakeSippSshConnector:
+    """SIPp 전용 원격 호스트용 가짜 SSH 커넥터 (run_command/upload/download/close)."""
+
+    def __init__(self, target: SSHTarget) -> None:
+        self.target = target
+        self.commands: list[str] = []
+        self.su_commands: list[tuple[str, str, str]] = []
+        self.uploaded: list[tuple[str, str]] = []
+        self.downloaded: list[tuple[str, str]] = []
+        self.closed = False
+
+    async def run_command(self, command: str, timeout: float | None = None) -> CommandResult:
+        self.commands.append(command)
+        return CommandResult(command=command, exit_status=0, stdout="sipp ok", stderr="")
+
+    async def run_command_as_su(
+        self, command: str, su_password: str, *, su_user: str = "root", timeout: float | None = None
+    ) -> CommandResult:
+        self.su_commands.append((command, su_password, su_user))
+        return CommandResult(command=command, exit_status=0, stdout="sipp ok", stderr="")
+
+    async def upload_file(self, local_path: str | Path, remote_path: str) -> None:
+        self.uploaded.append((str(local_path), remote_path))
+
+    async def download_file(self, remote_path: str, local_path: str | Path) -> None:
+        self.downloaded.append((remote_path, str(local_path)))
+        Path(local_path).write_text("fake sipp log content")
+
+    async def close(self) -> None:
+        self.closed = True
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_remote_sipp_exec_mode_runs_java_simulator(
+    isolated_db, tmp_path: Path
+) -> None:
+    """`sipp_exec_mode=ssh`일 때 실제 SIPp가 아니라 SIPp 전용 호스트의
+    `mcptt_sim_dir`에 이미 있는 Java 시뮬레이터를 실행하는지(2026-07-29 확인).
+
+    시나리오 XML은 이미 원격에 있으므로 업로드하지 않고, 이 도구는 SIPp
+    트레이스 파일을 만들지 않으므로 다운로드도 하지 않는다 — 로그는
+    vcmc.log/vcmm.log만 쓴다.
+
+    실제 SIPp 전용 호스트 SSH 연결은 하지 않는다 — `sipp_ssh_connector_factory`
+    주입 지점에 가짜 커넥터를 넣는다(VCS측 `ssh_target_factory`/`SshTailSource`는
+    다른 테스트와 동일하게 로컬 샘플 로그로 대체된 상태).
+    """
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+    test_case.protocol_params = {
+        **test_case.protocol_params,
+        "sipp_exec_mode": "ssh",
+        "scenario_file": "mcptt_basic_call.xml",
+        "local_ip": "192.168.7.65",
+        "local_port": 5080,
+        "control_port": 6061,
+    }
+
+    fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        settings=Settings(storage_dir=str(tmp_path / "storage")),
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        sipp_ssh_target_factory=lambda: SSHTarget(host="fake-sipp"),
+        sipp_ssh_connector_factory=lambda target: fake_sipp_connector,
+    )
+
+    result_run = await executor.run(test_case)
+
+    assert result_run.status == TestRunStatus.DONE
+    summary = json.loads(result_run.result_summary)
+    assert summary["sipp_exit_status"] == 0
+    assert summary["passed"] is True
+
+    # 업로드/다운로드가 전혀 없어야 한다(시나리오는 이미 원격에 있고, 트레이스 로그도 안 만듦).
+    assert fake_sipp_connector.uploaded == []
+    assert fake_sipp_connector.downloaded == []
+
+    # java 시뮬레이터 커맨드가 mcptt_sim_dir 기준 경로 + 주어진 파라미터로 구성됐는지
+    # (기본 mcptt_sim_dir: /root/mcptt_sim, jar명: utgen-jar-with-dependencies.jar, 2026-07-29 확인)
+    assert len(fake_sipp_connector.commands) == 1
+    sipp_cmd = fake_sipp_connector.commands[0]
+    assert sipp_cmd.startswith("java -jar /root/mcptt_sim/utgen-jar-with-dependencies.jar ")
+    assert "-sf /root/mcptt_sim/mcptt_basic_call.xml" in sipp_cmd
+    assert "-i 192.168.7.65" in sipp_cmd
+    assert "-p 5080" in sipp_cmd
+    assert "-cp 6061" in sipp_cmd
+    assert sipp_cmd.endswith("-m 10 10.0.0.10:5060")
+
+    assert fake_sipp_connector.closed is True
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_remote_sipp_uses_su_root_when_password_configured(
+    isolated_db, tmp_path: Path
+) -> None:
+    """`sipp_ssh_root_password`가 설정돼 있으면(root 직접 SSH 로그인이 막힌
+    환경, 2026-07-29) 시뮬레이터 실행을 `run_command_as_su()`로 root 권한으로
+    돌려야 한다 — 일반 `run_command()`가 아니라."""
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+    test_case.protocol_params = {
+        **test_case.protocol_params,
+        "sipp_exec_mode": "ssh",
+        "scenario_file": "mcptt_basic_call.xml",
+    }
+
+    fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        settings=Settings(storage_dir=str(tmp_path / "storage"), sipp_ssh_root_password="r00t-pw"),
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        sipp_ssh_target_factory=lambda: SSHTarget(host="fake-sipp"),
+        sipp_ssh_connector_factory=lambda target: fake_sipp_connector,
+    )
+
+    result_run = await executor.run(test_case)
+
+    assert result_run.status == TestRunStatus.DONE
+
+    assert len(fake_sipp_connector.su_commands) == 1
+    su_cmd, su_password, su_user = fake_sipp_connector.su_commands[0]
+    assert su_password == "r00t-pw"
+    assert su_user == "root"
+    assert su_cmd.startswith("java -jar /root/mcptt_sim/utgen-jar-with-dependencies.jar ")
+
+    # 일반 run_command()로는 아무것도 안 돌아야 한다(su 경유).
+    assert fake_sipp_connector.commands == []
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_remote_sipp_falls_back_to_config_ref_for_scenario_file(
+    isolated_db, tmp_path: Path
+) -> None:
+    """`protocol_params.scenario_file`이 없으면 `TestCase.config_ref`를
+    파일명으로 그대로 쓴다(둘 다 없을 때만 에러)."""
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+    test_case.config_ref = "mcptt_basic_call.xml"
+    test_case.protocol_params = {**test_case.protocol_params, "sipp_exec_mode": "ssh"}
+
+    fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        settings=Settings(storage_dir=str(tmp_path / "storage")),
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        sipp_ssh_target_factory=lambda: SSHTarget(host="fake-sipp"),
+        sipp_ssh_connector_factory=lambda target: fake_sipp_connector,
+    )
+
+    result_run = await executor.run(test_case)
+
+    assert result_run.status == TestRunStatus.DONE
+    assert "-sf /root/mcptt_sim/mcptt_basic_call.xml" in fake_sipp_connector.commands[0]
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_remote_sipp_fills_target_host_and_ports_from_settings(
+    isolated_db, tmp_path: Path
+) -> None:
+    """target_host/target_ip를 protocol_params에 안 넣으면 대시보드 "설정"에
+    저장된 VCS 접속 IP를 그대로 쓰고, local_ip/local_port/control_port/
+    target_port는 Settings 고정값으로 채워야 한다(2026-07-30 요청 — 매번
+    JSON에 직접 채우지 않아도 실행되게)."""
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+    # target_ip/target_port/max_calls/call_rate 등 이 테스트가 검증하려는 자동 채움
+    # 대상 키만 걷어낸다. vcs_log_paths/timeout_sec은 그대로 둬야 로컬 샘플 로그로
+    # 빠르게 판정이 끝난다(안 그러면 존재하지 않는 Settings 기본 로그 경로를
+    # timeout_sec 기본값 120초까지 폴링하게 돼 테스트가 극도로 느려진다).
+    test_case.protocol_params = {
+        "sipp_exec_mode": "ssh",
+        "scenario_file": "mcptt_basic_call.xml",
+        "vcs_log_paths": {
+            "vcmc_log": str(_MCPTT_VCMC_LOG),
+            "vcmm_log": str(_MCPTT_VCMM_LOG),
+        },
+        "timeout_sec": 5,
+    }
+
+    fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        settings=Settings(storage_dir=str(tmp_path / "storage")),
+        ssh_target_factory=lambda: SSHTarget(host="192.168.7.64"),
+        sipp_ssh_target_factory=lambda: SSHTarget(host="fake-sipp"),
+        sipp_ssh_connector_factory=lambda target: fake_sipp_connector,
+    )
+
+    result_run = await executor.run(test_case)
+
+    assert result_run.status == TestRunStatus.DONE
+    sipp_cmd = fake_sipp_connector.commands[0]
+    # Settings 기본값(app/core/config.py, 2026-07-29/30 확인): 5060/192.168.7.65/5080/6061
+    assert "-i 192.168.7.65" in sipp_cmd
+    assert "-p 5080" in sipp_cmd
+    assert "-cp 6061" in sipp_cmd
+    assert sipp_cmd.endswith("-m 1 192.168.7.64:5060")  # target_host는 VCS 접속 IP(ssh_target_factory)로 폴백
+
+
+@pytest.mark.asyncio
+async def test_mcptt_executor_remote_sipp_respects_explicit_target_ip_over_vcs_settings(
+    isolated_db, tmp_path: Path
+) -> None:
+    """기존처럼 protocol_params.target_ip를 명시하면(대시보드 VCS 설정과
+    다른 값이어도) 그 값이 항상 우선해야 한다 — VCS 접속 IP 자동 채움은
+    "안 넣었을 때"의 폴백일 뿐이다."""
+    test_case, run_id = _seed_test_case_and_run(isolated_db)  # target_ip="10.0.0.10" 포함
+    test_case.protocol_params = {**test_case.protocol_params, "sipp_exec_mode": "ssh", "scenario_file": "x.xml"}
+
+    fake_sipp_connector = _FakeSippSshConnector(SSHTarget(host="fake-sipp"))
+
+    executor = McpttBasicCallExecutor(
+        run_id=run_id,
+        settings=Settings(storage_dir=str(tmp_path / "storage")),
+        ssh_target_factory=lambda: SSHTarget(host="192.168.7.64"),  # VCS 설정 IP는 다른 값
+        sipp_ssh_target_factory=lambda: SSHTarget(host="fake-sipp"),
+        sipp_ssh_connector_factory=lambda target: fake_sipp_connector,
+    )
+
+    await executor.run(test_case)
+
+    assert fake_sipp_connector.commands[0].endswith("-m 10 10.0.0.10:5060")

@@ -1,0 +1,201 @@
+"""`POST /api/test-cases/{id}/run` -> `GET /api/test-runs/{id}` API 통합 테스트
+(CLAUDE.md §3.3, §8-2).
+
+두 경로를 모두 검증한다:
+1. 성공 경로 - executor 자체는 무겁게 재현하지 않고(이미 test_volte_executor.py
+   /test_mcptt_executor.py에서 검증됨), `executor_registry`에 가벼운 가짜
+   Executor를 임시 등록해 API 레벨 오케스트레이션(즉시 pending 응답 ->
+   백그라운드 job -> 상태 전이 -> 조회 API)만 검증한다.
+2. 실패 경로 - 실제 `VolteBasicCallExecutor`를 그대로 쓰되, VCS SSH 접속
+   정보(`VCS_SSH_HOST`)가 설정되지 않은 기본 상태이므로
+   `SSHTarget.from_vcs_settings()`가 `ValueError`를 던지고, 이를
+   `job_runner._run_wrapper`가 잡아 `TestRunStatus.ERROR`로 전이시키는지
+   확인한다(실제 장비 접근 없이 SSH 실패 케이스를 검증).
+"""
+from __future__ import annotations
+
+import asyncio
+import json
+
+import httpx
+import pytest
+
+from app.job_runner import job_runner
+from app.models.test_run import TestRunStatus
+from app.services.executor_base import TestExecutor, TestCaseLike, executor_registry
+
+
+class _FakeDoneExecutor(TestExecutor):
+    """SSH/SIPp를 전혀 건드리지 않고 즉시 DONE으로 전이하는 가짜 Executor.
+
+    실제 VolteBasicCallExecutor.run()의 첫 줄처럼 `test_case.protocol_params`에
+    접근한다 — 라우터가 커밋 후 detach한 test_case 인스턴스를 백그라운드 job에
+    넘기는데, 이 접근이 detach된 뒤 처음 이루어지는 attribute read라 실 서버에서
+    `DetachedInstanceError`가 났었다(트리거 라우터가 expunge 전에 test_case를
+    refresh하지 않아서). 여기서도 똑같이 접근해야 회귀를 잡을 수 있다.
+    """
+
+    protocol = "volte"
+    test_type = "basic_call"
+
+    async def run(self, test_case: TestCaseLike):
+        from app.core.database import SessionLocal
+        from app.models.test_run import TestRun
+
+        _ = dict(getattr(test_case, "protocol_params", {}) or {})
+
+        await job_runner.set_status(self.run_id, TestRunStatus.RUNNING, target_host="fake-host")
+        await asyncio.sleep(0)  # 다른 태스크에 제어권을 한 번 넘겨 비동기 job임을 반영
+        await job_runner.set_status(
+            self.run_id,
+            TestRunStatus.DONE,
+            result_summary=json.dumps(
+                {"passed": True, "reasons": ["fake executor"], "timed_out": False, "event_count": 0}
+            ),
+        )
+        db = SessionLocal()
+        try:
+            return db.get(TestRun, self.run_id)
+        finally:
+            db.close()
+
+
+async def _create_test_case(client: httpx.AsyncClient, *, category: str = "volte") -> str:
+    payload = {
+        "name": f"trigger-qa-{category}",
+        "category": category,
+        "test_type": "basic_call",
+        "config_ref": (
+            "configs/volte/basic_call_default.conf"
+            if category == "volte"
+            else "scenarios/sipp/mcptt_basic_call.xml"
+        ),
+        "protocol_params": {},
+        "pass_criteria": {},
+    }
+    resp = await client.post("/api/test-cases", json=payload)
+    assert resp.status_code == 201, resp.text
+    return resp.json()["id"]
+
+
+async def _poll_until_terminal(client: httpx.AsyncClient, run_id: str, *, attempts: int = 100) -> str:
+    status_value = "pending"
+    for _ in range(attempts):
+        resp = await client.get(f"/api/test-runs/{run_id}")
+        assert resp.status_code == 200
+        status_value = resp.json()["status"]
+        if status_value in ("done", "failed", "error"):
+            return status_value
+        await asyncio.sleep(0.02)
+    return status_value
+
+
+@pytest.mark.asyncio
+async def test_trigger_run_returns_pending_immediately(client: httpx.AsyncClient) -> None:
+    test_case_id = await _create_test_case(client)
+
+    resp = await client.post(f"/api/test-cases/{test_case_id}/run")
+    assert resp.status_code == 202, resp.text
+    body = resp.json()
+    assert body["status"] == "pending"
+    assert body["test_case_id"] == test_case_id
+    assert body["test_case_name"] == "trigger-qa-volte"
+
+
+@pytest.mark.asyncio
+async def test_get_and_list_test_runs_include_test_case_name(
+    client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """2026-07-30 UI 개선 요청: 대시보드/이력/실행 화면에 UUID만 보이던 문제 —
+    GET(단건)/GET(목록) 둘 다 test_case_name이 채워져 내려와야 한다."""
+    test_case_id = await _create_test_case(client, category="mcptt")
+    monkeypatch.setitem(executor_registry._registry, ("mcptt", "basic_call"), _FakeDoneExecutor)
+
+    resp = await client.post(f"/api/test-cases/{test_case_id}/run")
+    run_id = resp.json()["id"]
+    await _poll_until_terminal(client, run_id)
+
+    get_resp = await client.get(f"/api/test-runs/{run_id}")
+    assert get_resp.status_code == 200
+    assert get_resp.json()["test_case_name"] == "trigger-qa-mcptt"
+
+    list_resp = await client.get("/api/test-runs", params={"test_case_id": test_case_id})
+    assert list_resp.status_code == 200
+    items = list_resp.json()["items"]
+    assert len(items) == 1
+    assert items[0]["test_case_name"] == "trigger-qa-mcptt"
+
+
+@pytest.mark.asyncio
+async def test_trigger_run_success_flow_with_fake_executor(
+    client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    test_case_id = await _create_test_case(client)
+    monkeypatch.setitem(executor_registry._registry, ("volte", "basic_call"), _FakeDoneExecutor)
+
+    resp = await client.post(f"/api/test-cases/{test_case_id}/run")
+    assert resp.status_code == 202
+    run_id = resp.json()["id"]
+
+    final_status = await _poll_until_terminal(client, run_id)
+    assert final_status == "done"
+
+    run_resp = await client.get(f"/api/test-runs/{run_id}")
+    summary = json.loads(run_resp.json()["result_summary"])
+    assert summary["passed"] is True
+
+    events_resp = await client.get(f"/api/test-runs/{run_id}/events")
+    assert events_resp.status_code == 200
+    assert events_resp.json()["total"] == 0  # 가짜 executor는 CallEvent를 만들지 않음
+
+
+@pytest.mark.asyncio
+async def test_trigger_run_ssh_failure_transitions_to_error(
+    client: httpx.AsyncClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    """CLAUDE.md §3.1: VCS_SSH_HOST 미설정 상태에서는 SSH 연결 자체가 실패해야 한다.
+
+    실패 사유가 반드시 "SSH 설정 없음"이어야 한다 — 예전엔 트리거 라우터가
+    커밋 후 detach하기 전에 test_case를 refresh하지 않아서, executor가
+    `test_case.protocol_params`에 처음 접근하는 순간 DetachedInstanceError가
+    나며 우연히 같은 "error" 상태로 끝났다(원인은 전혀 다른데 상태만 같아서
+    이 assert만으로는 못 잡던 회귀). 로그에서 그 예외가 안 찍혔는지까지 확인한다.
+    """
+    import logging
+
+    test_case_id = await _create_test_case(client)
+
+    with caplog.at_level(logging.ERROR):
+        resp = await client.post(f"/api/test-cases/{test_case_id}/run")
+        assert resp.status_code == 202
+        run_id = resp.json()["id"]
+
+        final_status = await _poll_until_terminal(client, run_id)
+
+    assert final_status == "error"
+    assert "DetachedInstanceError" not in caplog.text
+
+    # 2026-07-30: 실 사용 중 발견된 문제 — 실행기 예외 메시지가 backend.log에만
+    # 남고 대시보드 어디에도 안 보여서, 설정 실수(예: protocol_params 필수값
+    # 누락) 하나 확인하려고 서버 SSH 접속이 필요했다. result_summary에 담겨야
+    # `GET /api/test-runs/{id}`만으로 원인을 알 수 있다.
+    run_resp = await client.get(f"/api/test-runs/{run_id}")
+    summary = json.loads(run_resp.json()["result_summary"])
+    assert "VCS_SSH_HOST" in summary["error"]
+
+
+@pytest.mark.asyncio
+async def test_trigger_run_missing_test_case_404(client: httpx.AsyncClient) -> None:
+    resp = await client.post("/api/test-cases/does-not-exist/run")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_call_flow_not_found_before_run(client: httpx.AsyncClient) -> None:
+    test_case_id = await _create_test_case(client)
+    resp = await client.post(f"/api/test-cases/{test_case_id}/run")
+    run_id = resp.json()["id"]
+
+    # 아직 파싱/판정이 끝나지 않았을 시점(트리거 직후)에는 call-flow가 없어야 한다.
+    cf_resp = await client.get(f"/api/test-runs/{run_id}/call-flow")
+    assert cf_resp.status_code == 404

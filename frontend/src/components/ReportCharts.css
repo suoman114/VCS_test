@@ -1,0 +1,43 @@
+.report-chart {
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+}
+
+.report-chart-axis {
+  stroke: #d1d5db;
+  stroke-width: 1;
+}
+
+.report-chart-axis-label {
+  font-size: 9px;
+  fill: #6b7280;
+}
+
+.report-chart-bar {
+  fill: #2563eb;
+}
+
+.report-chart-line {
+  fill: none;
+  stroke: #2563eb;
+  stroke-width: 2;
+}
+
+.report-chart-area {
+  fill: #2563eb;
+  opacity: 0.15;
+}
+
+@media print {
+  .report-chart {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .report-chart-bar,
+  .report-chart-line {
+    fill: #1d4ed8;
+    stroke: #1d4ed8;
+  }
+}

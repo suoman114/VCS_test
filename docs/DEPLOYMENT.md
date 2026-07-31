@@ -1,0 +1,131 @@
+# 배포/실행 가이드
+
+로컬 개발 환경이든 실제 배포 대상 서버든 공통 절차는 `backend/README.md`, `frontend/README.md`를 따른다. 이 문서는 그중 **CentOS 7처럼 오래된 운영체제**에서 겪을 수 있는 환경 문제와 해결책을 정리한다 — 실제로 사내 VCS 시험 서버가 CentOS 7 계열인 경우가 많아, 한 번 겪은 문제를 반복하지 않기 위한 기록이다.
+
+## 시작/종료 스크립트 (`scripts/`)
+
+아래 "표준 절차"(가상환경 activate, `pip install`, `npm install` 등)를 한 번 해둔 뒤에는, 매번 터미널에 `nohup ... &`을 직접 치는 대신 `scripts/`의 스크립트로 백엔드/프론트엔드를 켜고 끌 수 있다.
+
+```bash
+scripts/start.sh     # 백엔드 + 프론트엔드 둘 다 백그라운드로 기동
+scripts/stop.sh      # 둘 다 종료
+scripts/status.sh    # 실행 중인지 + 백엔드 헬스체크(/api/health) 확인
+
+scripts/start-backend.sh   / scripts/stop-backend.sh    # 백엔드만
+scripts/start-frontend.sh  / scripts/stop-frontend.sh   # 프론트엔드만
+```
+
+- 로그는 `backend/backend.log`, `frontend/frontend.log`에 쌓인다(`.gitignore`에 포함, 커밋 안 됨). `tail -f backend/backend.log`로 실시간 확인.
+- PID 파일은 `storage/run/*.pid`(gitignore된 `storage/` 하위)에 저장된다. 이미 떠 있으면 `start-*.sh`는 그냥 상태만 출력하고 재기동하지 않는다(중복 기동 방지).
+- 종료는 SIGTERM → 최대 10초 대기 → 그래도 안 죽으면 SIGKILL 순으로 진행하고, `setsid`로 띄운 프로세스 그룹 전체(vite가 띄우는 esbuild 등 자식 프로세스 포함)를 정리한다.
+- 기본 바인딩은 `0.0.0.0`(모든 인터페이스 — 브라우저에서 서버 IP로 직접 접속하는 배포 환경 기준)이다. SSH 포트포워딩만 쓰고 내부망에도 노출하고 싶지 않으면 `BACKEND_HOST=127.0.0.1 FRONTEND_HOST=127.0.0.1 scripts/start.sh`처럼 좁혀서 실행한다. 포트도 `BACKEND_PORT`/`FRONTEND_PORT`로 바꿀 수 있다. 이 프로그램은 별도 인증이 없으므로, `0.0.0.0`으로 띄울 때는 방화벽으로 신뢰할 수 있는 네트워크만 접근하도록 제한하는 걸 권장한다.
+- 코드 변경 시 자동 재기동이 필요하면 `BACKEND_RELOAD=1 scripts/start-backend.sh`(uvicorn `--reload`). 프론트는 Vite가 기본적으로 HMR을 지원하므로 별도 옵션이 필요 없다.
+
+## 표준 절차 (최신 OS 기준)
+
+### 백엔드
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env        # 필요 시 VCS_SSH_* 값 채움
+alembic upgrade head
+uvicorn app.main:app --reload --port 8000
+```
+
+### 프론트엔드
+```bash
+cd frontend
+cp .env.example .env        # VITE_API_BASE_URL 기본값(http://localhost:8000)이면 그대로 둬도 됨
+npm install
+npm run dev                 # http://localhost:5173
+```
+
+## CentOS 7 (glibc 2.17) 환경일 경우
+
+CentOS 7은 2024년 기준으로도 여전히 널리 쓰이지만, glibc 2.17 / GCC 4.8.2라는 아주 오래된 베이스라인 때문에 아래 문제들을 순서대로 만나게 된다. 실제로 이 프로젝트를 CentOS 7 서버에 배포하며 확인된 문제와 해결 순서다.
+
+### 1. 시스템 기본 Python(3.6)으로는 안 됨
+`sqlalchemy>=2.0`은 Python 3.7+가 필요하다. `pyenv`로 Python 3.11을 새로 설치해야 하는데, 이때 두 가지 컴파일 문제가 연달아 발생한다.
+
+**a) SSL 모듈 컴파일 실패** — CentOS 7 기본 OpenSSL(1.0.2)이 너무 낮음. EPEL의 `openssl11`(1.1.1) 패키지를 별도 설치해 그 경로를 알려줘야 한다.
+```bash
+yum install -y epel-release
+yum install -y openssl11 openssl11-devel
+
+CPPFLAGS="-I/usr/include/openssl11" \
+LDFLAGS="-L/usr/lib64/openssl11 -Wl,-rpath,/usr/lib64/openssl11" \
+pyenv install 3.11.9
+```
+
+**b) `greenlet`(SQLAlchemy 의존 패키지) 빌드 실패** — 시스템 기본 g++(4.8.2)가 C++11을 기본으로 지원하지 않음. `devtoolset-9`로 새 GCC를 설치해야 한다.
+```bash
+yum install -y centos-release-scl
+yum install -y devtoolset-9-gcc devtoolset-9-gcc-c++
+source /opt/rh/devtoolset-9/enable   # 이 터미널 세션에서만 유효, 새 셸이면 다시 실행
+
+cd backend
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 2. Node.js 18/20이 설치가 안 됨
+NodeSource의 최신 Node(18/20) 패키지는 `glibc >= 2.28`을 요구한다(CentOS 7은 2.17). NodeSource는 더 이상 Node 16용 yum 저장소도 제공하지 않으므로, **공식 tar 바이너리를 직접 받아서 설치**한다(yum/rpm 의존성 체크를 완전히 우회).
+```bash
+cd /usr/local
+curl -O https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.xz
+tar xf node-v16.20.2-linux-x64.tar.xz
+
+ln -sf /usr/local/node-v16.20.2-linux-x64/bin/node /usr/local/bin/node
+ln -sf /usr/local/node-v16.20.2-linux-x64/bin/npm  /usr/local/bin/npm
+ln -sf /usr/local/node-v16.20.2-linux-x64/bin/npx  /usr/local/bin/npx
+```
+Node 16은 glibc 2.17에서 동작하는 마지막 LTS 라인이다.
+
+### 3. Vite 5 / rollup 4가 Node 16과 안 맞음
+저장소의 `frontend/package.json`은 이미 아래 두 가지를 반영해 커밋되어 있다(추가 조치 불필요, 참고용 기록):
+- `vite`를 5.x → `^4.5.5`로 고정 (Vite 5는 Node 18+ 요구)
+- `rollup`을 devDependency에 `3.29.4`로 직접 고정 (rollup 4.x의 플랫폼별 네이티브 바이너리가 `glibc >= 2.29`를 요구해서 CentOS 7에서 `ERR_DLOPEN_FAILED`가 남). `overrides` 필드만으로는 오래된 npm(8.x)에서 제대로 적용되지 않아, 최상위 `devDependencies`에 직접 명시하는 방식으로 고정했다.
+
+이 상태에서 `npm install && npm run dev`가 정상 동작함을 확인했다.
+
+## 외부 접속
+
+`npm run dev`/`uvicorn`은 기본적으로 `localhost`에만 바인딩된다. 원격 서버에서 브라우저로 접속하려면:
+
+- **SSH 포트포워딩(권장)**: `ssh -L 5173:localhost:5173 -L 8000:localhost:8000 <user>@<서버IP>` 후 로컬 브라우저에서 `http://localhost:5173`
+- 또는 `npm run dev -- --host`로 외부 노출 + 방화벽에서 5173/8000 포트 개방
+
+## 현재 확인된 상태
+
+- 백엔드: `alembic upgrade head`로 4개 테이블 생성 확인, `GET /api/health` 200 확인, 유닛+통합 테스트 52/52 통과
+- 프론트엔드: 대시보드 로드 확인, `API 서버` 헬스체크 정상 표시
+- `VCS SSH 연결` / `SIPp 실행 가능` 배지는 `GET /api/health`가 실제로 접속을 시도해서 채운다(`app/api/health.py`, `app/services/ssh_health.py`) — 호스트가 아직 설정 안 됐으면 "확인중", 접속에 성공/실패하면 각각 ok/error로 표시된다.
+
+## 실 VCS 서버 연동 (2026-07-29 확인 완료, 2026-07-29 대시보드 설정 화면 추가)
+
+`.env`에 아래를 채우면 실제 장비로 시험을 실행할 수 있다(호스트/계정 값 자체는 이 문서에 적지 않는다 — `.env`에만 채운다).
+
+```bash
+VCS_SSH_HOST=<VCS IP>
+VCS_SSH_PORT=22
+VCS_SSH_USERNAME=<계정>
+VCS_SSH_PASSWORD=<비밀번호>
+
+SIPP_EXEC_MODE=ssh
+SIPP_SSH_HOST=<SIPp 전용 서버 IP>
+SIPP_SSH_USERNAME=<계정>
+SIPP_SSH_PASSWORD=<비밀번호>
+```
+
+**또는** `.env`를 서버에서 직접 고칠 필요 없이, 대시보드의 **"설정"** 메뉴에서 같은 값들을 입력/수정할 수 있다 — 이쪽이 `.env`보다 우선 적용되고(DB에 저장), "연결 테스트" 버튼으로 저장 전에 실제 접속 가능 여부를 바로 확인할 수 있다. 두 방식은 병행 가능하다: `.env`는 초기값, 대시보드는 그 위에 얹는 오버라이드(CLAUDE.md §13, `backend/app/services/vcs_settings_store.py`).
+
+나머지(vctp 재기동 명령, pcap 샘플 디렉토리, vcsm/vcmm/vcmc 로그 경로)는 `backend/app/core/config.py`에 확인된 기본값으로 이미 들어가 있다 — 배포 환경이 다르면 `.env`에서 override(`.env.example`에 주석으로 키 이름 목록 있음). VoLTE Test Case 등록 시 pcap 샘플은 `GET /api/vcs/volte-sample-files`가 VCS의 `/home/vcs/vctp/sample`을 SSH로 조회해 select box로 보여준다(VCS 연결이 안 되면 502 → 폼이 텍스트 입력으로 자동 폴백).
+
+## 아직 남은 것 (CLAUDE.md §13 TBD)
+
+- 실패/타임아웃 케이스 로그 샘플 — 현재는 성공 케이스만 있어 Pass 판정만 구현됨
+- vctp 설정 파일의 `SAMPLEFILE1` 라인 문법(공백 등) — sed 치환 로직이 vctp.log의 파싱된 출력에서 역추정한 것이라, 실 서버 최초 실행 시 검증 필요
+- vctp/vctp 재기동 명령 실행 권한(sudo 필요 여부 등) 검증
+- 대시보드에서 저장한 VCS/SIPp 비밀번호는 DB에 평문 저장된다(.env와 동일한 신뢰 경계) — 별도 암호화/시크릿 매니저 연동은 아직 없음

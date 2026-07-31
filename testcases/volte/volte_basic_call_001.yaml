@@ -1,0 +1,37 @@
+# VoLTE 기본 호처리 시험 케이스 정의 예시
+# 스키마 소유: testcase-manager-agent (참고: backend/app/schemas/test_case.py)
+#
+# id를 생략하면 최초 import 시 서버가 UUID를 생성하고, 이 파일에 다시
+# 써넣는(export) 방식으로 DB<->YAML을 동기화한다 (아래 README 동기화 노트 참고).
+
+id: volte-basic-call-001
+name: "VoLTE 기본 호처리 - 정상 발신/응답/종료"
+category: volte
+test_type: basic_call
+description: >
+  단말 발신 -> VCS(vctp) 착신 처리 -> 200 OK -> ACK -> 통화 -> 정상 BYE
+  까지의 기본 흐름이 규격대로 동작하는지 확인한다.
+
+# VoLTE는 config_ref가 선택된 pcap 샘플 파일명을 가리킨다(protocol_params.sample_file과
+# 동일 값 — 화면 표시용). vctp 재기동 명령/로그 경로 기본값은 Settings(app/core/config.py)에
+# 있으므로 여기서 다시 안 적어도 된다(필요하면 override 가능, 아래 주석 참고).
+config_ref: "imsVideo30sec.pcap"
+
+protocol_params:
+  # Settings.vctp_sample_dir(/home/vcs/vctp/sample) 안의 파일명. Test Case 등록
+  # 폼에서는 GET /api/vcs/volte-sample-files로 조회한 목록 중 select box로 고른다.
+  sample_file: "imsVideo30sec.pcap"
+  wait_after_restart_sec: 5
+  # 필요 시 override 가능(기본값은 Settings): vctp_config_path, stop_cmd, start_cmd,
+  # vcsm_log_path, vcmm_log_path
+
+pass_criteria:
+  required_events:
+    - SIP_INVITE
+    - SIP_200OK
+    - SIP_ACK
+    - SIP_BYE
+  forbidden_patterns:
+    - "ERROR"
+    - "TIMEOUT"
+  max_duration_sec: 30

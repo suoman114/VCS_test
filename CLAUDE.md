@@ -24,6 +24,34 @@
 
 > 신규 시험 유형은 항상 "시험 유형 플러그인"으로 추가한다 (§7 참고). 기존 VoLTE/McPTT 코드를 건드리지 않고 확장 가능해야 한다.
 
+### 1.1 구현 현황 요약 (2026-07-30 기준)
+
+아래는 지금까지 구현 완료된 기능의 스캔용 목록이다. 각 항목의 배경/설계 이유/버그 수정 히스토리는 §7.1(McPTT 성능 시험)과 §13(TBD 해소 로그, 날짜순 상세 기록)에 있다 — 이 절은 "무엇이 있는지"만 빠르게 훑기 위한 색인이다.
+
+**Backend (FastAPI, `backend/app/`)**
+- **Test Case CRUD**: `GET/POST/PATCH/DELETE /api/test-cases`(+ `/{id}`), 카테고리(VoLTE/McPTT)·시험유형(basic_call/performance) 필터.
+- **VoLTE 기본 호처리 실행기**(`services/volte/executor.py`): vctp 설정(`SAMPLEFILE1`) SSH `sed` 치환 → (선택) VCS 녹취 DB(MariaDB) 중복 Call-ID 자동 정리(`services/volte/recording_cleanup.py`, 2026-07-30) → `stopmc`/`startmc`로 vctp 재기동 → vcsm/vcmm/vctp 로그 tail → `recording_stop_res.reasonCode==2000` 기준 Pass/Fail 판정. 샘플 파일 목록 `GET /api/vcs/volte-sample-files`.
+- **McPTT 기본 호처리 실행기**(`services/mcptt/executor.py`): 원격 SIPp 전용 호스트에서 자체 제작 시뮬레이터(`utgen-jar-with-dependencies.jar`) 실행(`local`/`ssh` 두 모드, su root 지원) → vcmc/vcmm 로그 tail → 동일 기준 판정. 시나리오 파일 목록 `GET /api/vcs/mcptt-scenario-files`.
+- **McPTT 성능 시험 실행기**(`services/mcptt/performance_executor.py`, §7.1): `-r/-rp`(호 발생률) 기반 무기한 실행, `POST /test-runs/{id}/cancel`로 정상 종료, 원격 프로세스 강제 종료 보장(`run_command_cancellable`/`run_command_as_su`), 라이브 통계 집계(`performance_stats.py`).
+- **Test Run 오케스트레이션**(`api/test_runs.py`): 트리거/취소/목록/단건 조회/통계(`/stats`)/이벤트 페이지네이션(`/events`)/Call Flow(`/call-flow`, `call_id` 필터 지원)/call_id 목록(`/call-ids`)/리포트 통계(`/report-stats`), WebSocket(`/ws/test-runs/{id}`)로 로그·상태·Call Flow 실시간 push. 모든 응답에 `test_case_name` 포함(UUID 대신 이름 표시용).
+- **SSH 커넥터**(`services/ssh_connector/`): connect/close 타임아웃, 일반 실행/취소 가능한 실행/su 전환 실행 3종, 무제한 재연결 재시도 로그 tail.
+- **로그 파서 어댑터**(`services/log_parser/`, `services/callflow/`): `VctpLogAdapter`/`VcsmLogAdapter`/`VcmmLogAdapter`/`VcmcLogAdapter`(포맷 A/B 둘 다 지원), Mermaid `sequenceDiagram` 생성(`generate_call_flow`, 프로토콜 자동 감지 + 명시적 override), 클릭-투-로그용 메시지 인덱스.
+- **리포트 통계**(`services/report_stats.py`): 콜 설정 시간 분포(`recording_start_req`~`res` 기준, 히스토그램+p50/p95), 시간별 동시 통화 수(버킷 시계열) — 리포트 화면 진입 시 1회만 계산(라이브 폴링에는 미포함).
+- **VCS/SIPp 접속 설정**(`services/vcs_settings_store.py`, `api/settings.py`): `.env` 기본값 위에 대시보드에서 오버라이드 가능(DB 저장), 연결 테스트 API.
+- **Job Runner**(`job_runner/`): `asyncio.Task` 기반 비동기 실행, 취소, 예외를 `result_summary`에 기록.
+- **DB**: SQLAlchemy + Alembic(`TestCase`/`TestRun`/`CallEvent`/`CallFlowDiagram`/`VcsSettings`), 기본 SQLite.
+
+**Frontend (React + TS + Vite, `frontend/src/`)**
+- **페이지**: 대시보드(연결 상태·Pass율 통계·최근 실행), 시험 케이스 관리(목록/등록/수정/삭제, 성능 시험 전용 입력 필드), 시험 실행(실시간 로그 탭+검색, Call Flow 실시간 갱신 + call_id 필터, 결과 요약 카드, 시험 종료 버튼), 시험 이력(필터/페이지네이션), Call Flow 단독 조회, **리포트**(개요/결과 요약/콜 설정 시간 히스토그램/동시 통화 수 그래프/대표 Call Flow 1건, 브라우저 인쇄로 PDF 저장), 설정(VCS/SIPp 접속 정보 + 연결 테스트).
+- **실시간성**: WebSocket 자동 재연결(지수 백오프), 로그/상태/Call Flow 3종 실시간 push, 완료된 시험은 과거 로그 자동 로드.
+- **공통 컴포넌트**: `LogViewer`(탭·검색·긴 블록 접기), `MermaidDiagram`(클릭-투-로그), `ResultSummaryCard`(성공/실패/성능/인프라오류 4형태 렌더링), `ReportCharts`(SVG 히스토그램/영역그래프, 외부 라이브러리 없음), `StatusBadge`.
+- **UI 품질**: UUID 대신 Test Case 이름 표시, 모바일 내비게이션 가로 스크롤, 존재하지 않는 run/call-flow 접근 시 한글 에러 처리.
+
+**아직 없음 / 알려진 공백** (상세는 §13)
+- 실패/타임아웃 케이스 실 로그 샘플 부재 — Fail 판정 로직이 성공 케이스로만 검증됨(최우선 공백).
+- VoLTE 성능 시험(현재 McPTT만), Abnormal 시험 유형(Phase 3, 미착수).
+- 리포트/실행 결과 알림(Slack/이메일), 시험 이력 추세 비교, 로그/DB 보관·정리 정책.
+
 ---
 
 ## 2. 도메인 용어 정리
@@ -34,35 +62,45 @@
 | 호처리 (Call Processing) | 통화 발신~응답~종료까지의 시그널링 처리 흐름. |
 | VoLTE | LTE망의 음성 통화(IMS/SIP 기반). |
 | McPTT | Mission Critical Push-To-Talk. 공공안전망 그룹통신 서비스(3GPP 기반, SIP + MCPTT 애플리케이션 프로토콜). |
-| vctp | VCS 내부에서 호처리를 담당하는 프로세스(추정: Voice Call Trunk/Transfer Process류). 설정 파일 적용 후 재기동하면 새 설정으로 호처리 시험이 진행됨. |
+| vctp | VCS 내부에서 네트워크 인터페이스의 패킷을 캡처(pcap)하여 SIP 시그널링은 VCSM으로, 미디어(RTP)는 VCMM으로 릴레이하는 프로세스. `docs/log_samples/volte/vctp.log` 확인 결과 실제 호처리 로직은 없고 패킷 캡처/릴레이만 수행(로그의 99%가 "send RTP message to VCMM" 류). 설정 파일(`/home/vcs/vctp/config/`)에 `SAMPLEHOME`/`SAMPLEFILE1`(예: `imsVideo30sec.pcap`) 항목이 있어, 사전 캡처된 pcap 샘플을 재생(replay)해 호처리를 시뮬레이션하는 것으로 추정됨(§3.1 참고, 최종 확인 필요). |
+| VCSM | VCS Signaling Manager(추정 명칭). vctp로부터 SIP 메시지를 전달받아 호 상태(INVITE/ACK/BYE 등)를 처리하고, VCMM에 녹취 시작/종료를 요청하는 VoLTE용 시그널링 처리 프로세스. 로그: `vcsm.log`. |
+| VCMM | VCS Media Manager. VCSM(VoLTE) 또는 VCMC(McPTT)로부터 `recording_start_req`/`recording_stop_req`(RabbitMQ, JSON)를 받아 실제 녹취 파일(pcap) 생성/관리를 담당. 응답 메시지의 `reasonCode`/`reason`이 녹취(=호처리) 성공/실패 판정의 핵심 근거. 로그: `vcmm.log`(VoLTE·McPTT 공통 프로세스로 보임). |
+| VCMC | VCS MCPTT Controller(추정 명칭). McPTT 시험 샘플에서 VCSM 대신 등장하며, SIP + MCPTT 전용 XML(`mcpttinfo`, multipart/mixed 본문)을 처리. 로그: `vcmc.log`. VoLTE의 vctp/VCSM에 해당하는 프로세스가 McPTT에도 별도로 있는지는 샘플에서 확인되지 않음(TBD). |
 | SIPp | 오픈소스 SIP 트래픽 생성/시험 도구. McPTT 호 발생에 사용. XML 시나리오 기반으로 SIP 메시지 흐름을 정의. |
 | 기본 호처리 시험 | 정상적인 발신-응답-통화-종료 흐름이 규격대로 동작하는지 확인하는 가장 기본적인 시험 유형. |
 | Call Flow | 시험 1회 실행(Test Run) 동안 오간 시그널링 메시지의 순서를 시각화한 시퀀스 다이어그램. |
 | Test Case | 재사용 가능한 시험 정의(프로토콜, 대상 설정/시나리오, 판정 기준 포함). |
 | Test Run | Test Case를 1회 실행한 인스턴스(로그, 결과, Call Flow가 귀속되는 단위). |
 
+> 위 VCS 내부 프로세스 이름(VCSM/VCMM/VCMC)은 로그의 `msgFrom` 필드와 파일명에서 역추적한 추정 명칭이다. 정확한 공식 명칭/역할은 확인되는 대로 갱신한다.
+
 ---
 
 ## 3. 시험 실행 방식 (핵심 도메인 로직)
 
-### 3.1 VoLTE 기본 호처리 시험
-1. Test Case에 연결된 설정 파일을 VCS 서버의 지정 경로에 적용(SCP/SFTP 전송)
-2. SSH로 VCS에 접속하여 `vctp` 프로세스 재기동 명령 실행
-3. 재기동 직후부터 VCS의 관련 로그 파일/경로를 실시간 tail로 수집 시작
-4. 호처리 완료(성공/실패/타임아웃) 판정 기준에 도달할 때까지 수집
+### 3.1 VoLTE 기본 호처리 시험 (2026-07-29 실 환경 확인 후 확정)
+1. vctp가 재생(replay)할 pcap 샘플은 이미 VCS의 `/home/vcs/vctp/sample`에 있다. "설정 적용"은 새 파일을 업로드하는 게 아니라, vctp 설정(`/home/vcs/vctp/config/vctp_user.config`)의 `SAMPLEFILE1` 항목을 시험하려는 pcap 파일명으로 SSH `sed` 치환하는 것이다. Test Case 등록 폼은 `GET /api/vcs/volte-sample-files`(SSH `ls`)로 조회한 목록을 select box로 보여준다.
+1.5. (선택, 2026-07-30 추가) pcap 안의 SIP Call-ID가 고정값이라 같은 Test Case를 반복 실행하면 VCMM 녹취 DB(MariaDB)에서 중복 오류가 난다 — 대시보드 "설정"에 VCS 녹취 DB(MariaDB) 접속 정보가 채워져 있고 이 Test Case의 Call-ID를 알고 있으면(이전 실행에서 자동 파싱해둔 값, 또는 `protocol_params.callid` 명시), vctp 재기동 전에 `TBL_CALL_INFO`/`TBL_RECORD_INFO`에서 그 Call-ID 행을 자동으로 지운다(`services/volte/recording_cleanup.py`). §13 참고.
+2. SSH로 VCS에 접속하여 `stopmc -b vctp` → `startmc -b vctp` 순서로 vctp를 재기동 → 재기동된 vctp가 pcap을 재생하며 SIP는 VCSM으로, RTP는 VCMM으로 릴레이
+3. 재기동 직후부터 VCS의 관련 로그 파일을 실시간 tail로 수집 시작 — 대상은 `vcsm.log`(`/home/vcs/vcsm/logs/vcsm.log`, SIP 시그널링), `vcmm.log`(`/home/vcs/vcmm/logs/vcmm0.log`, 녹취 제어/결과), `vctp.log`(`/home/vcs/vctp/logs/vctp0.log`, 패킷 릴레이). `vctp.log`는 패킷 단위 릴레이 로그가 대부분(§9 참고)이라 Call Flow/판정에서는 여전히 저비중으로 다루지만, 대시보드에 프로세스별 로그 탭(vcsm/vcmm/vctp)을 제공하기 위해 다른 로그와 동일하게 tail 대상에 포함한다(2026-07-29 실 서버 경로 확인).
+4. 호처리 완료(성공/실패/타임아웃) 판정 기준에 도달할 때까지 수집 — **확인된 성공 판정 근거**: `vcmm.log`에서 VCMM이 보내는 `recording_stop_res` 메시지의 `header.reasonCode == 2000 && header.reason == "Success"`. SIP 레벨에서는 `vcsm.log`의 BYE ↔ 200 OK 교환과 시점이 일치.
 5. 수집 종료 → 원본 로그 저장 → 파싱 → Call Flow 생성 → Pass/Fail 판정 → 대시보드에 결과 반영
 
-> **미확정(TBD)**: 설정 파일의 정확한 목적지 경로, `vctp` 재기동 명령(`systemctl` / 커스텀 스크립트 / 시그널 등), 재기동 후 시험이 "완료"되었다고 판단하는 기준(로그 패턴 또는 고정 대기시간). 실제 로그 샘플과 VCS 접근 정보를 받는 즉시 확정한다. 그 전까지 Backend Agent는 이 구간을 인터페이스(어댑터)로 추상화해서 구현한다.
+구현: `backend/app/services/volte/executor.py`(`VolteBasicCallExecutor`), 샘플 목록 조회는 `backend/app/services/volte/sample_files.py` + `GET /api/vcs/volte-sample-files`. 경로/명령 기본값은 `Settings`(`app/core/config.py`)에 있고 `.env`로 배포 환경마다 override 가능.
 
-### 3.2 McPTT 기본 호처리 시험
+> **미확정(TBD)**: 실패/타임아웃 케이스의 실제 로그 패턴(현재 확보한 샘플은 성공 케이스 1건뿐이라 실패 판정 규칙을 아직 못 만든다 — 실패/에러 로그 샘플 추가 필요). `sed` 치환 대상 라인의 정확한 문법(공백 등)은 vctp.log의 파싱된 출력에서 역추정한 것이라 실 서버 최초 실행 시 검증 필요.
+
+### 3.2 McPTT 기본 호처리 시험 (2026-07-29 실 환경 확인 후 확정)
 1. Test Case에 연결된 SIPp 시나리오(XML) + 파라미터(대상 IP/Port, 호 수, 호 발생율 등) 로드
-2. SIPp 프로세스 실행 (McPTT 호 발생)
-3. SIPp 실행과 동시에 VCS 측 로그도 실시간 수집 시작 (SSH tail)
+2. SIPp는 VCS와 별도인 전용 호스트에서 실행된다(SSH로 시나리오 업로드 → 원격 실행 → SIPp 자체 로그 다운로드, `sipp_exec_mode="ssh"`). VCS측 로그 tail을 SIPp 실행 전에 먼저 시작한다.
+3. SIPp 실행과 동시에 VCS 측 로그도 실시간 수집 — 대상은 `vcmc.log`(`/home/vcs/vcmc/logs/vcmc.log`, SIP+MCPTT 시그널링), `vcmm.log`(`/home/vcs/vcmm/logs/vcmm0.log`, 녹취 제어/결과). `docs/log_samples/mcptt/`에서 확인된 VCS 측 프로세스는 이 둘뿐이며(VoLTE의 vctp/vcsm에 대응하는 별도 프로세스가 McPTT에도 있는지는 미확인, TBD), `vcmc.log`는 SIP 메시지 원문(멀티파트 MIME, `application/vnd.3gpp.mcptt-info+xml` 등 MCPTT 전용 바디 포함)을 그대로 담고 있다.
 4. SIPp 자체 로그/통계(csv, 스크린 로그)와 VCS 로그를 **Call-ID / 타임스탬프 기준으로 상관관계 매칭**
 5. 두 로그 소스를 병합하여 하나의 Call Flow로 재구성
-6. Pass/Fail 판정 → 결과 저장 → 대시보드 반영
+6. Pass/Fail 판정 → 결과 저장 → 대시보드 반영 — **확인된 성공 판정 근거**: VoLTE와 동일하게 `vcmm.log`의 `recording_stop_res`가 `reasonCode == 2000 && reason == "Success"`. McPTT 샘플에는 `recording_change_req/res`(21회, 그룹 통화 중 발언권/플로어 변경으로 추정)가 추가로 존재 — Call Flow에는 표시하되 Pass/Fail 판정에는 필수 아님(추정, 확인 필요).
 
-> **미확정(TBD)**: SIPp 실행 위치(자동화 서버 로컬 vs 별도 SIPp 전용 호스트에 SSH로 원격 실행), McPTT 고유 애플리케이션 메시지(SIP 위에 얹히는 MCPTT 제어 메시지)의 파싱 규칙.
+구현: `backend/app/services/mcptt/executor.py`(`McpttBasicCallExecutor`, 로컬/원격 SIPp 실행 모두 지원).
+
+> **미확정(TBD)**: `recording_change_req/res`의 정확한 의미와 판정 영향 여부, 실패/타임아웃 케이스의 실제 로그 패턴(현재 샘플은 성공 케이스 1건), Call-ID/타임스탬프 기반 SIPp↔VCS 로그 상관관계 매칭(SippLogAdapter는 아직 스텁).
 
 ### 3.3 공통 실행 원칙
 - 모든 시험 실행은 **비동기 Job**으로 처리하고 Test Run 레코드를 즉시 생성한다(상태: `pending → running → parsing → done/failed/error`).
@@ -147,10 +185,10 @@ VCS_test/
 
 - **TestCase**: `id, name, category(volte|mcptt), test_type(basic_call|performance|abnormal, 현재는 basic_call만), config_ref(VoLTE 설정파일 경로 or McPTT SIPp 시나리오 경로+파라미터), pass_criteria, created_at, updated_at`
 - **TestRun**: `id, test_case_id, status(pending|running|parsing|passed|failed|error), started_at, ended_at, target_host, raw_log_path, result_summary`
-- **CallEvent**: `id, run_id, ts, source(vcs_log|sipp_log), raw_line, parsed_type(예: SIP_INVITE, SIP_200OK, VCTP_XXX), seq_no`
+- **CallEvent**: `id, run_id, ts, source(vctp_log|vcsm_log|vcmm_log|vcmc_log|sipp_log), raw_line, parsed_type(예: SIP_INVITE, SIP_200OK, RECORDING_START_REQ, RECORDING_STOP_RES), call_id, reason_code, seq_no`
 - **CallFlowDiagram**: `run_id, mermaid_source, generated_at`
 
-세부 컬럼/정규화는 Backend Agent + Log Parser Agent가 실제 로그 포맷 확보 후 확정한다.
+세부 컬럼/정규화는 Backend Agent + Log Parser Agent가 실제 로그 포맷 확보 후 확정한다. `source`/`parsed_type` 값은 `docs/log_samples/`에서 확인된 실제 프로세스(vctp/vcsm/vcmm, McPTT는 vcmc/vcmm)와 메시지 타입(`recording_start_req`, `recording_start_res`, `recording_stop_req`, `recording_stop_res`, McPTT는 `recording_change_req/res` 추가, SIP 메서드는 INVITE/ACK/BYE/CANCEL/UPDATE/PRACK/NOTIFY/REFER/OPTIONS/MESSAGE)를 기준으로 확정했다.
 
 ---
 
@@ -162,14 +200,26 @@ Phase 1에서부터 아래 원칙을 지켜서, 나중에 성능/Abnormal 시험
 - `services/volte`, `services/mcptt` 는 "프로토콜"이고, "시험 유형(기본호처리/성능/abnormal)"은 별도 축이다. 예: 성능 시험도 VoLTE/McPTT 양쪽에 적용될 수 있으므로, 실행기는 `(protocol, test_type)` 조합으로 조회한다.
 - 대시보드/DB 스키마도 `test_type` 필드로 필터링만 하면 새 유형이 그대로 노출되도록 설계한다.
 
+### 7.1 McPTT 성능(performance) 시험 (2026-07-30 추가, §7 원칙의 첫 실제 적용 사례)
+
+기본 호처리(`basic_call`, `McpttBasicCallExecutor`)와 프로토콜(McPTT)은 같지만, 총 호 수(`-m`)만큼 돌고 자연 종료되는 게 아니라 호 발생률(`-r`/`-rp`)로 **무기한** 호를 발생시키다가 **사용자가 명시적으로 종료**해야 끝난다는 점이 근본적으로 다르다. 기존 `basic_call` 코드는 전혀 건드리지 않고 `(protocol="mcptt", test_type="performance")`로 별도 등록된 `McpttPerformanceExecutor`(`backend/app/services/mcptt/performance_executor.py`)로 추가했다.
+
+- **실행 커맨드**: `build_mcptt_sim_args()`(`app/services/mcptt/executor.py`, basic_call과 공유)가 `call_rate`/`rate_period_ms` **키워드 인자**를 받으면 `-m` 대신 `-r <call_rate> -rp <rate_period_ms>`를 쓴다(`rate_period_ms`마다 `call_rate`회 호 발생, 기본 1000ms → call_rate=1이면 초당 1콜). **딕셔너리 키가 아니라 명시적 키워드 인자로만 분기한다** — 기존 `sipp_exec_mode="local"`(real SIPp) 경로의 `build_sipp_args()`가 `protocol_params["call_rate"]`를 이미 다른 의미(real-SIPp `-r` 플래그)로 쓰고 있어서, 만약 `build_mcptt_sim_args`가 `params` 딕셔너리에서 같은 키를 몰래 읽었다면 레거시 `call_rate` 필드만 갖고 있던 기존 basic_call Test Case가 의도치 않게 rate 모드로 새는 버그가 실제로 났다(테스트로 잡음, `test_legacy_call_rate_protocol_param_does_not_leak_into_rate_mode`).
+- **"종료" 버튼**: `POST /api/test-runs/{run_id}/cancel`(`app/api/test_runs.py`)이 `job_runner.cancel()`(기존 `asyncio.Task.cancel()` 래퍼, 이미 있었음)을 호출한다. **McPTT 성능 시험에서 사용자가 종료하는 것은 실패가 아니라 정상 흐름**이므로, `McpttPerformanceExecutor.run()`은 `asyncio.CancelledError`를 내부에서 흡수하고(재-raise 안 함) `result_summary.stopped_by_user=true`와 함께 `DONE`으로 정상 마무리한다 — `job_runner._run_wrapper`의 기본 취소 처리(ERROR로 전이)를 타지 않는다.
+- **원격 프로세스가 실제로 죽어야 한다**: `SSHConnector.run_command()`(`conn.run()`의 얇은 래퍼, process 핸들 없음)로 취소를 받으면 로컬 코루틴만 멈추고 원격 java 프로세스는 계속 돌 수 있다 — VCS에 계속 호가 몰리는 심각한 문제. `create_process()`로 직접 핸들을 쥐고 `finally`에서 항상 `process.terminate()`를 부르는 `SSHConnector.run_command_cancellable()`(신규, su 미사용 경로)과, 이미 같은 패턴이던 `run_command_as_su()`(su 사용 경로 — 단, `timeout=None`이 로그인 프롬프트용 `connect_timeout`으로 조용히 캡핑돼 성능 시험처럼 무기한 대기가 15초 만에 끊기던 버그를 이번에 같이 고쳤다, `read_until`의 명령-완료 대기 구간만 `timeout`을 그대로 씀)를 쓴다.
+- **로그 수집/Call Flow**: VCS측 로그(vcmc.log, vcmm.log) tail은 basic_call과 동일하지만, "실행 -> 완료 대기"가 순차적인 basic_call과 달리 성능 시험은 시뮬레이터 실행과 **동시에** 로그 재파싱/Call Flow 갱신 폴링 태스크(`_poll_call_flow`)를 돌린다(시뮬레이터 자체가 시험 기간 내내 도는 게 정상이라서).
+- **성능 통계(1차, TBD 있음)**: `app/services/mcptt/performance_stats.py`의 `compute_mcptt_performance_stats()`가 vcmm.log의 `recording_start_res`/`recording_stop_res`(reasonCode==2000이 성공 기준, basic_call의 Pass 판정과 동일 로직 재사용 — `app.services.callflow.rules.extract_vcmm_header`를 공개 함수로 바꿔 공유)로 콜 단위 총/성공/실패/진행중 개수와 목표 대비 실제 달성 호 발생률을 집계해 `result_summary`에 담는다. **TBD**: 콜 설정 시간 분포, 시간별 동시 통화 수 그래프 같은 시계열 분석은 별도 집계/저장이 필요할 수 있어 이번 1차 범위에서 제외했다 — 사용자 확인 후 2차로 진행할지 결정.
+- **프론트**: `ExecutionPage.tsx`에 진행 중(pending/running/parsing) 상태면 항상 "시험 종료" 버튼이 뜬다(프로토콜/유형 무관 — 기본 호처리도 중간에 멈추고 싶을 수 있어서). `ResultSummaryCard.tsx`가 성능 시험 요약(`passed` 키가 없는 게 특징 — Pass/Fail이 아니라 "얼마나 처리했는지"가 결과)을 별도 카드로 렌더링한다.
+- **Test Case 등록 폼(2026-07-30 후속 요청)**: 처음엔 `call_rate`/`rate_period_ms`를 `protocol_params` JSON 텍스트박스에 직접 타이핑해야 해서 "protocol_params에 call_rate가 필요하다" 에러를 반복 겪는 문제가 있었다. `TestCaseForm.tsx`에 McPTT+performance 조합일 때만 나타나는 전용 입력 박스(호 발생 수/주기(ms)/최대 실행 시간(초, 선택))를 scenario_file select box와 동일한 패턴으로 추가 — 제출 시 이 값들이 `protocol_params.call_rate`/`rate_period_ms`/`max_duration_sec`로 병합되고, JSON 텍스트박스에 직접 넣은 동일 키는 무시된다(안내 문구로 명시). 구현 중 `.form-row`가 필드 2개용으로 고정폭(모달 560px)에 맞춰져 있어서 3개로 늘리자 세 번째 필드가 모달 오른쪽 밖으로 잘려 보이는 문제를 발견 — `flex: 1 1 140px` + `min-width: 0` + `flex-wrap: wrap`으로 수정(`TestCasesPage.css`). Playwright로 값 입력 → 저장 → `GET /api/test-cases` 응답에 정확한 값이 반영되는 것까지 확인.
+
 ---
 
 ## 8. 대시보드 기능 명세 (Phase 1)
 
 1. **시험 케이스 관리**: 목록/등록/수정/삭제, 프로토콜·유형별 필터
 2. **시험 실행**: 케이스 선택 후 실행, 실행 중 상태 표시(진행중/완료/실패)
-3. **실시간 로그 뷰어**: 실행 중인 Test Run의 로그를 WebSocket으로 실시간 스트리밍 표시 (VCS 로그 / SIPp 로그 탭 구분)
-4. **Call Flow 뷰어**: Test Run 종료 후(또는 진행 중 부분적으로) Mermaid 시퀀스 다이어그램 렌더링
+3. **실시간 로그 뷰어**: 실행 중인 Test Run의 로그를 WebSocket으로 실시간 스트리밍 표시. 탭은 채널(VCS/SIPp) 단위가 아니라 **프로세스 단위**(vcsm/vcmc/vcmm/vctp/sipp)로 세분화되며, 해당 Test Run에서 실제로 로그가 들어오는 프로세스만 동적으로 탭이 생긴다(예: VoLTE는 vcsm/vcmm/vctp, McPTT는 vcmc/vcmm).
+4. **Call Flow 뷰어**: Test Run 종료 후(또는 진행 중 부분적으로) Mermaid 시퀀스 다이어그램 렌더링. 실행 화면(로그 뷰어) 바로 아래에 함께 표시해 페이지 이동 없이 로그와 Call Flow를 동시에 볼 수 있다(별도 `/call-flow/:runId` 페이지는 이력 조회용으로 유지).
 5. **시험 이력**: Test Run 목록, Pass/Fail 통계, 과거 로그/Call Flow 재조회
 6. **(공통) 연결 상태 표시**: VCS SSH 연결 상태, SIPp 실행 가능 여부 등 헬스체크
 
@@ -177,10 +227,26 @@ Phase 1에서부터 아래 원칙을 지켜서, 나중에 성능/Abnormal 시험
 
 ## 9. 로그 파싱 / Call Flow 생성 설계 원칙
 
-- 로그 포맷은 아직 미확정이므로 **어댑터 패턴**으로 설계한다: `LogAdapter` 인터페이스(원본 라인 → 표준 `CallEvent`) 를 두고, `VctpLogAdapter`, `SippLogAdapter` 등을 구현체로 추가한다. 실제 로그 샘플이 도착하면 정규식/상태머신을 채워 넣는다.
+- **어댑터 패턴**으로 설계한다: `LogAdapter` 인터페이스(원본 라인 → 표준 `CallEvent`)를 두고, 프로세스별로 `VctpLogAdapter`, `VcsmLogAdapter`, `VcmmLogAdapter`, `VcmcLogAdapter`, `SippLogAdapter`를 구현체로 추가한다.
 - 파싱은 **항상 결정론적 코드(정규식, 상태머신)로 수행**한다. LLM 에이전트가 원본 로그 전체를 직접 읽고 해석하도록 설계하지 않는다 (§10 Token Guardian 원칙과 직결).
 - Call Flow는 파싱된 `CallEvent` 시퀀스를 Mermaid `sequenceDiagram` 텍스트로 변환한다. 참가자(Participant)는 프로토콜에 따라 `UE/SIPp → VCS(vctp)` 등으로 동적 결정.
 - 판정(Pass/Fail)은 `pass_criteria`(기대 이벤트 시퀀스, 필수 메시지 존재 여부, 에러 패턴 부재 등)를 파싱 결과와 비교하는 규칙 엔진으로 처리한다.
+
+### 9.1 실제 로그 샘플 기반 확정 사항 (`docs/log_samples/volte/`, `docs/log_samples/mcptt/`)
+
+**공통 라인 그래머** (vctp/vcsm/vcmm/vcmc 4개 프로세스 모두 동일 포맷):
+```
+[YYYY-MM-DD HH:MM:SS.mmm][LEVEL] [Thread-Name] (callId) (from번호) (to번호) 메시지 텍스트 - (ClassName.java:lineNo)
+```
+- `callId`/`from`/`to`가 문맥상 없으면 빈 괄호 `()`로 표기된다. 정규식 파서는 이 3개 캡처 그룹을 optional로 다뤄야 한다.
+- 일부 메시지는 본문에 **JSON**(RMQ 메시지: `recording_start_req/res`, `recording_stop_req/res`, McPTT는 `recording_change_req/res`)을 포함하고, 일부(vcsm/vcmc)는 본문에 **SIP 메시지 원문 전체**(헤더+SDP 또는 MCPTT용 multipart/mixed 바디)를 포함한다. 어댑터는 라인 하나가 아니라 "블록"(멀티라인) 단위로 파싱해야 하는 경우가 있다.
+
+**프로세스별 파싱 우선순위/특성**:
+- `vctp.log`: 표본에서 8972줄 중 8866줄(99%)이 `DumpPacketTask.java:156`("send RTP message to VCMM")류의 패킷 단위 릴레이 로그로 Call Flow 관점에서는 노이즈에 가깝다. 파서는 이 라인들을 **기본적으로 필터링**하고, `DumpPacketTask.java:131`("send SIP message to VCSM", SIP 메서드/상태 포함)만 저비중 참고용으로 취급한다. **SIP 시그널링의 1차 소스는 `vcsm.log`/`vcmc.log`로 삼는다** (vctp 로그는 vcsm/vcmc의 내용과 사실상 중복).
+- `vcsm.log` (VoLTE) / `vcmc.log` (McPTT): Call Flow의 핵심 소스. SIP 메시지 원문이 그대로 로그에 있어 `From/To/Call-ID/CSeq` 등 표준 SIP 헤더 파싱이 가능하다.
+- `vcmm.log` (VoLTE·McPTT 공통): 녹취 제어 메시지(JSON) 소스. **Pass/Fail 판정의 1차 근거**: `recording_stop_res.header.reasonCode == 2000 && reason == "Success"`. `Duration calculated: HH:MM:SS.mmm` 라인으로 통화 지속시간도 추출 가능.
+
+Log Parser & Call Flow Agent는 위 4개 어댑터부터 구현하고, 실패/타임아웃 케이스 로그가 추가로 확보되면 실패 판정 정규식을 보강한다 (§13 참고).
 
 ---
 
@@ -232,11 +298,68 @@ Phase 1에서부터 아래 원칙을 지켜서, 나중에 성능/Abnormal 시험
 
 ## 13. 미확정 사항 (TBD) — 확인되는 대로 이 문서를 갱신
 
-- [ ] VoLTE 설정 파일의 VCS 내 목적지 경로, `vctp` 재기동 정확한 명령/권한
-- [ ] 시험 "완료" 판정 기준(로그 패턴 vs 고정 대기시간)
-- [ ] SIPp 실행 위치(로컬 vs 원격 SSH) 및 실행 파라미터 표준
-- [ ] 실제 VCS/vctp/SIPp 로그 포맷 샘플 (→ `docs/log_samples/`에 첨부 예정)
-- [ ] VCS SSH 접속 정보/인증 방식(키 vs 패스워드), 접근 가능한 네트워크 환경
-- [ ] Pass/Fail 판정 세부 기준(케이스별 상이할 수 있음)
+- [x] 실제 VCS 로그 포맷 샘플 — `docs/log_samples/volte/{vctp,vcsm,vcmm}.log`, `docs/log_samples/mcptt/{vcmc,vcmm}.log`로 확보 완료. 라인 그래머·프로세스 역할·성공 판정 기준을 §2, §3, §9에 반영함.
+- [x] (부분) 시험 "완료"/Pass 판정 기준 — `vcmm.log`의 `recording_stop_res` 메시지 `reasonCode == 2000 && reason == "Success"`로 확인. **단, 이는 성공 케이스 근거일 뿐, 실패/타임아웃 시 어떤 로그 패턴이 남는지는 아직 미확인.**
+- [ ] **실패/에러/타임아웃 케이스의 실제 로그 샘플** — 현재 확보한 샘플은 VoLTE·McPTT 각 1건씩, 전부 성공 케이스다. Pass/Fail 판정 규칙(특히 Fail 쪽)을 완성하려면 실패 사례 로그가 필요.
+- [x] "설정 파일 적용 후 vctp 재기동"의 정확한 절차 (2026-07-29 실 환경 확인) — vctp는 이미 `/home/vcs/vctp/sample`에 있는 pcap 샘플 중 하나를 재생한다. "적용"은 vctp 설정(`/home/vcs/vctp/config/vctp_user.config`)의 `SAMPLEFILE1` 항목을 선택된 파일명으로 바꾸는 것이며(SSH `sed`), 파일을 새로 업로드하지 않는다. `VolteBasicCallExecutor`(`backend/app/services/volte/executor.py`)가 이 절차로 재작성됨. Test Case 등록 폼은 `GET /api/vcs/volte-sample-files`로 조회한 목록을 select box로 보여준다.
+- [x] `vctp` 재기동 정확한 명령 — `stopmc -b vctp` → `startmc -b vctp` 순차 실행(`Settings.vctp_stop_cmd`/`vctp_start_cmd`, `.env`로 override 가능). 권한(sudo 필요 여부 등)은 실 서버에서 아직 검증 전.
+- [ ] McPTT에도 VoLTE의 vctp/vcsm에 대응하는 별도 프로세스가 있는지, 아니면 vcmc가 그 역할까지 겸하는지
+- [ ] McPTT `recording_change_req/res`(그룹 발언권/플로어 변경 추정)의 정확한 의미와 Pass/Fail 판정 영향 여부
+- [x] SIPp 실행 위치 — VCS와 별도인 전용 SIPp 호스트에서 실행됨(2026-07-29 확인). `sipp_exec_mode="ssh"`로 원격 실행 구현 완료(`McpttBasicCallExecutor._run_sipp_remote`). (2026-07-29 추가) 이 SIPp 호스트는 root 직접 SSH 로그인이 막혀있어(`PermitRootLogin no`) `sysadm` 같은 일반 계정으로 접속한 뒤 `su - root`로 전환해야 한다 — `SSHConnector.run_command_as_su()`(PTY 위에서 `su`의 비밀번호 프롬프트에 직접 응답, `app/services/ssh_connector/client.py`)로 구현했고, `Settings.sipp_ssh_root_password`(또는 대시보드 "설정"의 SIPp su root 비밀번호)가 채워져 있을 때만 이 경로를 타며 비어있으면 기존처럼 로그인 계정 권한으로 직접 실행한다. **(2026-07-30 실 서버 버그 발견 및 수정)** 실 서버에서 `RuntimeError: su - root 인증 실패로 보임`이 발생했는데, 캡처된 출력을 보면 `su - root`는 실제로 성공했다(`Last login:` 배너 + `[root{997} ~ ]` 프롬프트 확인). 원인은 새 root 로그인 쉘의 시작 스크립트(`.bashrc.uasys`)가 이전에 `stty -echo`로 꺼둔 로컬 에코를 다시 켜는 바람에, 우리가 stdin에 쓴 명령 문자열(`whoami; echo __SU_CHECK__:$?`)이 아직 `$?`가 평가되지 않은 글자 그대로 먼저 되읽혔고, 이 echo된 텍스트가 부분 문자열 매칭(`"__SU_CHECK__:" in buf`)에 걸려 "명령 완료"로 오판된 것이었다. 마커를 정규식 `r"__SU_CHECK__:\d"`/`r"__CMD_END__:\d"`(콜론 뒤에 반드시 숫자)로 바꿔, 실제 쉘이 평가한 결과만 매칭되고 echo된 미평가 텍스트는 구조적으로 걸리지 않게 수정(`read_until` in `run_command_as_su`). 실 서버에서 캡처된 것과 정확히 같은 청크 순서/내용을 재현하는 회귀 테스트 추가(`test_run_command_as_su_ignores_echoed_command_text_before_real_output`). 다만 이 fix 자체가 사용자의 실 서버에서 재검증되지는 않았다 — 다음 시험 실행 시 확인 필요.
+- [x] **McPTT 실 실행 방식 정정(2026-07-29, 사용자 확인)** — 이전에 "실제 SIPp 바이너리(`/root/SIPP/sipp`)를 원격 실행한다"고 가정했던 건 틀렸다. 실제로는:
+  1. SIPp 전용 호스트의 `Settings.mcptt_sim_dir`(기본 `/root/mcptt_sim`)에 시나리오 XML들과 자체 제작 Java 도구(`utgen-jar-with-dependencies.jar`, `Settings.mcptt_sim_jar_name`)가 이미 올라가 있다. 저장소의 `scenarios/sipp/*.xml`을 업로드하는 게 아니라, VoLTE의 pcap 샘플 선택과 동일한 패턴으로 **원격에 이미 있는 파일 중 하나를 select box로 고른다** — `GET /api/vcs/mcptt-scenario-files`(SSH `ls`, `app/services/mcptt/scenario_files.py`)가 `*.xml` 목록을 조회하고, `TestCaseForm.tsx`가 VoLTE 브랜치와 동일한 구조로 select box를 보여준다. 선택된 파일명은 `config_ref`와 `protocol_params.scenario_file` 양쪽에 반영된다(둘 다 동일 값 유지, VoLTE의 `sample_file`과 동일한 관례).
+  2. 실행 커맨드도 real SIPp가 아니라 `java -jar utgen-jar-with-dependencies.jar -sf <시나리오> -i <local_ip> -p <local_port> -cp <control_port> -m <calls_count> <target_host>:<target_port>` 형태다(`build_mcptt_sim_args()`). `-r`(call rate)/`-t`(transport)/`-s`/`-key`(MCPTT 전용 SIP 키워드)/`-trace_*`(SIPp 트레이스 로그) 같은 기존 real-SIPp 전용 플래그는 이 도구에 없다.
+  3. 이 도구는 SIPp 자체 로그 파일(message/screen/stat)을 만들지 않으므로, 시나리오 업로드도 실행 후 로그 다운로드도 더 이상 하지 않는다(`_run_sipp_remote`가 커맨드 실행 하나만 한다) — **McPTT 시험의 로그 소스는 `vcmc.log`/`vcmm.log`뿐**이며(§3.2와 일치), Call Flow도 VoLTE와 동일한 3-레인 구조(SIPp/UE ↔ VCMC ↔ VCMM, `callflow/generator.py`)를 그대로 쓴다(이 부분은 애초에 vcmc.log의 `isSender` 필드로만 방향을 추론해서 별도 sipp 로그가 필요 없었으므로 변경 없음).
+  `sipp_exec_mode: "local"`(개발/테스트 전용, 실 배포엔 안 쓰임) 경로는 기존 real-SIPp 커맨드(`build_sipp_args`)를 그대로 유지한다 — 두 실행 경로가 이제 서로 다른 도구를 쓴다는 점에 유의.
+- [x] VCS/SIPp 로그의 실제 경로 확인 — `vcsm.log`(`/home/vcs/vcsm/logs/vcsm.log`), `vcmm.log`(`/home/vcs/vcmm/logs/vcmm0.log`), `vcmc.log`(`/home/vcs/vcmc/logs/vcmc.log`). `Settings.vcs_vcsm_log_path`/`vcs_vcmm_log_path`/`vcs_vcmc_log_path` 기본값으로 반영, `.env`로 override 가능.
+- [x] VCS SSH 접속 정보/인증 방식은 확인됨(비밀번호 인증) — **호스트/계정은 보안상 이 문서·저장소에 기록하지 않고 각자 `.env`에만 채운다.** (2026-07-29 추가) `.env`는 여전히 기본값을 제공하지만, 그 위에 얹는 오버라이드를 **대시보드("설정" 메뉴)에서도 편집할 수 있게** 확장했다 — `VcsSettings`(DB 싱글턴 1행, `backend/app/models/vcs_settings.py`)가 오버라이드를 저장하고, `app/services/vcs_settings_store.py`의 `resolve_vcs_target()`/`resolve_sipp_target()`/`resolve_sipp_exec_mode()`가 "DB 오버라이드 > `.env`" 순으로 병합해서 실제 `SSHTarget`을 만든다. SSH 연결이 필요한 모든 지점(VoLTE/McPTT executor, VCS 샘플 파일 목록 조회, 헬스체크)이 이 resolver를 거치도록 정리했다 — `SSHTarget.from_vcs_settings()`/`from_sipp_settings()`를 직접 호출하는 코드는 이제 없어야 한다(DB 오버라이드를 놓치게 됨). API는 `GET/PATCH /api/settings/vcs` + `POST /api/settings/{vcs,sipp}/test-connection`(저장 전 실제 접속 테스트). 비밀번호는 응답에 절대 원문으로 안 내려가고 `*_password_set`(bool)만 알려주며, DB에는 평문 저장(.env와 동일한 신뢰 경계 — 별도 암호화는 TBD).
+- [ ] Pass/Fail 판정 세부 기준(케이스별로 다를 수 있음 — 성공 기준 외 추가 검증 항목 여부)
+- [x] **McPTT Call Flow에서 SIP INVITE/BYE가 안 보이던 문제(2026-07-30 사용자 리포트)** — `callflow/generator.py`의 `_edge_for_vcmc()`가 vcmc.log 이벤트의 방향(SIPp/UE↔VCMC)을 판단할 때 `raw_line`에서 `isSender="true|false"` 속성을 정규식으로 다시 찾았는데(CallEvent DB 스키마에 방향 컬럼이 없어서, 모듈 docstring 참고), 이 속성을 못 찾으면 그냥 `None`을 반환해 **메시지 자체가 화면에서 통째로 사라졌다** — 원인이 뭐든(로그 포맷 변형, 파싱 경계 등) 진단할 단서조차 안 남았다. `_edge_for_vcsm`(VoLTE)와 동일하게 `isSender`가 없으면 `reason_code` 유무(응답/요청)로 방향을 근사해서라도 메시지를 반드시 렌더링하도록 수정(`isSender`를 못 찾아도 이벤트를 버리지 않음). 회귀 테스트 추가(`test_mcptt_vcmc_event_still_renders_when_is_sender_attribute_missing`). 다만 애초에 왜 `isSender`가 안 잡혔는지(실 서버 vcmc.log 포맷이 `docs/log_samples/mcptt/vcmc.log` 샘플과 정확히 뭐가 다른지)는 재현이 안 돼 근본 원인은 미확인 — 이 fix는 "메시지가 사라지지 않게"만 보장한다. **참고**: Call Flow 실시간 렌더링 자체(`실시간으로 그려주고` 요청)는 이미 구현돼 있다 — `wait_for_completion`이 폴링마다(기본 2초) 그때까지 수집된 로그를 재파싱해 `persist_call_flow()`로 WS `call_flow` 메시지를 push하고, 프론트(`ExecutionPage.tsx`)가 이를 실시간으로 반영한다. VoLTE/McPTT 공통 로직(`execution_common.py`)이라 별도 작업 불필요.
+- [x] **(위 항목 후속, 2026-07-30 근본 원인 확인 및 수정)** 사용자가 실 서버 vcmc.log 원문(`vcmc_2.log`)을 제공해 근본 원인을 확인했다. **vcmc.log는 실제로 서로 다른 두 포맷이 존재한다** — `docs/log_samples/mcptt/vcmc.log`(2026-07-28 확보, 이하 포맷 A)는 `<message ...>...<![CDATA[...]]></message>` XML 래퍼로 SIP 원문을 감싸고 `isSender="true|false"` 속성으로 방향을 명시하는데, 사용자가 이번에 제공한 실 서버 캡처(이하 포맷 B)는 이 래퍼가 아예 없고 `[SIP] INCOMING|OUTGOING REQUEST|RESPONSE [<SIP 원문>] - (SipIncoming.java:48)` 형태로 SIP 원문을 그대로 감싼다(`callId`도 속성이 아니라 본문의 `Call-ID:` 헤더에서 추출해야 함). `VcmcLogAdapter`는 포맷 A만 인식하도록 짜여 있어서, 포맷 B를 쓰는 실 서버에서는 vcmc.log의 SIP 메시지(INVITE/BYE 포함 전부)가 애초에 `CallEvent`로 파싱조차 되지 않고 있었다 — RECORDING_* 메시지는 전부 vcmm_log 소스라 이 문제와 무관하게 정상 동작했던 것과 대비됨. `VcmcLogAdapter.match()`가 두 포맷을 모두 시도하도록 수정(`_match_format_a`/`_match_format_b`), `callflow/generator.py`의 `_edge_for_vcmc`도 포맷 B의 `[SIP] INCOMING|OUTGOING` 마커로 방향을 판단하는 경로를 추가(이전에 만든 `reason_code` 기반 최종 폴백보다 우선). 사용자가 제공한 원문 중 한 콜(INVITE~BYE) 구간을 시크릿(RMQ 비밀번호 한 줄)만 레드액션해서 `docs/log_samples/mcptt/vcmc_format_b.log`로 저장, 어댑터/generator 회귀 테스트를 이 실제 캡처로 추가(`test_parses_format_b_invite_and_bye`, `test_mcptt_mermaid_renders_invite_and_bye_for_vcmc_format_b`). **TBD**: 포맷 A/B가 vcmc 빌드/버전 차이인지 배포 설정 차이인지는 미확인 — 두 포맷을 계속 동시 지원할지, 포맷 B로 통일할지는 사용자 환경이 더 확인되면 정리한다.
+- [x] **실 서버 장애: SSH 로그 tail이 예외/로그 하나 없이 조용히 멈추고 TestRun이 영원히 "running"에 머무는 문제** (2026-07-29 실 서버 backend.log로 근본 원인 확인, 총 두 지점) — `SSHConnector`(`backend/app/services/ssh_connector/client.py`)의 `asyncssh` 호출 중 응답을 무기한 기다릴 수 있는 지점 두 곳에 전부 타임아웃이 없었다:
+  1. `connect()`가 `asyncssh.connect()`를 타임아웃 없이 호출 — asyncssh의 `login_timeout`(기본 120초)은 TCP 연결이 이미 수립된 뒤에야 시작되므로, TCP handshake 자체가 응답 없이 멈추는 경우(네트워크 순단 등)는 전혀 보호되지 않는다.
+  2. (2026-07-29 추가 확인) `tail_file()`의 `finally: process.terminate(); await process.wait_closed()`와 `close()`의 `await self._conn.wait_closed()` — `terminate()`/`close()` 자체는 신호만 보내고 바로 리턴되지만, 그 뒤 원격이 채널/커넥션 종료를 확인(`Received channel close`)해줄 때까지 기다리는 `wait_closed()`에도 타임아웃이 없었다. 실 서버 로그에서 tail 채널 3개 모두 `Sending TERM signal`까지만 찍히고 그 뒤 `Received channel close`/`Channel closed`가 전혀 없이 멈추는 패턴으로 확인됐다 — 이쪽이 실제로 더 흔하게 걸리는 경로였다(매 Test Run 종료 시 `session.stop()`이 반드시 거치는 정상 종료 경로이기 때문).
+  두 경우 모두 `SshTailSource`(재연결 또는 정상 종료)가 이 지점에서 멈추면, `VolteBasicCallExecutor.run()`의 `await session.stop()`(→ `asyncio.gather`로 해당 태스크를 기다림)도 영원히 끝나지 않아 최종 상태 반영(`persist_results`/`job_runner.set_status`)까지 도달하지 못했다 — `timeout_sec`(기본 30초)이 지나도 TestRun이 `running`에서 멈춰있던 증상과 정확히 일치. `Settings.vcs_ssh_connect_timeout_sec`(기본 15초)/`vcs_ssh_close_timeout_sec`(기본 10초)로 두 지점 모두 `asyncio.wait_for`로 감싸 강제 타임아웃을 걸도록 수정(`SSHConnector.__init__`/`connect`/`close`, `tail_file`). 타임아웃 시 명시적으로 로그를 남기므로(`connect()`는 재시도 대상 예외로 raise, `wait_closed()` 쪽은 이미 정리 중이라 경고만 남기고 진행), 무한 대기 대신 유한 시간 안에 실패·복구·에러 보고 중 하나로 귀결된다.
+- [x] **실행기 예외가 대시보드에 안 보이던 문제(2026-07-30)** — `job_factory()`가 던진 예외를 `job_runner._run_wrapper`가 로그로만 남기고 `TestRun.result_summary`에는 기록하지 않아서, 사용자가 단순 설정 실수(예: `protocol_params.target_host` 누락)를 진단하려면 매번 서버에 SSH로 접속해 `backend.log`를 봐야 했다. `_run_wrapper`의 예외 핸들러가 `result_summary=json.dumps({"error": f"{type(exc).__name__}: {exc}"})`를 남기도록 수정(`backend/app/job_runner/runner.py`). 이 김에 프론트 타입 버그도 같이 발견해 고쳤다 — `TestRun.result_summary`는 백엔드가 JSON 문자열(`str | None`)로 내려주는데 프론트 타입이 `Record<string, unknown>`으로 잘못돼 있어 표시 시 이중 JSON 인코딩이 나던 문제(`frontend/src/api/types.ts`, `ExecutionPage.tsx`의 `formatResultSummary()`). Playwright로 "결과 요약" 섹션에 에러 메시지가 정상 렌더링되는 것까지 확인함.
+- [x] **McPTT 시나리오 XML select box가 permission denied로 실패할 수 있던 문제(2026-07-30)** — `GET /api/vcs/mcptt-scenario-files`(`list_mcptt_scenario_files`, `app/services/mcptt/scenario_files.py`)가 `mcptt_sim_dir`(기본 `/root/mcptt_sim`) 목록을 일반 `run_command()`로 조회했는데, 이 경로가 `/root` 아래라 root 직접 SSH 로그인이 막힌 환경(`sipp_ssh_root_password` 설정된 배포)에서는 로그인 계정(sysadm)에 `/root` traverse 권한이 없어 `ls`가 permission denied로 실패할 수 있었다 — 실제 시뮬레이터 실행(`McpttBasicCallExecutor._run_sipp_remote`)은 이미 이 경우 `run_command_as_su()`로 root 권한으로 도는 것과 어긋나 있었다. `list_mcptt_scenario_files`도 `sipp_ssh_root_password`가 설정돼 있으면 동일하게 su root로 `ls`하도록 수정, 단위 테스트 추가(`test_list_mcptt_scenario_files_uses_su_root_when_password_configured`).
+- [x] **McPTT `protocol_params` 수동 입력 부담 축소(2026-07-30 요청)** — `target_host`/`target_port`/`local_ip`/`local_port`/`control_port`를 매 Test Case마다 JSON에 직접 채워야 했다. `sipp_exec_mode="ssh"`일 때: `target_host`는 protocol_params에 명시(기존 `target_ip` 키 포함)가 없으면 대시보드 "설정"에 저장된 VCS 접속 IP(`resolve_vcs_target()`로 이미 구해둔 값)를 그대로 쓰고, 나머지 4개는 `Settings.mcptt_sim_target_port`(5060)/`mcptt_sim_local_ip`(192.168.7.65)/`mcptt_sim_local_port`(5080)/`mcptt_sim_control_port`(6061) 고정값으로 채운다(`McpttBasicCallExecutor.run`, `dict(params)` + `.setdefault()` — 명시적으로 넣은 값이 항상 우선). `target_host`만 VCS 설정을 실행 시점에 동적으로 읽어오고 나머지는 Settings 고정값인 이유는 VCS IP는 대시보드에서 바뀔 수 있지만 시뮬레이터 로컬 바인딩 정보는 배포 환경마다 고정이기 때문. (구현 중 `{**defaults, **params}` 방식은 `target_host`가 항상 우선해버려 레거시 `target_ip`-only 케이스를 깨는 버그가 있었다 — 기존 테스트로 잡아서 `setdefault` 방식으로 교체.)
+- [x] **대시보드 UI 품질 개선 3종(2026-07-30 요청)** — MVP 틀이 잡힌 뒤 사용자가 "결과 요약 카드화 / 대시보드 통계 카드 / 로그 가독성"을 요청해 진행했다.
+  1. **결과 요약 카드화**: `ExecutionPage.tsx`의 raw JSON `<pre>` 덤프를 `components/ResultSummaryCard.tsx`로 교체 — PASS/FAIL 배지, 타임아웃 여부, 이벤트 건수, McPTT의 `sipp_exit_status`, 그리고 (특히 FAIL/ERROR일 때 중요한) `reasons` 목록을 사람이 읽기 좋은 카드로 보여준다. 원본 JSON은 "원본 JSON 보기" 토글로 여전히 확인 가능(디버깅용, 정보 은닉 없음).
+  2. **대시보드 통계 카드**: `GET /api/test-runs/stats`(신규, `app/api/test_runs.py` — **라우트 등록 순서 주의**: `/test-runs/{run_id}`보다 먼저 등록해야 `run_id="stats"`로 새지 않는다)가 `TestCase.category`와 `TestRun.status`를 GROUP BY로 집계해서 전체/카테고리별(VoLTE·McPTT)/최근 7일 Pass율을 반환한다. `pass_rate`는 종료된 실행(done/failed/error)만 분모로 삼는다(대기/실행 중인 run을 넣으면 시험이 몰리는 시점에 실제와 무관하게 출렁인다). `DashboardPage.tsx`가 이걸 30초 폴링으로 카드 행에 렌더링.
+  3. **로그 가독성**: `LogViewer.tsx`에 (a) 검색어 입력 + `<mark>` 하이라이트 + "이전/다음" 매치 이동(◀▶ 버튼, 실시간 로그와 과거 로그 양쪽 다 대상), (b) 과거 로그(파싱된 CallEvent)의 `raw_line`이 `COLLAPSE_LINE_THRESHOLD`(4줄) 넘는 멀티라인 블록(INVITE의 SDP+MCPTT XML 본문처럼 80줄 넘게도 가는 SIP 메시지 원문 등)이면 기본 접어서 첫 줄만 미리보기로 보여주고 클릭으로 펼치는 기능을 추가했다. 검색 매치 개수(텍스트 기준)와 "이전/다음" 이동(DOM 기준)이 어긋나지 않도록 `visibleHistoryText()` 헬퍼로 "실제로 화면에 보이는 텍스트"만 두 계산이 공유하게 했다(접힌 블록 속 매치는 세지도 이동 대상도 되지 않음).
+  세 기능 모두 Playwright로 실제 브라우저 렌더링까지 확인함(대시보드 통계 카드, PASS/FAIL/ERROR 결과 카드 3종, 로그 접기/펼치기, 검색 하이라이트+이동). 백엔드 테스트 109개 통과.
+- [x] **McPTT 성능 시험 Call Flow를 call_id별로 구별해서 보기(2026-07-30 요청)** — 성능 시험은 콜이 계속 쌓이는데 기존 Call Flow는 한 Test Run의 모든 콜을 하나의 Mermaid 다이어그램에 합쳐서 그려서, 콜이 몇 건만 넘어가도 어느 화살표가 어느 콜인지 구별이 안 돼 사실상 못 읽었다. `GET /test-runs/{id}/call-flow`가 `call_id` 쿼리 파라미터(선택)를 받으면 그 콜의 이벤트만으로 Mermaid를 즉석에서 다시 생성하도록 확장(`app/api/test_runs.py:get_test_run_call_flow`) — `protocol`은 필터링된 부분집합이 아니라 항상 전체 이벤트 기준으로 판별해서 명시적으로 넘긴다(그렇지 않으면 필터링된 콜에 SIP 이벤트가 없을 때 `detect_protocol`이 엉뚱한 프로토콜로 새 라벨을 붙일 수 있음). 드롭다운 채우기용으로 `GET /test-runs/{id}/call-ids`(신규, `CallIdListResponse`)도 추가 — 처음 등장한 순서(seq_no 기준)를 유지한다. 프론트(`ExecutionPage.tsx`)는 Call Flow 섹션에 "콜 선택" 드롭다운("전체" + 각 call_id)을 추가하고, WebSocket `call_flow` push는 항상 필터 없는 전체 다이어그램이라는 점에 유의해서 "전체" 보기 중일 때만 WS push를 그대로 반영하고, 특정 콜로 필터링 중이면 그 콜만 REST로 다시 가져오도록 분기했다(`handleWsMessage`). 백엔드 테스트(call-ids 순서, call_id 필터링, 존재하지 않는 call_id 404) + Playwright로 드롭다운 표시/필터 전환/"전체" 복귀까지 실제 브라우저에서 확인함.
+- [x] **실시간 로그가 시험 중간에 끊긴 뒤 다시 안 나오던 문제(2026-07-30, "time_out을 제거해줘 중간에 또 안나오네" 재신고)** — 두 지점에 원인이 있었다.
+  1. `SshTailSource.stream()`(`app/services/log_collector/ssh_source.py`)이 연속 재연결 실패 5회(`RetryPolicy.max_retries` 기존 기본값)를 넘기면 `LogSourceError`를 던지고 그 로그 소스의 태스크가 영구 종료됐다 — 백엔드가 `log_source_error` WS 메시지를 한 번 보내고 나면 이후로는 그 프로세스(vcsm/vcmm/vcmc/vctp) 로그가 다시는 스트리밍되지 않았다. 특히 무기한 실행되는 McPTT 성능 시험에서 일시적 네트워크 순단 몇 번이면 시험 끝까지 로그가 죽는 문제로 쉽게 이어졌다. `RetryPolicy.max_retries`의 기본값을 `5` → `None`(무제한 재시도)으로 변경(`app/services/log_collector/base.py`) — 연결이 살아있는 한 계속 재시도한다.
+  2. 프론트 `useTestRunSocket.ts`는 WebSocket이 끊겨도(`onclose`) 재연결을 전혀 시도하지 않았다 — 브라우저 탭 백그라운드 전환, 프록시 idle timeout, 네트워크 순단 한 번이면 수동 새로고침 전까지 실시간 로그가 영구히 멈췄다. 지수 백오프 자동 재연결(초기 1초 → 최대 15초, `onopen` 시 딜레이 리셋)을 추가.
+  두 수정 모두 "타임아웃 제거"가 아니라 "재시도를 무제한으로/재연결 로직 추가"다 — 연결 자체가 완전히 불가능한 상황(대상 호스트 다운 등)까지 무한정 조용히 기다리는 게 아니라, 매 시도 실패 시 로그로 남기며 계속 재시도하는 방식이라 관측 가능성은 유지된다. 백엔드는 회귀 테스트 추가(`test_default_retry_policy_never_gives_up`, 8회 연속 실패 후에도 결국 성공). 프론트는 `tsc` 클린 컴파일만 확인했고, 실제 WS 강제 종료 후 자동 재연결되는지는 로직상 타당하나 이번 세션에서 라이브 재현 테스트는 하지 못했다 — 실 서버에서 재검증 필요.
+- [x] **Test Run 리포트 페이지(2026-07-30 요청)** — "성능 시험 후 결과를 리포트로 만들고 싶다"는 요청에, PDF 렌더링 서버/의존성을 새로 추가하지 않고 브라우저 인쇄(Ctrl+P/"인쇄 · PDF로 저장" 버튼) 방식으로 구현했다(사용자가 이 방식에 동의). 새 라우트 `/report/:runId`(`frontend/src/pages/Report/ReportPage.tsx`) — 시험 개요(Test Case명/프로토콜/유형/설정/대상 호스트/시작·종료), 결과 요약(`ResultSummaryCard` 재사용), Call Flow(`MermaidDiagram` 재사용, 전체 다이어그램)를 한 페이지에 모은다. `App.css`에 `@media print { .app-header { display: none } }`을 전역으로 추가해 인쇄 시 상단 내비게이션이 안 찍히게 했다(리포트 페이지 전용으로 좁히지 않은 이유: 다른 페이지를 인쇄할 때도 내비게이션이 없는 게 자연스러워서).
+  이 김에 §13에 TBD로 남겨뒀던 **콜 설정 시간 분포**/**시간별 동시 통화 수 그래프**도 사용자 확인(콜 설정 시간은 SIP INVITE~200 OK가 아니라 `recording_start_req`~`res` 녹취 개시 시간 기준, 동시 통화 수는 5초 버킷)을 받아 함께 구현했다. 신규 모듈 `app/services/report_stats.py`(`compute_call_setup_time_stats`/`compute_concurrency_time_series`) — **의도적으로 라이브 폴링(McPTT 성능 시험의 2초 간격 `_poll_call_flow`)에는 얹지 않는다**: 이 계산은 전체 이벤트를 call_id 기준으로 그룹핑/정렬해야 해서(호출마다 O(n)) 장시간 성능 시험에서 누적 비용이 커진다 — 대신 신규 엔드포인트 `GET /test-runs/{id}/report-stats`(`bucket_seconds` 쿼리, 기본 5)로 분리해서 **리포트 화면 진입 시 1회만** 호출한다(`performance_stats.py`의 라이브 집계 모듈 docstring에 원래 남겨뒀던 이 우려가 그대로 해소됨). 콜 설정 시간 분포는 히스토그램(10구간)+평균/p50/p95 등 요약 통계, 동시 통화 수는 시계열 라인/영역 그래프로 반환한다. 두 차트(`components/ReportCharts.tsx`) 모두 별도 차트 라이브러리를 추가하지 않고 순수 SVG로 직접 그렸다(오프라인/인쇄 환경에서도 깨지지 않게, 외부 스크립트 의존 회피) — 인쇄 시 반투명 영역 채우기가 브라우저 기본 색상 절약 모드로 흐려지지 않도록 `print-color-adjust: exact`를 적용했다. 데이터가 없는 경우(기본 호처리 시험 등 `recording_start_req/res` 짝이 없음)는 그 섹션 자체를 렌더링하지 않는다.
+  백엔드 유닛 테스트(`tests/services/test_report_stats.py`, REQ/RES 짝짓기·재시도 처리·미완료 콜 처리 등 7건) + 통합 테스트(`tests/integration/test_report_stats_api.py`, 4건) 전부 통과(백엔드 총 140개). 프론트 `tsc` 클린 컴파일. Playwright로 McPTT 성능 시험 60콜 분량의 현실적인 데이터를 시드해 히스토그램/동시 통화 수 그래프/Call Flow가 화면 및 인쇄(print media emulation) 양쪽에서 정상 렌더링되는 것, 기본 호처리처럼 데이터가 없는 run에서는 콜 설정 시간 섹션이 정상적으로 생략되는 것까지 확인함.
+  **(2026-07-30 후속 요청)** 리포트의 Call Flow가 처음엔 필터 없는 전체 다이어그램이었는데, 성능 시험은 같은 시나리오를 반복 실행하는 것이라 콜마다 흐름이 사실상 동일하므로 "굳이 다 합쳐서 보여줄 필요 없다"는 피드백을 받아 대표 콜 1건(첫 번째 call_id, `GET /test-runs/{id}/call-ids`로 조회)만 필터링해서 보여주도록 변경(`ReportPage.tsx`) — ExecutionPage에 call_id 필터를 추가했던 것과 같은 이유(다건이 섞인 다이어그램은 못 읽음)를 리포트에도 그대로 적용한 것. 총 콜 수 > 1일 때만 "대표 콜 N건 중 1건" 안내 문구와 실행 화면 콜 선택 드롭다운으로의 링크를 보여주고, 콜이 1건뿐인 기본 호처리 시험에서는 안내 문구 없이 기존과 동일하게 보인다(call_id가 아예 없는 레거시 데이터는 필터 없는 전체 다이어그램으로 폴백). Playwright로 성능 시험(60콜, "대표 콜 1건(call-1)... 총 60개 콜" 문구 확인)과 기본 호처리(1콜, 문구 없이 정상 렌더링) 양쪽 확인.
+- [x] **UI 개선 5종(2026-07-30 요청)** — "기능보단 UI 개선" 요청에 따라 대시보드/이력/실행/케이스 관리 화면을 Playwright로 실제 스크린샷을 찍어(1280px 데스크톱 + 390px 모바일) 검토한 뒤, 발견한 문제를 우선순위대로 전부 고쳤다.
+  1. **화면 전체에 UUID만 보이던 문제(가장 심각했던 항목)**: 대시보드 "최근 시험 실행", 시험 이력 테이블, 실행 화면 제목까지 Test Case를 이름이 아니라 UUID로만 표시하고 있었다. `TestRunRead` 스키마에 `test_case_name`(파생 필드, TestCase 조인으로 채움) 추가(`app/schemas/test_run.py`) — `GET /test-runs`(목록, N+1 방지를 위해 IN 조회로 일괄 조인)/`GET /test-runs/{id}`/`POST /test-cases/{id}/run`/`POST /test-runs/{id}/cancel` 4개 엔드포인트 모두 `_to_test_run_read()` 헬퍼로 채워서 응답한다. 프론트는 `DashboardPage.tsx`(최근 실행 링크 텍스트를 이름으로, run id는 보조 정보로 격하)/`HistoryPage.tsx`("Test Case" 컬럼을 이름으로, Run ID 컬럼은 `max-width`+ellipsis+title 툴팁으로 축소)/`ExecutionPage.tsx`(페이지 제목과 메타 정보를 이름 우선으로, Run ID는 별도 항목으로 이동)에 반영. 백엔드 테스트 2건 추가(단건/목록 조회에 test_case_name 포함 확인, 백엔드 총 141개).
+  2. **모바일 폭에서 상단 내비게이션이 완전히 깨지던 문제**: 390px 폭에서 "대시보드" 같은 메뉴 글자가 "대\n시\n보\n드"처럼 한 글자씩 세로로 줄바꿈됐다(`.app-nav`가 `flex-wrap` 기본값 + 좁은 flex item에서 글자 단위 줄바꿈이 일어난 것). `.app-nav`를 `overflow-x: auto`로, `.nav-link`를 `white-space: nowrap; flex: 0 0 auto`로 바꿔 메뉴가 한 줄을 유지하며 가로 스크롤되게 수정(`App.css`). Playwright로 `scrollWidth > clientWidth` 확인.
+  3. **시험 이력/케이스 관리 테이블의 액션 링크·버튼이 컬럼 폭에 눌려 줄바꿈되던 문제**: "로그/Call Flow/리포트" 링크, "실행/수정/삭제" 버튼 모두 `white-space: nowrap` + `flex-shrink: 0`(또는 `flex-wrap: nowrap`)를 추가해 텍스트가 중간에 끊기지 않게 함(`HistoryPage.css`, `TestCasesPage.css`).
+  4. **완료된 시험의 실행 화면에서 실시간 로그 패널이 빈 검은 박스로 보이던 문제**: 실시간 로그는 WS로 들어온 데이터만 보여주는데, 이미 끝난 run은 더 들어올 라이브 데이터가 없어 "아직 수신된 로그가 없습니다"만 뜨고 과거 로그(파싱된 CallEvent)는 "더 보기"를 눌러야만 나왔다 — 처음 보는 사람은 "로그가 없나?"로 오해하기 쉬웠다. `LogViewer.tsx`의 탭/run 전환 시 과거 로그를 초기화하던 effect가 초기화와 동시에 첫 페이지(`HISTORY_PAGE_SIZE`)를 자동으로 불러오도록 수정 — "더 보기" 버튼은 그대로 두 번째 페이지부터 이어서 불러오는 용도로 남는다.
+  5. **대시보드 Pass율 카드 색 구분**: 검토 중 이미 구현돼 있는 걸 확인함(`DashboardPage.tsx`의 `passRateClass()`, 70% 미만 주황/이상 녹색/데이터없음 회색) — 검토 당시 시드 데이터가 우연히 전부 70% 미만이라 색이 다 같아 보였을 뿐, 실제로는 정상 동작이라 추가 작업 없음.
+  다섯 항목 모두 Playwright로 데스크톱+모바일 스크린샷 재검증(대시보드/이력/케이스관리/실행 화면), 백엔드 141개 테스트 통과, 프론트 `tsc` 클린 컴파일.
+- [x] **UI 개선 2차 검토(2026-07-30, "계속적으로 검토해줘" 요청)** — 사용자가 실 서버에서 확인하는 동안, 앞서 다루지 않았던 화면/상호작용(케이스 수정 모달, 삭제 확인, 폼 검증, Call Flow 단독 페이지, 존재하지 않는 run 접근, 설정 화면 select)을 Playwright로 추가 스크린샷 검토해 4건을 더 고쳤다.
+  1. **존재하지 않는 Test Run에 접근했을 때 영문 에러 + 빈 UI가 그대로 보이던 문제**: `ExecutionPage.tsx`가 백엔드의 404 상세 메시지("TestRun not found")를 그대로 노출해 화면 전체가 한글인데 이 한 줄만 영문으로 보였고, 그 아래로 실시간 로그/Call Flow 섹션이 빈 상태로 계속 렌더링돼 마치 정상 화면처럼 보였다. `ApiError.status === 404`를 구분해 한글 메시지("Test Run을 찾을 수 없습니다 (ID: ...)")로 바꾸고, `!run && error`(한 번도 로드된 적 없는 경우만 — 폴링 중 일시적 실패와 구분)일 때는 에러 배너만 보여주고 나머지 UI(로그 뷰어, Call Flow, 결과 요약 등)를 아예 렌더링하지 않도록 early return 추가.
+  2. **Call Flow 단독 페이지(`/call-flow/:runId`)에 이름이 아니라 UUID만 보이던 문제**: 지난번 UI 개선 1차 때 `ExecutionPage`/`HistoryPage`/`DashboardPage`는 고쳤지만 이 페이지를 빠뜨렸다. `testRunsApi.get(runId)`로 `test_case_name`을 조회해 제목에 반영(백엔드 API 변경 없이 1차에서 이미 추가한 필드를 재사용).
+  3. **같은 페이지에서 Call Flow가 아직 생성 전(404)일 때도 영문 에러가 빨간 배너로 뜨던 문제**: 백엔드 상세 메시지("Call flow not generated yet...")가 영문이었는데, 애초에 이건 에러가 아니라 "아직 진행 중" 정상 상태다(`ExecutionPage`의 `fetchCallFlow`는 이미 이렇게 조용히 처리하고 있었음) — 404를 에러 배너 대신 빈 상태로 처리하도록 통일.
+  4. **설정 화면의 "실행 위치" select 텍스트가 잘려 보이던 문제**: "local (자동화 서버에서 직접 실행)" 같은 긴 옵션 텍스트를 원래 숫자 포트 입력용으로 만든 `.form-field-narrow`(140px)에 재사용해서 잘렸다 — 전용 클래스 `.form-field-exec-mode`(320px)로 분리.
+  네 건 모두 Playwright로 재검증(404 페이지 스크린샷, 페이지 제목/에러 배너 텍스트 assertion, select 렌더링 스크린샷). 백엔드 변경 없음(141개 테스트 그대로 통과), 프론트 `tsc` 클린 컴파일. HTML5 네이티브 필수 입력 검증 팝업이 영문("Please fill out this field.")으로 뜨는 것도 확인했으나, 이건 브라우저의 UI 언어(이 세션의 헤드리스 브라우저 로케일)를 따르는 것이라 실제 사용자의 한국어 브라우저에서는 자동으로 한글로 뜬다 — 앱 버그 아님, 수정 불필요.
+- [x] **Call Flow 메시지 클릭 시 "자세히 보기" 팝업 추가(2026-07-30 요청)** — 메시지를 클릭하면 왼쪽 로그 뷰어가 해당 줄로 스크롤+하이라이트하는 기존 클릭-투-로그 동작은 그대로 두고("현재 상태 그대로 두고"), 로그가 길어(특히 성능 시험처럼 이벤트가 수백 건 쌓인 경우) 하이라이트된 줄을 찾아 스크롤하는 게 불편하다는 피드백에 따라 순수 추가 기능으로 구현했다. 메시지 클릭 시 Call Flow 섹션에 "선택한 메시지: {소스} · #{seq_no} [자세히 보기]" 줄이 나타나고, 버튼을 누르면 그 메시지의 원본 로그(타임스탬프/소스/타입/call_id/raw_line 전문)를 별도 모달로 보여준다(`components/CallEventDetailModal.tsx`) — 모달 안에서만 스크롤하면 되므로 페이지 전체를 오르내릴 필요가 없다.
+  모달은 `LogViewer`가 내부에 들고 있는 CallEvent 캐시에 접근하지 않고 독립적으로 `GET /test-runs/{id}/events`를 조회해 seq_no+source로 찾는다(LogViewer 상태를 끌어올리는 리팩터링 없이 느슨하게 유지, `JUMP_FETCH_LIMIT`과 동일한 1000건 한도) — 신규 백엔드 API는 필요 없었다. `LogViewer.tsx`에 있던 `formatTs`(타임스탬프 포맷)와 소스 한글 라벨 매핑을 `utils/logFormat.ts`/`utils/logSourceLabels.ts`로 뽑아 모달과 공유(두 곳이 다른 포맷을 쓰게 되는 걸 방지).
+  모달은 배경을 덮는 표준 모달(백드롭 클릭/✕/ESC로 닫힘)이라 열려있는 동안엔 Call Flow 다이어그램 클릭이 막힌다 — 다른 메시지를 보려면 먼저 닫아야 하며, 이는 의도된 표준 동작이다. Playwright로 메시지 클릭 → "자세히 보기" 버튼 노출 → 모달에 SIP INVITE 원문(SDP+MCPTT XML 멀티파트 바디 포함) 정상 표시 → X 버튼/ESC/백드롭 클릭 각각으로 닫힘 → 다른 메시지 선택 시 갱신된 내용으로 재오픈까지 확인. 백엔드 변경 없음(141개 테스트 그대로 통과), 프론트 `tsc` 클린 컴파일.
+- [x] **VoLTE 중복 Call-ID 녹취 DB 자동 정리(2026-07-30 요청)** — VoLTE 기본 호처리 시험은 매번 같은 pcap을 재생하는데, pcap 안에 SIP Call-ID가 고정값으로 박혀있어서 같은 Test Case를 반복 실행하면 VCMM의 녹취 DB(MariaDB, VCS 로컬)에서 같은 Call-ID로 중복 오류가 났다 — 지금까지는 사용자가 매번 VCS에 SSH 접속해 `mysql` 계정으로 `DELETE FROM TBL_CALL_INFO/TBL_RECORD_INFO WHERE SIP_CALLID=...`를 수동 실행한 뒤에야 재실행할 수 있었다(사용자 확인).
+  `VolteBasicCallExecutor.run()`이 vctp 재기동 직전에 이 정리를 자동으로 수행하도록 확장했다(`services/volte/recording_cleanup.py`, 신규): 대시보드 "설정" 화면에 새 섹션 "VCS 녹취 DB (MariaDB)"(사용자명/비밀번호/데이터베이스명, `VcsSettings.vcs_mariadb_*` 컬럼 + `.env` 기본값, 기존 VCS/SIPp 설정과 동일한 오버라이드 패턴)를 추가했고, 이 셋이 모두 채워져 있을 때만 기능이 켜진다(`resolve_mariadb_credentials()`가 하나라도 비어있으면 `None`을 반환 — 기존 배포는 아무것도 안 바뀐 것처럼 동작). 지울 Call-ID는 기본적으로 이 Test Case의 **가장 최근 실행에서 vcsm.log로부터 파싱해둔 Call-ID**를 자동으로 찾아 쓴다(`_last_known_call_id`, CallEvent 테이블 조회) — 이 Test Case를 한 번도 돌린 적이 없으면(첫 실행) 아직 지울 대상을 모르므로 조용히 건너뛴다(첫 실행은 애초에 중복이 날 수 없으니 문제 없음). 자동 감지가 안 되는 경우의 도피처로 `protocol_params.callid`를 명시하면 그 값이 항상 우선한다.
+  테이블/컬럼명(`TBL_CALL_INFO`/`TBL_RECORD_INFO`/`SIP_CALLID`)은 사용자가 확인해준 그대로 기본값으로 하드코딩하되 `Settings`로 override 가능하게 열어뒀다(배포마다 스키마가 다를 가능성 대비). 원격 명령은 `mysql -u<user> -p<password> <db> -e "DELETE ...; DELETE ...;"` 형태로 SSH를 통해 실행한다 — SQL 인젝션(Call-ID 값의 작은따옴표/백슬래시 이스케이프)과 셸 인젝션(`shlex.quote()`로 사용자명/비밀번호/DB명/SQL 전체를 감쌈) 둘 다 방어했다(`build_cleanup_sql`/`build_cleanup_command`, 단위 테스트로 왕복 검증). 정리 명령이 실패해도(DB 접속 불가, 인증 실패 등) 예외를 올리지 않고 경고 로그만 남긴 뒤 시험 실행을 계속한다 — "있으면 좋은" 전처리일 뿐, 실패했다고 시험 자체를 막을 이유는 없다(기존 수동 절차와 최종 결과 동일: VCMM이 중복으로 거부하면 그 시험만 실패 판정될 뿐).
+  백엔드 신규 테스트 12건(recording_cleanup 단위 7건 — SQL/셸 인젝션 방어 포함, VolteBasicCallExecutor 통합 4건 — 정리 실행/스킵(첫 실행)/명시적 callid/MariaDB 미설정 시 스킵, settings API 1건 — 마스킹/부분갱신/오버라이드 해제) 전부 통과(백엔드 총 153개). 프론트 `tsc` 클린 컴파일, Playwright로 설정 화면 저장 → 새로고침 후 값 유지(비밀번호는 마스킹) 확인.
+- [x] **McPTT 성능 시험 Call Flow "Maximum text size in diagram" 에러(2026-07-31 실 서버 리포트)** — 성능 시험은 콜마다 여러 이벤트(특히 `RECORDING_CHANGE_REQ/RES` 그룹 플로어 변경)가 쌓여서, "전체" 보기의 Mermaid 다이어그램 소스가 Mermaid 기본 한도(`maxTextSize` 50000자)를 넘으면 렌더링 자체가 실패해 에러 문구만 보였다(42콜 시험에서 실제 재현). 두 가지로 해결했다.
+  1. `MermaidDiagram.tsx`의 `mermaid.initialize()`에 `maxTextSize: 900000`/`maxEdges: 2000`을 추가해 한도 자체를 넉넉히 올렸다 — 사용자가 명시적으로 "전체"를 선택했을 때도 웬만한 규모(72KB로 재현 테스트)까지는 에러 없이 렌더링된다.
+  2. `ExecutionPage.tsx`의 콜 선택 드롭다운이 콜 2건 이상이면 기본값을 "전체"가 아니라 **첫 번째 콜**로 자동 설정하도록 변경했다(리포트 화면의 "대표 콜" 방식과 동일한 원칙) — 애초에 다건이 섞인 무거운 다이어그램을 기본으로 시도하지 않는다. 사용자가 드롭다운을 한 번이라도 직접 조작하면(수동으로 "전체"를 고른 경우 포함) `callSelectionInitialized` 플래그로 이후 15초 폴링마다 자동으로 되돌리지 않는다.
+  Playwright로 72853자 다이어그램(42콜×45이벤트)을 시드해 (a) 기본 진입 시 call-1이 자동 선택되고 에러 없이 렌더링되는 것, (b) "전체"로 수동 전환해도 더 이상 에러 없이 렌더링되는 것 둘 다 확인. 백엔드 변경 없음(153개 테스트 그대로 통과), 프론트 `tsc` 클린 컴파일.
 
-로그 샘플이 도착하면 Log Parser & Call Flow Agent가 우선적으로 분석하고, 필요 시 이 문서의 §3, §6, §9를 갱신한다.
+Log Parser & Call Flow Agent는 위에서 이미 확보된 로그 샘플을 기준으로 `VctpLogAdapter`/`VcsmLogAdapter`/`VcmmLogAdapter`/`VcmcLogAdapter` 구현을 우선 진행할 수 있다. 실패 케이스 로그가 추가되면 이 문서의 §3, §6, §9를 다시 갱신한다. VCS 실 서버 연동 상세(pcap 샘플 select box, vctp 정지/시작 명령, 로그 경로, SIPp 원격 실행)는 §3, `docs/DEPLOYMENT.md`에도 반영되어 있다.

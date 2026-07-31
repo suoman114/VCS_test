@@ -1,0 +1,44 @@
+# McPTT 기본 호처리 시험 케이스 정의 예시
+# 스키마 소유: testcase-manager-agent (참고: backend/app/schemas/test_case.py)
+
+id: mcptt-basic-call-001
+name: "McPTT 기본 호처리 - 그룹 호 발신/Floor 획득/종료"
+category: mcptt
+test_type: basic_call
+description: >
+  SIPp로 McPTT 그룹 호를 발생시키고 Floor Request/Granted 및 정상 종료
+  흐름이 규격대로 동작하는지 확인한다.
+
+# McPTT는 config_ref가 SIPp 전용 호스트(Settings.mcptt_sim_dir, 기본
+# /root/mcptt_sim)에 이미 있는 시나리오 XML 파일명을 가리킨다(2026-07-29
+# 확인 — VoLTE의 pcap 샘플 파일명과 동일한 패턴, 저장소 경로 아님). 대시보드
+# 등록 폼은 GET /api/vcs/mcptt-scenario-files로 조회한 목록 중 하나를 select
+# box로 고른다. scenarios/sipp/mcptt_basic_call.xml(이 저장소 파일)은 시나리오
+# 내용(SIP 메시지 흐름) 참고용으로만 쓰이고, sipp_exec_mode: local(개발/테스트
+# 전용, 실 배포엔 안 쓰임)일 때만 실제로 이 경로를 읽는다.
+config_ref: "mcptt_basic_call.xml"
+
+protocol_params:
+  # SIPp는 VCS와 별도인 전용 호스트에서 실행된다 (2026-07-29 확인) — sipp_exec_mode를
+  # "ssh"로 지정하면(실 배포 기본) SIPP_SSH_* 설정(.env 또는 대시보드)의 호스트에서
+  # mcptt_sim_dir의 Java 시뮬레이터(utgen-jar-with-dependencies.jar)를 실행한다.
+  # 생략하면 Settings.sipp_exec_mode(기본 "local")를 따른다.
+  sipp_exec_mode: "ssh"
+  scenario_file: "mcptt_basic_call.xml"
+  target_ip: "10.0.0.10"
+  target_port: 5060
+  local_ip: "192.168.7.65"
+  local_port: 5080
+  control_port: 6061
+  max_calls: 1
+  # vcmc_log_path/vcmm_log_path 기본값은 Settings(app/core/config.py)에 있으므로 생략 가능.
+
+pass_criteria:
+  required_events:
+    - SIP_INVITE
+    - SIP_200OK
+    - MCPTT_FLOOR_GRANTED
+    - SIP_BYE
+  forbidden_patterns:
+    - "ERROR"
+  max_duration_sec: 60

@@ -1,0 +1,162 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.filters select,
+.filters input {
+  padding: 6px 8px;
+}
+
+.page-error {
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.test-cases-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.test-cases-table th,
+.test-cases-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.mono {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.ellipsis {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.actions button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.actions button.danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.empty-row {
+  text-align: center;
+  color: #6b7280;
+  padding: 24px 0;
+}
+
+.pagination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.test-case-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.test-case-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.test-case-form input,
+.test-case-form textarea,
+.test-case-form select {
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.test-case-form textarea {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.form-row label {
+  flex: 1 1 140px;
+  /* flex 아이템은 기본적으로 min-width:auto라 내용(input의 기본 너비,
+     placeholder 등)이 flex:1의 균등 분배보다 우선해 넘칠 수 있다 — 성능
+     시험 폼처럼 label이 3개로 늘어나면 모달 폭(560px)을 넘어 오른쪽이
+     잘려 보이는 문제가 있었다(2026-07-30). min-width:0으로 내용이 항상
+     칸 너비에 맞춰 줄어들게 하고, flex-wrap도 열어 더 좁은 화면에서는
+     자연스럽게 다음 줄로 넘어가게 한다. */
+  min-width: 0;
+}
+
+.form-error {
+  color: #b91c1c;
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.form-hint-error {
+  color: #b91c1c;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

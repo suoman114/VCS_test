@@ -1,0 +1,1000 @@
+[2026-07-28 16:23:40.144][INFO ] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_start_req message receive ok. [{
+  "header": {
+    "type": "recording_start_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "cf934a11-545b-4855-8bd3-87eeedef3a93",
+    "msgFrom": "VCMC",
+    "trxType": 1,
+    "reasonCode": 0
+  },
+  "body": {
+    "from_no": "+82585102956",
+    "to_no": "98011990000",
+    "outbound": 0,
+    "service_type": "MCPTT",
+    "record_time": "2026/07/28/16",
+    "caller_save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_+82585102956_162340128",
+    "caller_sdp": "v\u003d0\r\no\u003dtel:+82585102956 1763437058 1763437058 IN IP4 192.168.2.154\r\ns\u003d-\r\nc\u003dIN IP4 192.168.2.154\r\nt\u003d0 0\r\nm\u003daudio 27154 RTP/AVP 98 110\r\nc\u003dIN IP4 192.168.2.154\r\nb\u003dAS:49\r\nb\u003dRS:0\r\nb\u003dRR:0\r\na\u003drtpmap:98 AMR-WB/16000/1\r\na\u003dfmtp:98 octet-align\u003d1\r\na\u003drtpmap:110 EVS/16000/1\r\na\u003dfmtp:110 br\u003d9.6-24.4; bw\u003dnb-swb\r\na\u003dptime:20\r\na\u003dmaxptime:20\r\na\u003dlabel:audio\r\na\u003dssrc:20548 cname:sip:+82585102956@ptt.humetro.mnc031.mcc450.3gppnetwork.org\r\na\u003dsendrecv\r\nm\u003dapplication 27158 UDP MCPTT\r\nc\u003dIN IP4 192.168.2.154\r\nb\u003dAS:4\r\na\u003dfloorid:0 mstrm:audio\r\na\u003dfmtp:MCPTT mc_queueing;mc_priority\u003d5\r\n\u0000"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:23:40.145][DEBUG] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) (+82585102956) (98011990000) callInfo is create. - (CallManager.java:161)
+[2026-07-28 16:23:40.145][DEBUG] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) (+82585102956) (98011990000) callConsumer (960e2eb1475c0fca01edff976528e956@192.168.7.65_1@INBOUND) is create - (CallManager.java:274)
+[2026-07-28 16:23:40.149][DEBUG] [Thread-112] SSRC parsed from SDP: 20548 - (SdpParser.java:297)
+[2026-07-28 16:23:40.150][DEBUG] [Thread-112] () () () Port 30000 allocated from pool. Remaining ports: 3333 - (NettyChannelManager.java:227)
+[2026-07-28 16:23:40.150][DEBUG] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) (+82585102956) (98011990000) Channel port get success. - (ProcRecordingStartReq.java:239)
+[2026-07-28 16:23:40.171][DEBUG] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) (+82585102956) (98011990000) audio channel success. - (ProcRecordingStartReq.java:259)
+[2026-07-28 16:23:40.185][INFO ] [nioEventLoopGroup-2-12] MCPTT Application packet processing ExecutorService initialized with 4 threads - (McpttApplicationHandler.java:93)
+[2026-07-28 16:23:40.187][DEBUG] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) (+82585102956) (98011990000) application channel success. - (ProcRecordingStartReq.java:281)
+[2026-07-28 16:23:40.188][INFO ] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: null) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:40.189][DEBUG] [Thread-112] Expected SSRC set: 20548 for file: null - (VcsRecordFile.java:654)
+[2026-07-28 16:23:40.189][DEBUG] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () recordFileMap is added. [groupId=98011990000, source=172.10.11.198:30000] - (RecordFileManager.java:414)
+[2026-07-28 16:23:40.189][DEBUG] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () applicatiolnSdpMap is added. [addr=172.10.11.198:30004] - (RecordFileManager.java:467)
+[2026-07-28 16:23:40.189][INFO ] [Thread-112] SESSION_MAP: groupId=98011990000, callId=960e2eb1475c0fca01edff976528e956@192.168.7.65_1, appDest=172.10.11.198:30004, rtpAudioPort=30000, rtpVideoPort=30002, floorPort=30004 - (RecordFileManager.java:476)
+[2026-07-28 16:23:40.189][INFO ] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) (+82585102956) (98011990000) recording start success. - (ProcRecordingStartReq.java:179)
+[2026-07-28 16:23:40.189][INFO ] [Thread-112] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_start_res message send ok. [{
+  "header": {
+    "type": "recording_start_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "cf934a11-545b-4855-8bd3-87eeedef3a93",
+    "msgFrom": "VCMM_0",
+    "trxType": 1,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "audio_extension": "pcap",
+    "sdp": "v\u003d0\r\no\u003d- 1785223420187 0 IN IP4 vcs.uangel.com\r\ns\u003d-\r\nc\u003dIN IP4 172.10.11.198\r\nt\u003d0 0\r\nm\u003daudio 30000 RTP/AVP 98\r\na\u003drtpmap:98 AMR-WB/16000/1\r\na\u003dfmtp:98 mode-set\u003d8; octet-align\u003d1\r\na\u003drecvonly\r\nm\u003dapplication 30004 UDP MCPTT\r\n"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:23:40.371][INFO ] [McpttApplicationProcessor-1] First packet received for groupId=98011990000, appDest=172.10.11.198:30004, initialSeq=0 - (McpttApplicationHandler.java:212)
+[2026-07-28 16:23:40.375][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583207021, seqNum=0 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:23:40.375][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583207021, messageSeqNumber=0) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:23:40.375][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: null) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:40.378][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "e91b0364-52d7-42d1-be43-240f0e509495",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583207021",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:23:40.381][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=0, expected seq=1 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:23:40.391][WARN ] [nioEventLoopGroup-2-2] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1 - (RtpPacketRecord.java:86)
+[2026-07-28 16:23:40.393][DEBUG] [RtpPacketProcessor-2] () () () pcap append skipped by closed stream. name=null - (VcsRecordFile.java:577)
+[2026-07-28 16:23:40.404][DEBUG] [RtpPacketProcessor-4] () () () pcap append skipped by closed stream. name=null - (VcsRecordFile.java:577)
+[2026-07-28 16:23:40.417][INFO ] [Thread-76] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "e91b0364-52d7-42d1-be43-240f0e509495",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 1,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:23:40.421][INFO ] [Thread-76] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:23:40.421][INFO ] [Thread-76] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:40.421][INFO ] [Thread-76] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 1, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1 - (RecordFileManager.java:231)
+[2026-07-28 16:23:41.200][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:23:41.203][INFO ] [main] () () () current callSize = 1 (IMS: 0, MCPTT: 1, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:23:42.367][WARN ] [nioEventLoopGroup-2-2] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=100 - (RtpPacketRecord.java:86)
+[2026-07-28 16:23:44.368][WARN ] [nioEventLoopGroup-2-3] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=200 - (RtpPacketRecord.java:86)
+[2026-07-28 16:23:44.664][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583209004, seqNum=1 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:23:44.665][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle received. Stopping RTP packet reception. (groupId=98011990000, grantMdn=tel:+82583207021, messageSequenceNumber=1) - (McpttApplicationHandler.java:290)
+[2026-07-28 16:23:44.665][DEBUG] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle. (playtime=4219 grantMdn=tel:+82583207021) - (McpttApplicationHandler.java:299)
+[2026-07-28 16:23:44.665][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1.pcap, lastPacketTime=Tue Jul 28 16:23:44 KST 2026, packets=212, captureSpan=4219ms, timeSinceLastPacket=22ms - (VcsRecordFile.java:258)
+[2026-07-28 16:23:44.668][DEBUG] [McpttApplicationProcessor-3] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:23:44.668][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:44.669][WARN ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Recording statistics completed - file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1.pcap, totalPackets=212, playTime=4219ms - (VcsRecordFile.java:692)
+[2026-07-28 16:23:44.671][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "b5baea71-d102-49df-8ec2-2d6abe2e1834",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 1,
+    "caller_mdn": "tel:+82583207021",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:23:44.671][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583209004, messageSeqNumber=1) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:23:44.671][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:44.671][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "6e29ac3c-3868-465f-9943-a01219f37bef",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:23:44.684][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=1, expected seq=2 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:23:44.702][DEBUG] [RtpPacketProcessor-3] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:23:44.714][INFO ] [Thread-133] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "b5baea71-d102-49df-8ec2-2d6abe2e1834",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 1,
+    "save_file_name": ""
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:23:44.723][DEBUG] [RtpPacketProcessor-1] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162340_1.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:23:44.731][INFO ] [Thread-98] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "6e29ac3c-3868-465f-9943-a01219f37bef",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 2,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:23:44.732][INFO ] [Thread-98] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:23:44.732][INFO ] [Thread-98] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:44.732][INFO ] [Thread-98] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 2, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2 - (RecordFileManager.java:231)
+[2026-07-28 16:23:46.200][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:23:46.408][WARN ] [nioEventLoopGroup-2-4] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=300 - (RtpPacketRecord.java:86)
+[2026-07-28 16:23:48.063][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=true, appDest=172.10.11.198:30004, grantMdn=null, seqNum=3 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:23:48.063][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle received. Stopping RTP packet reception. (groupId=98011990000, grantMdn=tel:+82583209004, messageSequenceNumber=3) - (McpttApplicationHandler.java:290)
+[2026-07-28 16:23:48.063][DEBUG] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle. (playtime=3303 grantMdn=tel:+82583209004) - (McpttApplicationHandler.java:299)
+[2026-07-28 16:23:48.064][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2.pcap, lastPacketTime=Tue Jul 28 16:23:48 KST 2026, packets=166, captureSpan=3303ms, timeSinceLastPacket=18ms - (VcsRecordFile.java:258)
+[2026-07-28 16:23:48.067][DEBUG] [McpttApplicationProcessor-1] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:23:48.067][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:48.067][WARN ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Recording statistics completed - file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2.pcap, totalPackets=166, playTime=3303ms - (VcsRecordFile.java:692)
+[2026-07-28 16:23:48.067][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "e9ee8466-a17d-411e-b234-c39c66e36907",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 2,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:23:48.083][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=3, expected seq=4 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:23:48.103][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=true, appDest=172.10.11.198:30004, grantMdn=null, seqNum=4 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:23:48.103][INFO ] [McpttApplicationProcessor-3] IDLE ignored: grantMdn empty (no active floor). (groupId=98011990000, appDest=172.10.11.198:30004, msgSeq=4) - (McpttApplicationHandler.java:358)
+[2026-07-28 16:23:48.104][INFO ] [Thread-108] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "e9ee8466-a17d-411e-b234-c39c66e36907",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 2,
+    "save_file_name": ""
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:23:48.123][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=4, expected seq=5 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:23:48.143][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=true, appDest=172.10.11.198:30004, grantMdn=null, seqNum=5 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:23:48.143][INFO ] [McpttApplicationProcessor-1] IDLE ignored: grantMdn empty (no active floor). (groupId=98011990000, appDest=172.10.11.198:30004, msgSeq=5) - (McpttApplicationHandler.java:358)
+[2026-07-28 16:23:48.163][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=5, expected seq=6 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:23:48.183][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=true, appDest=172.10.11.198:30004, grantMdn=null, seqNum=6 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:23:48.183][INFO ] [McpttApplicationProcessor-3] IDLE ignored: grantMdn empty (no active floor). (groupId=98011990000, appDest=172.10.11.198:30004, msgSeq=6) - (McpttApplicationHandler.java:358)
+[2026-07-28 16:23:48.203][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=6, expected seq=7 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:23:48.223][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=true, appDest=172.10.11.198:30004, grantMdn=null, seqNum=7 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:23:48.223][INFO ] [McpttApplicationProcessor-1] IDLE ignored: grantMdn empty (no active floor). (groupId=98011990000, appDest=172.10.11.198:30004, msgSeq=7) - (McpttApplicationHandler.java:358)
+[2026-07-28 16:23:48.243][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=7, expected seq=8 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:23:48.263][WARN ] [McpttApplicationProcessor-3] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=2, expected seq=8 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:23:48.283][WARN ] [McpttApplicationProcessor-4] forced resync after 3 consecutive drops for groupId=98011990000, appDest=172.10.11.198:30004, received=2 - (McpttApplicationHandler.java:233)
+[2026-07-28 16:23:48.283][DEBUG] [McpttApplicationProcessor-4] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583209004, seqNum=2 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:23:48.283][INFO ] [McpttApplicationProcessor-4] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583209004, messageSeqNumber=2) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:23:48.283][INFO ] [McpttApplicationProcessor-4] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:48.283][INFO ] [McpttApplicationProcessor-4] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "3c0bccf0-0163-429d-9670-660d999f357e",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:23:48.303][DEBUG] [RtpPacketProcessor-3] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162344_2.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:23:48.316][INFO ] [Thread-101] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "3c0bccf0-0163-429d-9670-660d999f357e",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 3,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:23:48.316][INFO ] [Thread-101] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:23:48.317][INFO ] [Thread-101] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:48.317][INFO ] [Thread-101] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 3, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3 - (RecordFileManager.java:231)
+[2026-07-28 16:23:48.648][WARN ] [nioEventLoopGroup-2-4] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=400 - (RtpPacketRecord.java:86)
+[2026-07-28 16:23:50.647][WARN ] [nioEventLoopGroup-2-5] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=500 - (RtpPacketRecord.java:86)
+[2026-07-28 16:23:51.201][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:23:51.204][INFO ] [main] () () () current callSize = 1 (IMS: 0, MCPTT: 1, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:23:52.646][WARN ] [nioEventLoopGroup-2-6] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=600 - (RtpPacketRecord.java:86)
+[2026-07-28 16:23:53.023][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583207021, seqNum=3 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:23:53.023][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle received. Stopping RTP packet reception. (groupId=98011990000, grantMdn=tel:+82583209004, messageSequenceNumber=3) - (McpttApplicationHandler.java:290)
+[2026-07-28 16:23:53.023][DEBUG] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle. (playtime=4679 grantMdn=tel:+82583209004) - (McpttApplicationHandler.java:299)
+[2026-07-28 16:23:53.024][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3.pcap, lastPacketTime=Tue Jul 28 16:23:53 KST 2026, packets=235, captureSpan=4679ms, timeSinceLastPacket=21ms - (VcsRecordFile.java:258)
+[2026-07-28 16:23:53.026][DEBUG] [McpttApplicationProcessor-1] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:23:53.027][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:53.027][WARN ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Recording statistics completed - file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3.pcap, totalPackets=235, playTime=4679ms - (VcsRecordFile.java:692)
+[2026-07-28 16:23:53.027][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "714828d7-0b6a-49d8-8cdf-fdd92717d426",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 3,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:23:53.027][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583207021, messageSeqNumber=3) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:23:53.027][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:53.028][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "a63d8851-2865-4c25-b897-01538a29e95c",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583207021",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:23:53.044][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=3, expected seq=4 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:23:53.062][INFO ] [Thread-130] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "714828d7-0b6a-49d8-8cdf-fdd92717d426",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 3,
+    "save_file_name": ""
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:23:53.062][DEBUG] [RtpPacketProcessor-3] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162348_3.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:23:53.072][INFO ] [Thread-102] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "a63d8851-2865-4c25-b897-01538a29e95c",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 4,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353_4"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:23:53.072][INFO ] [Thread-102] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353_4.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:23:53.072][INFO ] [Thread-102] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353_4.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:53.073][INFO ] [Thread-102] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 4, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353_4 - (RecordFileManager.java:231)
+[2026-07-28 16:23:54.690][WARN ] [nioEventLoopGroup-2-9] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=700 - (RtpPacketRecord.java:86)
+[2026-07-28 16:23:56.201][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:23:56.687][WARN ] [nioEventLoopGroup-2-1] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=800 - (RtpPacketRecord.java:86)
+[2026-07-28 16:23:56.943][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583209004, seqNum=4 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:23:56.944][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle received. Stopping RTP packet reception. (groupId=98011990000, grantMdn=tel:+82583207021, messageSequenceNumber=4) - (McpttApplicationHandler.java:290)
+[2026-07-28 16:23:56.944][DEBUG] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle. (playtime=3839 grantMdn=tel:+82583207021) - (McpttApplicationHandler.java:299)
+[2026-07-28 16:23:56.944][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353_4.pcap, lastPacketTime=Tue Jul 28 16:23:56 KST 2026, packets=193, captureSpan=3839ms, timeSinceLastPacket=22ms - (VcsRecordFile.java:258)
+[2026-07-28 16:23:56.946][DEBUG] [McpttApplicationProcessor-3] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353_4.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:23:56.946][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353_4.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:56.946][WARN ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Recording statistics completed - file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353_4.pcap, totalPackets=193, playTime=3839ms - (VcsRecordFile.java:692)
+[2026-07-28 16:23:56.947][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "d91ebd3b-b984-4a99-8b52-04fdc9cceb16",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 4,
+    "caller_mdn": "tel:+82583207021",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:23:56.947][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583209004, messageSeqNumber=4) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:23:56.947][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162353_4.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:56.947][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "6e04c0d5-03c9-4eff-8e35-008805ab4264",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:23:56.963][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=4, expected seq=5 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:23:56.979][INFO ] [Thread-127] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "6e04c0d5-03c9-4eff-8e35-008805ab4264",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 5,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:23:56.980][INFO ] [Thread-127] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:23:56.980][INFO ] [Thread-127] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:23:56.980][INFO ] [Thread-127] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 5, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5 - (RecordFileManager.java:231)
+[2026-07-28 16:23:56.989][INFO ] [Thread-79] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "d91ebd3b-b984-4a99-8b52-04fdc9cceb16",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 4,
+    "save_file_name": ""
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:23:58.727][WARN ] [nioEventLoopGroup-2-2] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=900 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:00.726][WARN ] [nioEventLoopGroup-2-3] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1000 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:01.202][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:24:01.204][INFO ] [main] () () () current callSize = 1 (IMS: 0, MCPTT: 1, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:24:02.726][WARN ] [nioEventLoopGroup-2-3] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1100 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:02.823][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583209004, seqNum=5 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:02.823][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received again for same grantMdn. Ensuring queue processors running. (groupId=98011990000, grantMdn=tel:+82583209004, messageSeqNumber=5) - (McpttApplicationHandler.java:422)
+[2026-07-28 16:24:02.843][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=5, expected seq=6 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:03.423][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583207021, seqNum=6 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:03.423][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle received. Stopping RTP packet reception. (groupId=98011990000, grantMdn=tel:+82583209004, messageSequenceNumber=6) - (McpttApplicationHandler.java:290)
+[2026-07-28 16:24:03.423][DEBUG] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle. (playtime=6419 grantMdn=tel:+82583209004) - (McpttApplicationHandler.java:299)
+[2026-07-28 16:24:03.423][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5.pcap, lastPacketTime=Tue Jul 28 16:24:03 KST 2026, packets=320, captureSpan=6419ms, timeSinceLastPacket=21ms - (VcsRecordFile.java:258)
+[2026-07-28 16:24:03.426][DEBUG] [McpttApplicationProcessor-3] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:24:03.426][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:03.426][WARN ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Recording statistics completed - file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5.pcap, totalPackets=320, playTime=6419ms - (VcsRecordFile.java:692)
+[2026-07-28 16:24:03.426][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "824f1d87-bc5f-4a00-9653-7eda2b9d8990",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 5,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:03.427][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583207021, messageSeqNumber=6) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:24:03.427][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:03.427][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "1aa70d44-b559-401d-b1ba-ddc2d764e6da",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583207021",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:03.444][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=6, expected seq=7 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:03.463][DEBUG] [RtpPacketProcessor-2] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162356_5.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:24:03.465][INFO ] [Thread-108] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "824f1d87-bc5f-4a00-9653-7eda2b9d8990",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 5,
+    "save_file_name": ""
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:03.476][INFO ] [Thread-91] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "1aa70d44-b559-401d-b1ba-ddc2d764e6da",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 6,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:03.477][INFO ] [Thread-91] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:24:03.477][INFO ] [Thread-91] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:03.477][INFO ] [Thread-91] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 6, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6 - (RecordFileManager.java:231)
+[2026-07-28 16:24:04.806][WARN ] [nioEventLoopGroup-2-3] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1200 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:06.202][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:24:06.804][WARN ] [nioEventLoopGroup-2-4] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1300 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:07.023][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583207021, seqNum=7 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:07.023][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received again for same grantMdn. Ensuring queue processors running. (groupId=98011990000, grantMdn=tel:+82583207021, messageSeqNumber=7) - (McpttApplicationHandler.java:422)
+[2026-07-28 16:24:07.043][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=7, expected seq=8 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:08.845][WARN ] [nioEventLoopGroup-2-3] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1400 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:10.763][WARN ] [McpttApplicationProcessor-3] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=0, expected seq=8 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:10.783][WARN ] [McpttApplicationProcessor-4] forced resync after 3 consecutive drops for groupId=98011990000, appDest=172.10.11.198:30004, received=0 - (McpttApplicationHandler.java:233)
+[2026-07-28 16:24:10.783][DEBUG] [McpttApplicationProcessor-4] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583207021, seqNum=0 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:10.783][INFO ] [McpttApplicationProcessor-4] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received again for same grantMdn. Ensuring queue processors running. (groupId=98011990000, grantMdn=tel:+82583207021, messageSeqNumber=0) - (McpttApplicationHandler.java:422)
+[2026-07-28 16:24:10.909][WARN ] [nioEventLoopGroup-2-1] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1500 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:11.203][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:24:11.205][INFO ] [main] () () () current callSize = 1 (IMS: 0, MCPTT: 1, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:24:12.908][WARN ] [nioEventLoopGroup-2-2] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1600 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:14.905][WARN ] [nioEventLoopGroup-2-2] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1700 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:15.083][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583209004, seqNum=1 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:15.084][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle received. Stopping RTP packet reception. (groupId=98011990000, grantMdn=tel:+82583207021, messageSequenceNumber=1) - (McpttApplicationHandler.java:290)
+[2026-07-28 16:24:15.084][DEBUG] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle. (playtime=11580 grantMdn=tel:+82583207021) - (McpttApplicationHandler.java:299)
+[2026-07-28 16:24:15.084][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6.pcap, lastPacketTime=Tue Jul 28 16:24:15 KST 2026, packets=575, captureSpan=11580ms, timeSinceLastPacket=21ms - (VcsRecordFile.java:258)
+[2026-07-28 16:24:15.087][DEBUG] [McpttApplicationProcessor-1] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:24:15.087][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:15.087][WARN ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Recording statistics completed - file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6.pcap, totalPackets=575, playTime=11580ms - (VcsRecordFile.java:692)
+[2026-07-28 16:24:15.088][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "54ba462d-8335-41fb-8249-ecc755362ea2",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 6,
+    "caller_mdn": "tel:+82583207021",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:15.088][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583209004, messageSeqNumber=1) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:24:15.088][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:15.088][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "f1a46afb-289a-4197-bb92-d3d3af942a3c",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:15.106][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=1, expected seq=2 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:15.125][DEBUG] [RtpPacketProcessor-2] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:24:15.142][DEBUG] [RtpPacketProcessor-4] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:24:15.162][DEBUG] [RtpPacketProcessor-3] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162403_6.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:24:15.168][INFO ] [Thread-113] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "f1a46afb-289a-4197-bb92-d3d3af942a3c",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 7,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:15.168][INFO ] [Thread-113] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:24:15.169][INFO ] [Thread-113] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:15.169][INFO ] [Thread-113] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 7, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7 - (RecordFileManager.java:231)
+[2026-07-28 16:24:15.175][INFO ] [Thread-97] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "54ba462d-8335-41fb-8249-ecc755362ea2",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 6,
+    "save_file_name": ""
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:16.203][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:24:16.947][WARN ] [nioEventLoopGroup-2-1] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1800 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:18.483][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=true, appDest=172.10.11.198:30004, grantMdn=null, seqNum=3 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:18.483][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle received. Stopping RTP packet reception. (groupId=98011990000, grantMdn=tel:+82583209004, messageSequenceNumber=3) - (McpttApplicationHandler.java:290)
+[2026-07-28 16:24:18.484][DEBUG] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle. (playtime=3279 grantMdn=tel:+82583209004) - (McpttApplicationHandler.java:299)
+[2026-07-28 16:24:18.484][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7.pcap, lastPacketTime=Tue Jul 28 16:24:18 KST 2026, packets=165, captureSpan=3279ms, timeSinceLastPacket=22ms - (VcsRecordFile.java:258)
+[2026-07-28 16:24:18.488][DEBUG] [McpttApplicationProcessor-3] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:24:18.489][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:18.489][WARN ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Recording statistics completed - file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7.pcap, totalPackets=165, playTime=3279ms - (VcsRecordFile.java:692)
+[2026-07-28 16:24:18.490][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "51fef4ba-bb40-4fac-a79f-7f518c1f4b43",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 7,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:18.503][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=3, expected seq=4 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:18.523][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=true, appDest=172.10.11.198:30004, grantMdn=null, seqNum=4 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:18.523][INFO ] [McpttApplicationProcessor-1] IDLE ignored: grantMdn empty (no active floor). (groupId=98011990000, appDest=172.10.11.198:30004, msgSeq=4) - (McpttApplicationHandler.java:358)
+[2026-07-28 16:24:18.528][INFO ] [Thread-110] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "51fef4ba-bb40-4fac-a79f-7f518c1f4b43",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 7,
+    "save_file_name": ""
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:18.543][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=4, expected seq=5 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:18.563][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=true, appDest=172.10.11.198:30004, grantMdn=null, seqNum=5 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:18.563][INFO ] [McpttApplicationProcessor-3] IDLE ignored: grantMdn empty (no active floor). (groupId=98011990000, appDest=172.10.11.198:30004, msgSeq=5) - (McpttApplicationHandler.java:358)
+[2026-07-28 16:24:18.583][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=5, expected seq=6 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:18.603][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=true, appDest=172.10.11.198:30004, grantMdn=null, seqNum=6 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:18.603][INFO ] [McpttApplicationProcessor-1] IDLE ignored: grantMdn empty (no active floor). (groupId=98011990000, appDest=172.10.11.198:30004, msgSeq=6) - (McpttApplicationHandler.java:358)
+[2026-07-28 16:24:18.623][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=6, expected seq=7 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:18.643][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=true, appDest=172.10.11.198:30004, grantMdn=null, seqNum=7 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:18.643][INFO ] [McpttApplicationProcessor-3] IDLE ignored: grantMdn empty (no active floor). (groupId=98011990000, appDest=172.10.11.198:30004, msgSeq=7) - (McpttApplicationHandler.java:358)
+[2026-07-28 16:24:18.663][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=7, expected seq=8 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:18.683][WARN ] [McpttApplicationProcessor-1] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=2, expected seq=8 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:18.703][WARN ] [McpttApplicationProcessor-2] forced resync after 3 consecutive drops for groupId=98011990000, appDest=172.10.11.198:30004, received=2 - (McpttApplicationHandler.java:233)
+[2026-07-28 16:24:18.703][DEBUG] [McpttApplicationProcessor-2] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583209004, seqNum=2 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:18.703][INFO ] [McpttApplicationProcessor-2] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583209004, messageSeqNumber=2) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:24:18.703][INFO ] [McpttApplicationProcessor-2] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:18.703][INFO ] [McpttApplicationProcessor-2] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "36923bbf-4da3-472d-83f5-a4ce39f12e5c",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:18.722][DEBUG] [RtpPacketProcessor-2] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162415_7.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:24:18.742][INFO ] [Thread-133] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "36923bbf-4da3-472d-83f5-a4ce39f12e5c",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 8,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:18.743][INFO ] [Thread-133] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:24:18.743][INFO ] [Thread-133] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:18.743][INFO ] [Thread-133] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 8, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8 - (RecordFileManager.java:231)
+[2026-07-28 16:24:19.189][WARN ] [nioEventLoopGroup-2-3] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=1900 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:21.184][WARN ] [nioEventLoopGroup-2-4] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=2000 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:21.203][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:24:21.206][INFO ] [main] () () () current callSize = 1 (IMS: 0, MCPTT: 1, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:24:23.186][WARN ] [nioEventLoopGroup-2-5] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=2100 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:23.443][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583207021, seqNum=3 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:23.443][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle received. Stopping RTP packet reception. (groupId=98011990000, grantMdn=tel:+82583209004, messageSequenceNumber=3) - (McpttApplicationHandler.java:290)
+[2026-07-28 16:24:23.443][DEBUG] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle. (playtime=4678 grantMdn=tel:+82583209004) - (McpttApplicationHandler.java:299)
+[2026-07-28 16:24:23.444][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8.pcap, lastPacketTime=Tue Jul 28 16:24:23 KST 2026, packets=235, captureSpan=4678ms, timeSinceLastPacket=21ms - (VcsRecordFile.java:258)
+[2026-07-28 16:24:23.447][DEBUG] [McpttApplicationProcessor-3] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:24:23.447][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:23.447][WARN ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Recording statistics completed - file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8.pcap, totalPackets=235, playTime=4678ms - (VcsRecordFile.java:692)
+[2026-07-28 16:24:23.447][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "3ace449c-1929-43c4-94b3-fd677e654081",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 8,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:23.448][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583207021, messageSeqNumber=3) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:24:23.448][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:23.448][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "28fdf143-c76f-49e0-b9b2-2347518297ec",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583207021",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:23.463][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=3, expected seq=4 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:23.482][DEBUG] [RtpPacketProcessor-2] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162418_8.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:24:23.493][INFO ] [Thread-134] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "3ace449c-1929-43c4-94b3-fd677e654081",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 8,
+    "save_file_name": ""
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:23.497][INFO ] [Thread-102] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "28fdf143-c76f-49e0-b9b2-2347518297ec",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 9,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:23.497][INFO ] [Thread-102] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:24:23.498][INFO ] [Thread-102] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:23.498][INFO ] [Thread-102] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 9, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9 - (RecordFileManager.java:231)
+[2026-07-28 16:24:25.225][WARN ] [nioEventLoopGroup-2-5] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=2200 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:26.204][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:24:27.234][WARN ] [nioEventLoopGroup-2-6] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=2300 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:27.363][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583209004, seqNum=4 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:27.363][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle received. Stopping RTP packet reception. (groupId=98011990000, grantMdn=tel:+82583207021, messageSequenceNumber=4) - (McpttApplicationHandler.java:290)
+[2026-07-28 16:24:27.364][DEBUG] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle. (playtime=3839 grantMdn=tel:+82583207021) - (McpttApplicationHandler.java:299)
+[2026-07-28 16:24:27.364][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9.pcap, lastPacketTime=Tue Jul 28 16:24:27 KST 2026, packets=193, captureSpan=3839ms, timeSinceLastPacket=21ms - (VcsRecordFile.java:258)
+[2026-07-28 16:24:27.368][DEBUG] [McpttApplicationProcessor-1] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:24:27.368][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:27.368][WARN ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Recording statistics completed - file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9.pcap, totalPackets=193, playTime=3839ms - (VcsRecordFile.java:692)
+[2026-07-28 16:24:27.368][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "24d30a0f-fe30-4d17-8d8e-1defe5e3e975",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 9,
+    "caller_mdn": "tel:+82583207021",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:27.369][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583209004, messageSeqNumber=4) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:24:27.369][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:27.369][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "c03a76c4-fe59-4d19-bdef-5881d54e00bc",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583209004",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:27.384][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=4, expected seq=5 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:27.403][DEBUG] [RtpPacketProcessor-3] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162423_9.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:24:27.405][INFO ] [Thread-107] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "24d30a0f-fe30-4d17-8d8e-1defe5e3e975",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 9,
+    "save_file_name": ""
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:27.405][INFO ] [Thread-106] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "c03a76c4-fe59-4d19-bdef-5881d54e00bc",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 10,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:27.405][INFO ] [Thread-106] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:24:27.406][INFO ] [Thread-106] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:27.406][INFO ] [Thread-106] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 10, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10 - (RecordFileManager.java:231)
+[2026-07-28 16:24:29.267][WARN ] [nioEventLoopGroup-2-3] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=2400 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:31.204][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:24:31.207][INFO ] [main] () () () current callSize = 1 (IMS: 0, MCPTT: 1, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:24:31.265][WARN ] [nioEventLoopGroup-2-5] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=2500 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:33.243][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583209004, seqNum=5 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:33.243][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received again for same grantMdn. Ensuring queue processors running. (groupId=98011990000, grantMdn=tel:+82583209004, messageSeqNumber=5) - (McpttApplicationHandler.java:422)
+[2026-07-28 16:24:33.263][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=5, expected seq=6 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:33.306][WARN ] [nioEventLoopGroup-2-3] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=2600 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:33.843][DEBUG] [McpttApplicationProcessor-1] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583207021, seqNum=6 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:33.843][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle received. Stopping RTP packet reception. (groupId=98011990000, grantMdn=tel:+82583209004, messageSequenceNumber=6) - (McpttApplicationHandler.java:290)
+[2026-07-28 16:24:33.843][DEBUG] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Idle. (playtime=6400 grantMdn=tel:+82583209004) - (McpttApplicationHandler.java:299)
+[2026-07-28 16:24:33.844][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10.pcap, lastPacketTime=Tue Jul 28 16:24:33 KST 2026, packets=319, captureSpan=6400ms, timeSinceLastPacket=21ms - (VcsRecordFile.java:258)
+[2026-07-28 16:24:33.858][DEBUG] [McpttApplicationProcessor-1] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:24:33.858][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is IDLE (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:33.858][WARN ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Recording statistics completed - file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10.pcap, totalPackets=319, playTime=6400ms - (VcsRecordFile.java:692)
+[2026-07-28 16:24:33.858][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "822ea201-85ec-4b6c-97e1-b0e258b1751c",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 10,
+    "caller_mdn": "tel:+82583209004",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:33.859][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received. Clearing RTP queues. (groupId=98011990000, grantMdn=tel:+82583207021, messageSeqNumber=6) - (McpttApplicationHandler.java:392)
+[2026-07-28 16:24:33.859][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORD_READY (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:33.859][INFO ] [McpttApplicationProcessor-1] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_change_req message send ok. [{
+  "header": {
+    "type": "recording_change_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "d7103096-a4f5-4799-85c2-9c76ba5ae491",
+    "msgFrom": "VCMM_0",
+    "trxType": 0,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "type": "TAKEN",
+    "caller_mdn": "tel:+82583207021",
+    "audio_extension": "pcap"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:33.863][WARN ] [McpttApplicationProcessor-2] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=6, expected seq=7 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:33.885][DEBUG] [RtpPacketProcessor-3] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:24:33.903][DEBUG] [RtpPacketProcessor-1] () () () pcap append skipped by closed stream. name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583209004_98011990000_20260728162427_10.pcap - (VcsRecordFile.java:577)
+[2026-07-28 16:24:33.907][INFO ] [Thread-109] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "822ea201-85ec-4b6c-97e1-b0e258b1751c",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "IDLE",
+    "file_index": 10,
+    "save_file_name": ""
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:33.915][INFO ] [Thread-109] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_change_res message receive ok. [{
+  "header": {
+    "type": "recording_change_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "d7103096-a4f5-4799-85c2-9c76ba5ae491",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "type": "TAKEN",
+    "file_index": 11,
+    "save_file_name": "M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433_11"
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:33.916][INFO ] [Thread-109] () () () create ram file (/home/vcs/ramdisk//MCPTT/VOICE/2026/07/28/16/M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433_11.pcap.ing) - (VcsRecordFile.java:230)
+[2026-07-28 16:24:33.916][INFO ] [Thread-109] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Record State change is RECORDING (fileName: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433_11.pcap) - (VcsRecordFile.java:634)
+[2026-07-28 16:24:33.916][INFO ] [Thread-109] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () Resuming RTP packet reception for fileIndex: 11, filename: M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433_11 - (RecordFileManager.java:231)
+[2026-07-28 16:24:35.345][WARN ] [nioEventLoopGroup-2-1] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=2700 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:36.205][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:24:37.345][WARN ] [nioEventLoopGroup-2-2] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=2800 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:37.443][DEBUG] [McpttApplicationProcessor-3] Processing application packet: isIdle=false, appDest=172.10.11.198:30004, grantMdn=tel:+82583207021, seqNum=7 - (McpttApplicationHandler.java:481)
+[2026-07-28 16:24:37.443][INFO ] [McpttApplicationProcessor-3] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () MCPTT floor Taken received again for same grantMdn. Ensuring queue processors running. (groupId=98011990000, grantMdn=tel:+82583207021, messageSeqNumber=7) - (McpttApplicationHandler.java:422)
+[2026-07-28 16:24:37.463][WARN ] [McpttApplicationProcessor-4] drop packet received for groupId=98011990000, appDest=172.10.11.198:30004, current seq=7, expected seq=8 - (McpttApplicationHandler.java:242)
+[2026-07-28 16:24:39.388][WARN ] [nioEventLoopGroup-2-4] () () () pcap frame dropped: groupId=98011990000, record file type mismatch for dest=172.10.11.198:30000 type=AmrRecordFile totalMismatch=2900 - (RtpPacketRecord.java:86)
+[2026-07-28 16:24:40.417][INFO ] [Thread-131] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> recording_stop_req message receive ok. [{
+  "header": {
+    "type": "recording_stop_req",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "70a27f43-51af-4609-bba1-830304be328d",
+    "msgFrom": "VCMC",
+    "trxType": 0,
+    "reasonCode": 0
+  },
+  "body": {
+    "from_no": "tel:+82583207021",
+    "to_no": "98011990000",
+    "file_index": 11
+  }
+}] - (RmqConsumer.java:86)
+[2026-07-28 16:24:40.422][DEBUG] [Thread-131] () () () Port 30000 restored to pool. Available ports: 3334 - (NettyChannelManager.java:253)
+[2026-07-28 16:24:40.423][INFO ] [Thread-131] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () LAST_PACKET_RECEIVED: groupId=98011990000, file=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433_11.pcap, lastPacketTime=Tue Jul 28 16:24:40 KST 2026, packets=321, captureSpan=6440ms, timeSinceLastPacket=59ms - (VcsRecordFile.java:258)
+[2026-07-28 16:24:40.427][DEBUG] [Thread-131] () () () rename ram file to NAS. (name=M_960e2eb1475c0fca01edff976528e956@192.168.7.65_1_583207021_98011990000_20260728162433_11.pcap) - (VcsRecordFile.java:400)
+[2026-07-28 16:24:40.428][DEBUG] [Thread-131] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () recordFileMap is removed. [source=172.10.11.198:30000] - (RecordFileManager.java:450)
+[2026-07-28 16:24:40.428][DEBUG] [Thread-131] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () applicatiolnSdpMap is removed. [addr=172.10.11.198:30004] - (RecordFileManager.java:514)
+[2026-07-28 16:24:40.428][INFO ] [Thread-131] cleared application sequence state for appDest=172.10.11.198:30004 (lastExpected=8) - (McpttApplicationHandler.java:509)
+[2026-07-28 16:24:40.428][INFO ] [Thread-131] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () recording result: groupId=98011990000, audio=true video=true - (RecordFileManager.java:386)
+[2026-07-28 16:24:40.429][DEBUG] [Thread-131] () () () Port 30000 was already in pool, skipping restore - (NettyChannelManager.java:259)
+[2026-07-28 16:24:40.429][INFO ] [Thread-131] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1@INBOUND) () () callConsumer delete - (CallManager.java:303)
+[2026-07-28 16:24:40.429][INFO ] [Thread-131] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () callInfo delete - (CallManager.java:187)
+[2026-07-28 16:24:40.429][INFO ] [Thread-131] (960e2eb1475c0fca01edff976528e956@192.168.7.65_1) () () -> VCMC recording_stop_res message send ok. [{
+  "header": {
+    "type": "recording_stop_res",
+    "callId": "960e2eb1475c0fca01edff976528e956@192.168.7.65_1",
+    "transactionId": "70a27f43-51af-4609-bba1-830304be328d",
+    "msgFrom": "VCMM_0",
+    "trxType": 1,
+    "reasonCode": 2000,
+    "reason": "Success"
+  },
+  "body": {
+    "file_index": 11,
+    "callerMdn": "tel:+82583207021",
+    "fps": "0,0"
+  }
+}] - (OutgoingMessage.java:82)
+[2026-07-28 16:24:41.205][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)
+[2026-07-28 16:24:41.208][INFO ] [main] () () () current callSize = 0 (IMS: 0, MCPTT: 0, MCPTT_FD_PER: 0, MCPTT_FD_CONF: 0) - (ServiceManager.java:116)
+[2026-07-28 16:24:46.206][DEBUG] [Thread-138] NAS check complete. - (AlarmFile.java:161)

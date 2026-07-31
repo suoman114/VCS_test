@@ -1,5 +1,7 @@
 # runtime artifacts
 storage/
+backend/backend.log
+frontend/frontend.log
 
 # python
 __pycache__/
