@@ -72,6 +72,24 @@ class Settings(BaseSettings):
     # 전혀 없이 멈추는 장애로 확인됐다(2026-07-29).
     vcs_ssh_close_timeout_sec: float = 10.0
 
+    # --- VCS 녹취 DB(MariaDB) — VoLTE 중복 Call-ID 정리용 (2026-07-30 확인) ---
+    # VoLTE 기본 호처리 시험은 매번 같은 pcap을 재생하는데, pcap 안에 SIP
+    # Call-ID가 고정값으로 박혀있어서 같은 Test Case를 반복 실행하면 VCMM의
+    # 녹취 DB(MariaDB, VCS 로컬)에서 같은 Call-ID로 중복 오류가 난다 — 지금까지는
+    # 매번 수동으로 DB에서 그 Call-ID 행을 지운 뒤에야 재실행할 수 있었다.
+    # 이 세 값이 전부 채워져 있으면(.env 또는 대시보드) VolteBasicCallExecutor가
+    # vctp 재기동 전에 이전 실행에서 기록해둔 동일 Call-ID의 잔여 레코드를
+    # 자동으로 지운다(services/volte/recording_cleanup.py) — 비어있으면 이
+    # 기능 자체를 건너뛴다(기존 동작과 100% 하위 호환).
+    vcs_mariadb_user: str | None = None
+    vcs_mariadb_password: str | None = None
+    vcs_mariadb_database: str | None = None
+    # 실제 삭제 대상 테이블/컬럼명(사용자 확인, 2026-07-30) — 배포마다 스키마가
+    # 다를 가능성에 대비해 override 가능하게 두지만 기본값은 확인된 그대로.
+    vcs_mariadb_call_info_table: str = "TBL_CALL_INFO"
+    vcs_mariadb_record_info_table: str = "TBL_RECORD_INFO"
+    vcs_mariadb_callid_column: str = "SIP_CALLID"
+
     # --- VoLTE(vctp) 실제 경로/명령 (CLAUDE.md §13 확정: 2026-07-29) ---
     # vctp가 재생(replay)할 pcap 샘플 파일들이 있는 디렉토리. Test Case 등록 폼의
     # select box가 이 디렉토리 목록을 보여준다 (app/services/volte/sample_files.py).

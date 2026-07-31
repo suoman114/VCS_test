@@ -309,6 +309,12 @@ export interface VcsSettings {
   // 명령을 root 권한으로 돌린다.
   sipp_ssh_root_password_set: boolean;
 
+  // VCS 녹취 DB(MariaDB) 접속 정보 — VoLTE 중복 Call-ID 자동 정리용(2026-07-30).
+  // 셋 다 채워져 있어야 기능이 켜진다(app/services/volte/recording_cleanup.py).
+  vcs_mariadb_user: string | null;
+  vcs_mariadb_password_set: boolean;
+  vcs_mariadb_database: string | null;
+
   updated_at: string | null;
 }
 
@@ -329,6 +335,10 @@ export interface VcsSettingsUpdate {
   sipp_ssh_password?: string;
   sipp_ssh_private_key_path?: string;
   sipp_ssh_root_password?: string;
+
+  vcs_mariadb_user?: string;
+  vcs_mariadb_password?: string;
+  vcs_mariadb_database?: string;
 }
 
 export interface ConnectionTestResult {

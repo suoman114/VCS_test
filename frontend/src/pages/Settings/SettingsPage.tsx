@@ -33,6 +33,12 @@ export function SettingsPage() {
   const [sippRootPassword, setSippRootPassword] = useState("");
   const [sippClearRootPassword, setSippClearRootPassword] = useState(false);
 
+  // VCS 녹취 DB(MariaDB) 필드 — VoLTE 중복 Call-ID 자동 정리용(2026-07-30)
+  const [mariadbUser, setMariadbUser] = useState("");
+  const [mariadbPassword, setMariadbPassword] = useState("");
+  const [mariadbClearPassword, setMariadbClearPassword] = useState(false);
+  const [mariadbDatabase, setMariadbDatabase] = useState("");
+
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
@@ -52,12 +58,16 @@ export function SettingsPage() {
     setSippPort(s.sipp_ssh_port);
     setSippUsername(s.sipp_ssh_username ?? "");
     setSippPrivateKeyPath(s.sipp_ssh_private_key_path ?? "");
+    setMariadbUser(s.vcs_mariadb_user ?? "");
+    setMariadbDatabase(s.vcs_mariadb_database ?? "");
     setVcsPassword("");
     setVcsClearPassword(false);
     setSippPassword("");
     setSippClearPassword(false);
     setSippRootPassword("");
     setSippClearRootPassword(false);
+    setMariadbPassword("");
+    setMariadbClearPassword(false);
   }
 
   useEffect(() => {
@@ -95,6 +105,8 @@ export function SettingsPage() {
         sipp_ssh_port: sippPort,
         sipp_ssh_username: sippUsername,
         sipp_ssh_private_key_path: sippPrivateKeyPath,
+        vcs_mariadb_user: mariadbUser,
+        vcs_mariadb_database: mariadbDatabase,
       };
       if (vcsClearPassword) {
         body.vcs_ssh_password = "";
@@ -110,6 +122,11 @@ export function SettingsPage() {
         body.sipp_ssh_root_password = "";
       } else if (sippRootPassword) {
         body.sipp_ssh_root_password = sippRootPassword;
+      }
+      if (mariadbClearPassword) {
+        body.vcs_mariadb_password = "";
+      } else if (mariadbPassword) {
+        body.vcs_mariadb_password = mariadbPassword;
       }
 
       const updated = await settingsApi.updateVcs(body);
@@ -347,6 +364,64 @@ export function SettingsPage() {
               </div>
             </>
           )}
+        </section>
+
+        <section className="settings-section">
+          <div className="settings-section-header">
+            <h3>VCS 녹취 DB (MariaDB)</h3>
+          </div>
+          <p className="form-hint">
+            VoLTE 기본 호처리 시험은 매번 같은 pcap을 재생하는데, pcap 안의 SIP Call-ID가 고정값이라 같은
+            시험 케이스를 반복 실행하면 VCMM 녹취 DB에서 같은 Call-ID로 중복 오류가 납니다. 아래 세 값을
+            모두 채우면, 다음 실행 전에 이전 실행에서 기록해둔 동일 Call-ID의 녹취 레코드를 자동으로
+            지웁니다(더 이상 수동으로 지울 필요 없음). 비워두면 이 기능은 꺼진 채로(기존과 동일하게)
+            동작합니다.
+          </p>
+
+          <div className="form-row">
+            <label>
+              사용자명
+              <input
+                value={mariadbUser}
+                onChange={(e) => setMariadbUser(e.target.value)}
+                placeholder="예: root"
+              />
+            </label>
+            <label>
+              비밀번호
+              <input
+                type="password"
+                value={mariadbPassword}
+                onChange={(e) => setMariadbPassword(e.target.value)}
+                disabled={mariadbClearPassword}
+                placeholder={settings.vcs_mariadb_password_set ? "변경하려면 입력 (설정됨)" : "설정 안 됨"}
+              />
+              <span className="form-checkbox-hint">
+                <input
+                  type="checkbox"
+                  checked={mariadbClearPassword}
+                  onChange={(e) => setMariadbClearPassword(e.target.checked)}
+                />
+                비밀번호 삭제(.env 값으로 되돌리기)
+              </span>
+            </label>
+          </div>
+
+          <label>
+            데이터베이스명
+            <input
+              value={mariadbDatabase}
+              onChange={(e) => setMariadbDatabase(e.target.value)}
+              placeholder="예: vcmm"
+            />
+          </label>
+
+          <div className="form-hint">
+            VCS에 이미 설정된 SSH 접속 정보(위 "VCS 접속 정보")로 먼저 로그인한 뒤, 로컬 <code>mysql</code>{" "}
+            클라이언트로 접속해서 <code>TBL_CALL_INFO</code>/<code>TBL_RECORD_INFO</code> 테이블에서
+            SIP_CALLID가 일치하는 행을 지웁니다. 정리에 실패해도(DB 접속 불가 등) 시험 실행 자체는 막지
+            않습니다 — 경고 로그만 남기고 계속 진행합니다.
+          </div>
         </section>
 
         {saveError && <div className="form-error">{saveError}</div>}

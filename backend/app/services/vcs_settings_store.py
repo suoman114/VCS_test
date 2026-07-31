@@ -23,12 +23,25 @@ CLAUDE.md §7 시험 유형별 오버라이드와 동일한 패턴).
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings, get_settings
 from app.core.database import SessionLocal
 from app.models.vcs_settings import SINGLETON_ID, VcsSettings
 from app.services.ssh_connector.client import SSHTarget
+
+
+@dataclass(frozen=True)
+class MariaDbCredentials:
+    """VCS 로컬 MariaDB(녹취 DB) 접속 정보 — VoLTE 중복 Call-ID 자동 정리용
+    (2026-07-30). `resolve_mariadb_credentials()`가 셋 다 채워져 있을 때만
+    반환한다 — 하나라도 비어있으면 기능 자체를 켜지 않는다(기존 동작 유지)."""
+
+    user: str
+    password: str
+    database: str
 
 # 대시보드 GET/PATCH가 다루는 필드 이름(모델 컬럼 = 스키마 필드 = Settings
 # 필드 이름이 대부분 동일해서 하나의 목록으로 병합 로직을 일반화한다).
@@ -46,8 +59,9 @@ SIPP_FIELDS = (
     "sipp_ssh_username",
     "sipp_ssh_private_key_path",
 )
-PASSWORD_FIELDS = ("vcs_ssh_password", "sipp_ssh_password", "sipp_ssh_root_password")
-ALL_FIELDS = VCS_FIELDS + SIPP_FIELDS + PASSWORD_FIELDS
+MARIADB_FIELDS = ("vcs_mariadb_user", "vcs_mariadb_database")
+PASSWORD_FIELDS = ("vcs_ssh_password", "sipp_ssh_password", "sipp_ssh_root_password", "vcs_mariadb_password")
+ALL_FIELDS = VCS_FIELDS + SIPP_FIELDS + MARIADB_FIELDS + PASSWORD_FIELDS
 
 
 def get_or_create(db: Session) -> VcsSettings:
@@ -122,6 +136,24 @@ def resolve_sipp_root_password(settings: Settings | None = None) -> str | None:
         row = get_or_create(db)
         value = effective_value(row, "sipp_ssh_root_password", s)
         return str(value) if value else None
+    finally:
+        db.close()
+
+
+def resolve_mariadb_credentials(settings: Settings | None = None) -> MariaDbCredentials | None:
+    """VCS 녹취 DB(MariaDB) 접속 정보. user/password/database 셋 다 채워져
+    있어야 `MariaDbCredentials`를 반환한다 — 하나라도 비어있으면 `None`을
+    반환해서 호출부(VolteBasicCallExecutor)가 자동 정리를 건너뛰게 한다."""
+    s = settings or get_settings()
+    db = SessionLocal()
+    try:
+        row = get_or_create(db)
+        user = effective_value(row, "vcs_mariadb_user", s)
+        password = effective_value(row, "vcs_mariadb_password", s)
+        database = effective_value(row, "vcs_mariadb_database", s)
+        if not user or not password or not database:
+            return None
+        return MariaDbCredentials(user=str(user), password=str(password), database=str(database))
     finally:
         db.close()
 

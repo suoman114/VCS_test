@@ -6,16 +6,24 @@
        업로드하지 않고, `protocol_params["sample_file"]`로 지정된 파일명을
        vctp 설정(`Settings.vctp_config_path`)의 `SAMPLEFILE1` 항목에 반영한다
        (`_apply_sample_file`, SSH로 `sed` 실행).
-    2. SSH로 vctp를 정지 후 재시작한다: `protocol_params["stop_cmd"]`
+    2. (선택, 2026-07-30 추가) VCS 녹취 DB(MariaDB) 접속 정보가 설정돼 있고
+       이 Test Case의 Call-ID를 알고 있으면, vctp 재기동 전에
+       `services/volte/recording_cleanup.py`로 이전 실행이 남긴 동일
+       Call-ID의 녹취 레코드를 미리 지운다 — pcap 안의 SIP Call-ID가
+       고정값이라 같은 Test Case를 반복 실행하면 VCMM 녹취 DB에서 중복
+       오류가 나던 문제(사용자가 매번 수동으로 지워야 했음)를 해소한다.
+       MariaDB 정보가 없거나 아직 알려진 Call-ID가 없으면(최초 실행 등)
+       조용히 건너뛴다.
+    3. SSH로 vctp를 정지 후 재시작한다: `protocol_params["stop_cmd"]`
        (기본 `Settings.vctp_stop_cmd`, `stopmc -b vctp`) ->
        `protocol_params["start_cmd"]`(기본 `Settings.vctp_start_cmd`,
        `startmc -b vctp`) 순서로 두 명령을 순차 실행.
-    3. `vcsm.log`/`vcmm.log`(기본 경로는 `Settings.vcs_vcsm_log_path`/
+    4. `vcsm.log`/`vcmm.log`(기본 경로는 `Settings.vcs_vcsm_log_path`/
        `vcs_vcmm_log_path`, `protocol_params`로 override 가능)를
        `CollectorSession`으로 실시간 tail 수집 시작.
-    4. `pass_criteria` 충족 또는 `protocol_params["timeout_sec"]` 타임아웃까지
+    5. `pass_criteria` 충족 또는 `protocol_params["timeout_sec"]` 타임아웃까지
        주기적으로 재파싱하며 대기.
-    5. 수집 종료 -> CallEvent 저장 -> Call Flow(Mermaid) 생성 -> 최종 상태
+    6. 수집 종료 -> CallEvent 저장 -> Call Flow(Mermaid) 생성 -> 최종 상태
        (`done`/`failed`) 반영.
 
 `TestCase.protocol_params` 키:
@@ -23,6 +31,14 @@
                                        (전체 경로 아님, 파일명만). Test Case 등록
                                        폼에서는 `GET /api/vcs/volte-sample-files`로
                                        조회한 목록 중 하나를 select box로 고른다.
+    callid (str, 선택)               : 이 pcap에 고정으로 박혀있는 SIP Call-ID를
+                                       명시적으로 지정(2026-07-30 추가). 보통은
+                                       필요 없다 — 지정하지 않으면 이 Test Case의
+                                       가장 최근 실행에서 파싱해둔 Call-ID를
+                                       자동으로 쓴다(`_last_known_call_id`). 이
+                                       Test Case를 한 번도 성공적으로 실행한 적이
+                                       없어 아직 알려진 값이 없을 때, 또는 자동
+                                       감지가 실패하는 경우의 도피처.
     vctp_config_path (str, 선택)     : 기본값 Settings.vctp_config_path
     stop_cmd / start_cmd (str, 선택) : 기본값 Settings.vctp_stop_cmd / vctp_start_cmd
     vcsm_log_path / vcmm_log_path    : 기본값 Settings.vcs_vcsm_log_path / vcs_vcmm_log_path /
@@ -54,15 +70,19 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from sqlalchemy import select
+
 from app.core.config import Settings, get_settings
 from app.core.database import SessionLocal
 from app.job_runner import job_runner
+from app.models.call_event import CallEvent, CallEventSource
 from app.models.test_run import TestRun, TestRunStatus
 from app.services.execution_common import normalize_log_paths, persist_results, wait_for_completion
 from app.services.executor_base import TestCaseLike, TestExecutor, executor_registry
 from app.services.log_collector import CollectorSession, CollectorSource, SshTailSource
 from app.services.ssh_connector import SSHConnector, SSHTarget
-from app.services.vcs_settings_store import resolve_vcs_target
+from app.services.vcs_settings_store import resolve_mariadb_credentials, resolve_vcs_target
+from app.services.volte.recording_cleanup import cleanup_stale_recording
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +137,28 @@ class VolteBasicCallExecutor(TestExecutor):
             await self._apply_sample_file(connector, config_path, sample_file)
             logger.info("VolteExecutor(%s): set SAMPLEFILE1=%s in %s", run_id, sample_file, config_path)
 
-            # 2. vctp 재기동 (정지 -> 시작 순차 실행, 명령 자체는 protocol_params/Settings에서 주입)
+            # 2. (선택) VCS 녹취 DB 정리 — pcap의 SIP Call-ID가 고정값이라
+            # 같은 Test Case를 반복 실행하면 VCMM 녹취 DB에서 중복 오류가
+            # 나던 문제(2026-07-30 요청). MariaDB 접속 정보가 설정돼 있고
+            # Call-ID를 알 때만(명시적 protocol_params.callid 또는 이 Test
+            # Case의 가장 최근 실행에서 파싱해둔 값) 실행한다.
+            mariadb_credentials = resolve_mariadb_credentials(self._settings)
+            if mariadb_credentials is not None:
+                call_id = params.get("callid") or await asyncio.to_thread(
+                    self._last_known_call_id, test_case.id
+                )
+                if call_id:
+                    await cleanup_stale_recording(
+                        connector,
+                        call_id,
+                        credentials=mariadb_credentials,
+                        call_info_table=self._settings.vcs_mariadb_call_info_table,
+                        record_info_table=self._settings.vcs_mariadb_record_info_table,
+                        callid_column=self._settings.vcs_mariadb_callid_column,
+                        run_id=run_id,
+                    )
+
+            # 3. vctp 재기동 (정지 -> 시작 순차 실행, 명령 자체는 protocol_params/Settings에서 주입)
             stop_cmd = params.get("stop_cmd", self._settings.vctp_stop_cmd)
             start_cmd = params.get("start_cmd", self._settings.vctp_start_cmd)
             for cmd in (stop_cmd, start_cmd):
@@ -135,7 +176,7 @@ class VolteBasicCallExecutor(TestExecutor):
             if wait_after > 0:
                 await asyncio.sleep(wait_after)
 
-            # 3. 로그 실시간 수집 시작 (기본 경로는 Settings, protocol_params로 override/추가 가능)
+            # 4. 로그 실시간 수집 시작 (기본 경로는 Settings, protocol_params로 override/추가 가능)
             default_log_paths = {
                 "vcsm_log": params.get("vcsm_log_path", self._settings.vcs_vcsm_log_path),
                 "vcmm_log": params.get("vcmm_log_path", self._settings.vcs_vcmm_log_path),
@@ -152,7 +193,7 @@ class VolteBasicCallExecutor(TestExecutor):
             )
             await session.start()
 
-            # 4. 완료(Pass) 또는 타임아웃까지 대기
+            # 5. 완료(Pass) 또는 타임아웃까지 대기
             timeout_sec = float(params.get("timeout_sec", 120) or 120)
             pass_criteria = getattr(test_case, "pass_criteria", {}) or {}
             completion = await wait_for_completion(
@@ -167,7 +208,7 @@ class VolteBasicCallExecutor(TestExecutor):
             await session.stop()
             session = None  # 이미 정리됨
 
-            # 5. 저장 + Call Flow 생성 + 최종 상태 반영
+            # 6. 저장 + Call Flow 생성 + 최종 상태 반영
             await job_runner.set_status(
                 run_id, TestRunStatus.PARSING, raw_log_path=str(self._run_dir_for(test_case.id, run_id))
             )
@@ -213,6 +254,27 @@ class VolteBasicCallExecutor(TestExecutor):
 
     def _run_dir_for(self, test_case_id: str, run_id: str) -> Path:
         return self._settings.log_storage_path / test_case_id / run_id
+
+    @staticmethod
+    def _last_known_call_id(test_case_id: str) -> str | None:
+        """이 Test Case의 가장 최근 실행에서 파싱된 SIP Call-ID(`vcsm_log`
+        소스)를 찾는다 — 없으면(이 Test Case의 첫 실행 등) `None`을 반환해
+        호출부가 녹취 DB 정리를 건너뛰게 한다(2026-07-30 추가)."""
+        db = SessionLocal()
+        try:
+            return db.execute(
+                select(CallEvent.call_id)
+                .join(TestRun, CallEvent.run_id == TestRun.id)
+                .where(
+                    TestRun.test_case_id == test_case_id,
+                    CallEvent.source == CallEventSource.VCSM_LOG,
+                    CallEvent.call_id.is_not(None),
+                )
+                .order_by(TestRun.created_at.desc(), CallEvent.seq_no.asc())
+                .limit(1)
+            ).scalar_one_or_none()
+        finally:
+            db.close()
 
     @staticmethod
     def _fetch_run(run_id: str) -> TestRun:

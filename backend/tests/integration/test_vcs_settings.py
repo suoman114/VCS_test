@@ -179,3 +179,35 @@ async def test_sipp_root_password_is_masked_and_patchable(
     # 다른 필드만 바꿔도(비밀번호 필드 생략) 기존 값이 유지되는지
     resp2 = await client.patch("/api/settings/vcs", json={"sipp_ssh_username": "sysadm"})
     assert resp2.json()["sipp_ssh_root_password_set"] is True
+
+
+@pytest.mark.asyncio
+async def test_mariadb_settings_masked_and_patchable(
+    client: httpx.AsyncClient, isolated_db, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """VoLTE 중복 Call-ID 자동 정리(2026-07-30)에 쓰는 VCS 녹취 DB 접속
+    정보도 다른 비밀번호 필드와 동일한 마스킹/부분갱신 계약을 따라야 한다."""
+    env_settings = _settings_no_overrides(vcs_ssh_host="10.0.0.1")
+    monkeypatch.setattr(settings_api_module, "get_settings", lambda: env_settings)
+
+    initial = await client.get("/api/settings/vcs")
+    assert initial.json()["vcs_mariadb_user"] is None
+    assert initial.json()["vcs_mariadb_password_set"] is False
+    assert initial.json()["vcs_mariadb_database"] is None
+
+    resp = await client.patch(
+        "/api/settings/vcs",
+        json={"vcs_mariadb_user": "root", "vcs_mariadb_password": "pw", "vcs_mariadb_database": "vcmm"},
+    )
+    body = resp.json()
+    assert body["vcs_mariadb_user"] == "root"
+    assert body["vcs_mariadb_password_set"] is True
+    assert body["vcs_mariadb_database"] == "vcmm"
+
+    # 비밀번호 필드를 생략해도 기존 값이 유지되는지
+    resp2 = await client.patch("/api/settings/vcs", json={"vcs_mariadb_user": "root2"})
+    assert resp2.json()["vcs_mariadb_password_set"] is True
+
+    # 빈 문자열은 오버라이드 해제(.env 값으로 복귀)
+    resp3 = await client.patch("/api/settings/vcs", json={"vcs_mariadb_database": ""})
+    assert resp3.json()["vcs_mariadb_database"] is None

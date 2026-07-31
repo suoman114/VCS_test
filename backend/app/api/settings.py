@@ -46,6 +46,9 @@ def _to_read(row, settings) -> VcsSettingsRead:
         sipp_ssh_password_set=bool(effective_value(row, "sipp_ssh_password", settings)),
         sipp_ssh_private_key_path=effective_value(row, "sipp_ssh_private_key_path", settings),
         sipp_ssh_root_password_set=bool(effective_value(row, "sipp_ssh_root_password", settings)),
+        vcs_mariadb_user=effective_value(row, "vcs_mariadb_user", settings),
+        vcs_mariadb_password_set=bool(effective_value(row, "vcs_mariadb_password", settings)),
+        vcs_mariadb_database=effective_value(row, "vcs_mariadb_database", settings),
         updated_at=row.updated_at,
     )
 

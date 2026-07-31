@@ -50,6 +50,12 @@ class VcsSettings(Base):
     # 비밀번호 (root 직접 SSH 로그인이 막혀있는 환경 대응, 2026-07-29).
     sipp_ssh_root_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
+    # VCS 녹취 DB(MariaDB) 접속 정보 — VoLTE 중복 Call-ID 자동 정리용(2026-07-30).
+    # 셋 다 채워져 있어야 기능이 활성화된다(app/services/volte/recording_cleanup.py).
+    vcs_mariadb_user: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    vcs_mariadb_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    vcs_mariadb_database: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False
     )

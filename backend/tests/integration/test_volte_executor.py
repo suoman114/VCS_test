@@ -18,12 +18,14 @@ from __future__ import annotations
 
 import json
 from collections.abc import AsyncIterator
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
 import app.services.volte.executor as volte_executor_module
 from app.core.config import Settings
+from app.models.call_event import CallEvent, CallEventSource
 from app.models.test_case import TestCase, TestCaseCategory, TestCaseType
 from app.models.test_run import TestRun, TestRunStatus
 from app.services.log_collector.base import LogSource
@@ -155,3 +157,169 @@ async def test_volte_executor_run_passes_with_sample_logs(isolated_db, tmp_path:
 
     assert result_run.target_host == "fake-vcs"
     assert result_run.raw_log_path is not None
+
+
+# --- VCS 녹취 DB(MariaDB) 중복 Call-ID 자동 정리 (2026-07-30 요청) ---
+# pcap 안의 SIP Call-ID가 고정값이라 같은 Test Case를 반복 실행하면 VCMM
+# 녹취 DB에서 중복 오류가 나던 문제 — MariaDB 접속 정보가 설정돼 있고 이
+# Test Case의 Call-ID를 알 때만(이전 실행 이력 또는 명시적 protocol_params
+# .callid) vctp 재기동 전에 정리 명령이 자동으로 실행되는지 확인한다.
+
+
+def _mariadb_settings(tmp_path: Path) -> Settings:
+    return Settings(
+        storage_dir=str(tmp_path / "storage"),
+        vcs_mariadb_user="root",
+        vcs_mariadb_password="pw",
+        vcs_mariadb_database="vcmm",
+    )
+
+
+def _seed_prior_run_with_call_id(isolated_db, test_case_id: str, call_id: str) -> None:
+    """이 Test Case의 "이전 실행"을 흉내낸다 — vcsm_log CallEvent 하나만
+    있으면 `_last_known_call_id`가 찾을 수 있다."""
+    db = isolated_db()
+    try:
+        prior_run = TestRun(test_case_id=test_case_id, status=TestRunStatus.DONE)
+        db.add(prior_run)
+        db.flush()
+        db.add(
+            CallEvent(
+                run_id=prior_run.id,
+                ts=datetime.now(timezone.utc),
+                source=CallEventSource.VCSM_LOG,
+                raw_line=f"INVITE ... Call-ID: {call_id}",
+                parsed_type="SIP_INVITE",
+                call_id=call_id,
+                seq_no=1,
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+
+@pytest.mark.asyncio
+async def test_volte_executor_cleans_up_stale_recording_when_call_id_known(
+    isolated_db, tmp_path: Path
+) -> None:
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+    _seed_prior_run_with_call_id(isolated_db, test_case.id, "prior-call-id@10.0.0.1")
+
+    fake_connector = _FakeSSHConnector(SSHTarget(host="fake-vcs"))
+    isolated_settings = _mariadb_settings(tmp_path)
+
+    executor = VolteBasicCallExecutor(
+        run_id=run_id,
+        settings=isolated_settings,
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        ssh_connector_factory=lambda target: fake_connector,
+    )
+    await executor.run(test_case)
+
+    # sed + 정리 명령(mysql) + stop + start = 4개. 정리 명령이 sed보다
+    # 먼저(vctp 재기동 전에) 실행돼야 한다는 요구사항은 없지만, 구현상
+    # sed 다음/재기동 전에 실행되므로 순서까지 같이 확인한다.
+    assert len(fake_connector.commands) == 4
+    cleanup_cmd = fake_connector.commands[1]
+    assert cleanup_cmd.startswith("mysql -uroot")
+    assert "TBL_CALL_INFO" in cleanup_cmd
+    assert "TBL_RECORD_INFO" in cleanup_cmd
+    assert "prior-call-id@10.0.0.1" in cleanup_cmd
+
+
+@pytest.mark.asyncio
+async def test_volte_executor_skips_cleanup_when_no_prior_call_id_known(
+    isolated_db, tmp_path: Path
+) -> None:
+    """MariaDB는 설정돼 있어도, 이 Test Case를 실행한 이력이 아직 없으면
+    (첫 실행) 지울 대상 Call-ID 자체를 모르므로 정리를 건너뛴다."""
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+    fake_connector = _FakeSSHConnector(SSHTarget(host="fake-vcs"))
+    isolated_settings = _mariadb_settings(tmp_path)
+
+    executor = VolteBasicCallExecutor(
+        run_id=run_id,
+        settings=isolated_settings,
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        ssh_connector_factory=lambda target: fake_connector,
+    )
+    await executor.run(test_case)
+
+    assert len(fake_connector.commands) == 3
+    assert not any("mysql" in cmd for cmd in fake_connector.commands)
+
+
+@pytest.mark.asyncio
+async def test_volte_executor_explicit_callid_param_triggers_cleanup_without_history(
+    isolated_db, tmp_path: Path
+) -> None:
+    """`protocol_params.callid`를 명시하면 이전 실행 이력이 없어도(첫 실행)
+    그 값으로 정리를 시도한다 — 자동 감지가 안 되는 경우의 도피처."""
+    db = isolated_db()
+    try:
+        test_case = TestCase(
+            name="volte-executor-explicit-callid-fixture",
+            category=TestCaseCategory.VOLTE,
+            test_type=TestCaseType.BASIC_CALL,
+            config_ref="imsVideo30sec.pcap",
+            protocol_params={
+                "sample_file": "imsVideo30sec.pcap",
+                "vcsm_log_path": str(_VOLTE_VCSM_LOG),
+                "vcmm_log_path": str(_VOLTE_VCMM_LOG),
+                "vctp_log_path": str(_VOLTE_VCTP_LOG),
+                "timeout_sec": 5,
+                "callid": "manual-override-call-id",
+            },
+            pass_criteria={},
+        )
+        db.add(test_case)
+        db.commit()
+        db.refresh(test_case)
+        db.expunge(test_case)
+
+        test_run = TestRun(test_case_id=test_case.id, status=TestRunStatus.PENDING)
+        db.add(test_run)
+        db.commit()
+        run_id = test_run.id
+        db.expunge(test_run)
+    finally:
+        db.close()
+
+    fake_connector = _FakeSSHConnector(SSHTarget(host="fake-vcs"))
+    isolated_settings = _mariadb_settings(tmp_path)
+
+    executor = VolteBasicCallExecutor(
+        run_id=run_id,
+        settings=isolated_settings,
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        ssh_connector_factory=lambda target: fake_connector,
+    )
+    await executor.run(test_case)
+
+    assert len(fake_connector.commands) == 4
+    assert "manual-override-call-id" in fake_connector.commands[1]
+
+
+@pytest.mark.asyncio
+async def test_volte_executor_skips_cleanup_when_mariadb_not_configured(
+    isolated_db, tmp_path: Path
+) -> None:
+    """MariaDB 접속 정보가 하나라도 비어있으면(기본값, 기존 배포) 이력이
+    있어도 정리 기능 자체가 꺼져 있어야 한다 — 기존 동작과 100% 호환."""
+    test_case, run_id = _seed_test_case_and_run(isolated_db)
+    _seed_prior_run_with_call_id(isolated_db, test_case.id, "prior-call-id@10.0.0.1")
+
+    fake_connector = _FakeSSHConnector(SSHTarget(host="fake-vcs"))
+    isolated_settings = Settings(storage_dir=str(tmp_path / "storage"))  # mariadb_* 전부 None
+
+    executor = VolteBasicCallExecutor(
+        run_id=run_id,
+        settings=isolated_settings,
+        ssh_target_factory=lambda: SSHTarget(host="fake-vcs"),
+        ssh_connector_factory=lambda target: fake_connector,
+    )
+    await executor.run(test_case)
+
+    assert len(fake_connector.commands) == 3
+    assert not any("mysql" in cmd for cmd in fake_connector.commands)

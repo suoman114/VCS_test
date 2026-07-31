@@ -42,6 +42,12 @@ class VcsSettingsRead(BaseModel):
     # su 없이 sipp_ssh_username 권한으로 직접 실행한다.
     sipp_ssh_root_password_set: bool
 
+    # VCS 녹취 DB(MariaDB) — VoLTE 중복 Call-ID 자동 정리용(2026-07-30). 셋 다
+    # 채워져 있어야 기능이 켜진다(하나라도 비어있으면 기존처럼 수동 정리 필요).
+    vcs_mariadb_user: str | None
+    vcs_mariadb_password_set: bool
+    vcs_mariadb_database: str | None
+
     updated_at: datetime | None
 
 
@@ -62,6 +68,10 @@ class VcsSettingsUpdate(BaseModel):
     sipp_ssh_password: str | None = None
     sipp_ssh_private_key_path: str | None = None
     sipp_ssh_root_password: str | None = None
+
+    vcs_mariadb_user: str | None = None
+    vcs_mariadb_password: str | None = None
+    vcs_mariadb_database: str | None = None
 
 
 class ConnectionTestResult(BaseModel):
